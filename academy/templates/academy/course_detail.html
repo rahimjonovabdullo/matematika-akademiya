@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ course.title }} — Matematika Akademiya{% endblock %}
+{% block content %}
+<div class="card">
+  <span class="pill">{{ course.price }} so'm</span>
+  <h1>{{ course.title }}</h1>
+  <p>{{ course.description }}</p>
+
+  {% if has_access %}
+    <a class="btn" href="{% url 'take_quiz' course.slug %}">Testni boshlash</a>
+  {% elif enrollment %}
+    <p><b>So'rovingiz qabul qilingan.</b> To'lov tasdiqlangach, kursga kirish ochiladi.</p>
+  {% elif user.is_authenticated %}
+    <h3>Kursga yozilish</h3>
+    <p>Quyidagi ma'lumotlarni to'ldiring, to'lov tasdiqlangach kirish ochiladi.</p>
+    <form method="post">
+      {% csrf_token %}
+      {% for f in form %}
+        <label for="{{ f.id_for_label }}">{{ f.label }}</label>
+        {{ f }}
+        {% if f.help_text %}<small>{{ f.help_text }}</small>{% endif %}
+      {% endfor %}
+      <div style="margin-top:14px"><button class="btn" type="submit">So'rov yuborish</button></div>
+    </form>
+  {% else %}
+    <p><a class="btn" href="{% url 'login' %}?next={{ request.path }}">Kursga yozilish uchun kiring</a></p>
+  {% endif %}
+</div>
+
+<h2>Darslar</h2>
+<div class="card">
+  {% for l in lessons %}
+  <div class="row">
+    <div><b>{{ l.title }}</b>{% if l.is_free_preview %} <span class="pill">Demo</span>{% endif %}</div>
+    {% if l.video_url %}<a class="btn ghost" href="{{ l.video_url }}" target="_blank" rel="noopener">Videoni ko'rish</a>{% endif %}
+  </div>
+  {% empty %}
+  <p>{% if has_access %}Hali dars qo'shilmagan.{% else %}Darslarni ko'rish uchun kursga yoziling.{% endif %}</p>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h1>Natija: {{ attempt.score }} / {{ attempt.total }} ({{ attempt.percent }}%)</h1>
+  <div class="bar"><i style="width:{{ attempt.percent }}%"></i></div>
+  <p style="margin-top:20px"><a class="btn ghost" href="{% url 'dashboard' %}">Kabinetga qaytish</a></p>
+</div>
+{% endblock %}

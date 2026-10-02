@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width:420px;margin:0 auto">
+  <h1>Kirish</h1>
+  <form method="post">
+    {% csrf_token %}
+    {% for f in form %}
+      <label for="{{ f.id_for_label }}">{{ f.label }}</label>
+      {{ f }}
+      {% for e in f.errors %}<small style="color:var(--red)">{{ e }}</small>{% endfor %}
+    {% endfor %}
+    <div style="margin-top:16px"><button class="btn" type="submit">Kirish</button></div>
+  </form>
+  <p style="margin-top:14px">Akkountingiz yo'qmi? <a href="{% url 'register' %}">Ro'yxatdan o'tish</a></p>
+</div>
+{% endblock %}

@@ -1,0 +1,114 @@
+from django.contrib import messages
+from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+
+from .forms import EnrollRequestForm, RegisterForm
+from .models import Choice, Course, Enrollment, QuizAttempt
+
+
+def home(request):
+    courses = Course.objects.filter(is_published=True)
+    return render(request, "academy/home.html", {"courses": courses})
+
+
+def register(request):
+    if request.method == "POST":
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, "Xush kelibsiz! Ro'yxatdan muvaffaqiyatli o'tdingiz.")
+            return redirect("dashboard")
+    else:
+        form = RegisterForm()
+    return render(request, "registration/register.html", {"form": form})
+
+
+@login_required
+def dashboard(request):
+    enrollments = Enrollment.objects.filter(student=request.user).select_related("course")
+    attempts = QuizAttempt.objects.filter(student=request.user).select_related("course")[:10]
+    return render(
+        request,
+        "academy/dashboard.html",
+        {"enrollments": enrollments, "attempts": attempts},
+    )
+
+
+def course_detail(request, slug):
+    course = get_object_or_404(Course, slug=slug, is_published=True)
+    enrollment = None
+    if request.user.is_authenticated:
+        enrollment = Enrollment.objects.filter(student=request.user, course=course).first()
+    has_access = bool(enrollment and enrollment.is_active)
+
+    form = None
+    if request.user.is_authenticated and enrollment is None:
+        if request.method == "POST":
+            form = EnrollRequestForm(request.POST)
+            if form.is_valid():
+                Enrollment.objects.create(
+                    student=request.user,
+                    course=course,
+                    phone=form.cleaned_data["phone"],
+                    note=form.cleaned_data["note"],
+                )
+                messages.success(
+                    request,
+                    "So'rovingiz qabul qilindi. To'lov tasdiqlangach, kursga kirish ochiladi.",
+                )
+                return redirect("course_detail", slug=slug)
+        else:
+            form = EnrollRequestForm()
+
+    lessons = course.lessons.all()
+    if not has_access:
+        lessons = lessons.filter(is_free_preview=True)
+
+    return render(
+        request,
+        "academy/course_detail.html",
+        {
+            "course": course,
+            "lessons": lessons,
+            "has_access": has_access,
+            "enrollment": enrollment,
+            "form": form,
+        },
+    )
+
+
+@login_required
+def take_quiz(request, slug):
+    course = get_object_or_404(Course, slug=slug, is_published=True)
+    enrollment = Enrollment.objects.filter(student=request.user, course=course, is_active=True).first()
+    if not enrollment:
+        messages.error(request, "Bu kurs testiga kirish uchun avval kursga yozilib, to'lovni tasdiqlating.")
+        return redirect("course_detail", slug=slug)
+
+    questions = list(course.questions.prefetch_related("choices"))
+
+    if request.method == "POST":
+        score = 0
+        for q in questions:
+            selected = request.POST.get(f"q{q.id}")
+            correct_choice = next((c for c in q.choices.all() if c.is_correct), None)
+            if selected and correct_choice and str(correct_choice.id) == selected:
+                score += 1
+        attempt = QuizAttempt.objects.create(
+            student=request.user, course=course, score=score, total=len(questions)
+        )
+        return redirect("quiz_result", attempt_id=attempt.id)
+
+    if not questions:
+        messages.info(request, "Bu kurs uchun hali savollar qo'shilmagan.")
+        return redirect("course_detail", slug=slug)
+
+    return render(request, "academy/take_quiz.html", {"course": course, "questions": questions})
+
+
+@login_required
+def quiz_result(request, attempt_id):
+    attempt = get_object_or_404(QuizAttempt, id=attempt_id, student=request.user)
+    return render(request, "academy/quiz_result.html", {"attempt": attempt})

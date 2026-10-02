@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h1>{{ course.title }} — Test</h1>
+  <form method="post">
+    {% csrf_token %}
+    {% for q in questions %}
+      <div style="margin:20px 0;padding-top:16px;border-top:1px solid var(--line)">
+        <b>{{ forloop.counter }}. {{ q.text }}</b>
+        {% for c in q.choices.all %}
+          <label class="opt" style="font-weight:500">
+            <input type="radio" name="q{{ q.id }}" value="{{ c.id }}" required> {{ c.text }}
+          </label>
+        {% endfor %}
+      </div>
+    {% endfor %}
+    <button class="btn" type="submit">Yakunlash</button>
+  </form>
+</div>
+{% endblock %}
