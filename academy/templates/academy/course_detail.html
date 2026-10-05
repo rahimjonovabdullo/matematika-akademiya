@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% block title %}{{ course.title }} — Matematika Akademiya{% endblock %}
+{% block crumb %}{{ course.title }}{% endblock %}
 {% block content %}
 <div class="card">
   <span class="pill">{{ course.price }} so'm</span>
   <h1>{{ course.title }}</h1>
-  <p>{{ course.description }}</p>
+  <p style="color:var(--mute)">{{ course.description }}</p>
 
   {% if has_access %}
     <a class="btn" href="{% url 'take_quiz' course.slug %}">Testni boshlash</a>
@@ -12,18 +13,18 @@
     <p><b>So'rovingiz qabul qilingan.</b> To'lov tasdiqlangach, kursga kirish ochiladi.</p>
   {% elif user.is_authenticated %}
     <h3>Kursga yozilish</h3>
-    <p>Quyidagi ma'lumotlarni to'ldiring, to'lov tasdiqlangach kirish ochiladi.</p>
+    <p style="color:var(--mute)">Quyidagi ma'lumotlarni to'ldiring, to'lov tasdiqlangach kirish ochiladi.</p>
     <form method="post">
       {% csrf_token %}
       {% for f in form %}
         <label for="{{ f.id_for_label }}">{{ f.label }}</label>
         {{ f }}
-        {% if f.help_text %}<small>{{ f.help_text }}</small>{% endif %}
+        {% if f.help_text %}<small style="color:var(--mute)">{{ f.help_text }}</small>{% endif %}
       {% endfor %}
       <div style="margin-top:14px"><button class="btn" type="submit">So'rov yuborish</button></div>
     </form>
   {% else %}
-    <p><a class="btn" href="{% url 'login' %}?next={{ request.path }}">Kursga yozilish uchun kiring</a></p>
+    <a class="btn" href="{% url 'login' %}?next={{ request.path }}">Kursga yozilish uchun kiring</a>
   {% endif %}
 </div>
 
