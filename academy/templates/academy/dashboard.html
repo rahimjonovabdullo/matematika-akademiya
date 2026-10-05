@@ -1,6 +1,15 @@
 {% extends "base.html" %}
+{% block crumb %}Kabinet{% endblock %}
 {% block content %}
-<div class="hero"><h1>Salom, {{ user.first_name|default:user.username }}!</h1><p>Shaxsiy kabinetingiz.</p></div>
+<div class="hero">
+  <div class="chips"><span class="chip l">Xush kelibsiz</span></div>
+  <h1>Salom, {{ user.first_name|default:user.username }}!</h1>
+  <p>Shaxsiy kabinetingiz — kurslaringiz va natijalaringiz shu yerda.</p>
+</div>
+<div class="stats">
+  <div class="card stat"><div class="sr"><b>{{ enrollments.count }}</b></div><span>KURSLARIM</span></div>
+  <div class="card stat"><div class="sr"><b>{{ attempts.count }}</b></div><span>TOPSHIRILGAN TESTLAR</span></div>
+</div>
 
 <h2>Kurslarim</h2>
 <div class="grid">
@@ -11,7 +20,7 @@
     <a class="btn ghost" href="{% url 'course_detail' e.course.slug %}">Kursga o'tish</a>
   </div>
   {% empty %}
-  <p>Hali hech qaysi kursga yozilmagansiz. <a href="{% url 'home' %}">Kurslarni ko'ring</a>.</p>
+  <div class="card"><p>Hali hech qaysi kursga yozilmagansiz. <a href="{% url 'home' %}" style="text-decoration:underline">Kurslarni ko'ring</a>.</p></div>
   {% endfor %}
 </div>
 
@@ -19,7 +28,7 @@
 <div class="card">
   {% for a in attempts %}
   <div class="row">
-    <div><b>{{ a.course.title }}</b><br><small>{{ a.created_at|date:"d.m.Y H:i" }}</small></div>
+    <div><b>{{ a.course.title }}</b><br><small style="color:var(--mute)">{{ a.created_at|date:"d.m.Y H:i" }}</small></div>
     <div>{{ a.score }}/{{ a.total }} · {{ a.percent }}%</div>
   </div>
   {% empty %}
