@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block crumb %}Test{% endblock %}
 {% block content %}
 <div class="card">
   <h1>{{ course.title }} — Test</h1>
@@ -8,8 +9,8 @@
       <div style="margin:20px 0;padding-top:16px;border-top:1px solid var(--line)">
         <b>{{ forloop.counter }}. {{ q.text }}</b>
         {% for c in q.choices.all %}
-          <label class="opt" style="font-weight:500">
-            <input type="radio" name="q{{ q.id }}" value="{{ c.id }}" required> {{ c.text }}
+          <label class="opt" style="font-weight:500;display:flex;gap:10px;align-items:center">
+            <input type="radio" name="q{{ q.id }}" value="{{ c.id }}" required style="width:auto"> {{ c.text }}
           </label>
         {% endfor %}
       </div>
