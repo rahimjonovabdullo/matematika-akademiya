@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block crumb %}Guruhlarim{% endblock %}
+{% block content %}
+<h1>Guruhlarim</h1>
+<div class="grid">
+  {% for g in groups %}
+  <div class="card">
+    <h3>{{ g.name }}</h3>
+    {% if g.course %}<p style="color:var(--mute)">Kurs: {{ g.course.title }}</p>{% endif %}
+    <p><span class="pill">{{ g.members.count }} a'zo</span></p>
+  </div>
+  {% empty %}
+  <div class="card"><p>Siz hali hech qaysi guruhga qo'shilmagansiz. O'qituvchingiz sizni guruhga qo'shganda shu yerda ko'rinadi.</p></div>
+  {% endfor %}
+</div>
+{% endblock %}
