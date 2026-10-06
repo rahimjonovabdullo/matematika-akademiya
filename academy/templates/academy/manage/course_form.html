@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{% if course %}Kursni tahrirlash{% else %}Yangi kurs{% endif %} — Boshqaruv{% endblock %}
+{% block content %}
+<div class="mg">
+  <h1 class="mg-h">Boshqaruv paneli</h1>
+  {% include "academy/manage/_nav.html" %}
+
+  <div class="mg-head">
+    <h2>{% if course %}Kursni tahrirlash{% else %}Yangi kurs{% endif %}</h2>
+  </div>
+
+  <form method="post" class="mg-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for f in form %}
+    <div class="mg-field">
+      {% if f.field.widget.input_type == 'checkbox' %}
+      <label class="mg-check">{{ f }} {{ f.label }}</label>
+      {% else %}
+      <label for="{{ f.id_for_label }}">{{ f.label }}</label>
+      {{ f }}
+      {% endif %}
+      {% if f.help_text %}<small>{{ f.help_text }}</small>{% endif %}
+      {{ f.errors }}
+    </div>
+    {% endfor %}
+    <div class="mg-form-actions">
+      <button class="mg-btn" type="submit">Saqlash</button>
+      <a class="mg-btn mg-btn-line" href="{% url 'manage_courses' %}">Bekor qilish</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
