@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block crumb %}Natijalarim{% endblock %}
+{% block content %}
+<h1>Natijalarim</h1>
+<div class="card">
+  {% for a in attempts %}
+  <div class="row">
+    <div><b>{{ a.course.title }}</b><br><small style="color:var(--mute)">{{ a.created_at|date:"d.m.Y H:i" }}</small></div>
+    <div style="min-width:160px">
+      {{ a.score }}/{{ a.total }} · {{ a.percent }}%
+      <div class="bar"><i style="width:{{ a.percent }}%"></i></div>
+    </div>
+  </div>
+  {% empty %}
+  <p>Hali test topshirmagansiz. <a href="{% url 'tests_list' %}" style="text-decoration:underline">Testlar bo'limiga o'ting</a>.</p>
+  {% endfor %}
+</div>
+{% endblock %}
