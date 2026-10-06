@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Choice, Course, Enrollment, Lesson, Question, QuizAttempt
+from .models import Choice, Course, Enrollment, Group, Lesson, Question, QuizAttempt
 
 
 class LessonInline(admin.TabularInline):
@@ -50,6 +50,12 @@ class EnrollmentAdmin(admin.ModelAdmin):
     @admin.action(description="Tanlangan yozuvlar uchun kursga kirishni yopish")
     def kursni_yopish(self, request, queryset):
         queryset.update(is_active=False)
+
+
+@admin.register(Group)
+class GroupAdmin(admin.ModelAdmin):
+    list_display = ("name", "course", "created_at")
+    filter_horizontal = ("members",)
 
 
 @admin.register(QuizAttempt)
