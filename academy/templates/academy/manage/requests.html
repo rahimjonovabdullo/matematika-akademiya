@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}So'rovlar — Boshqaruv{% endblock %}
+{% block content %}
+<div class="mg">
+  <h1 class="mg-h">Boshqaruv paneli</h1>
+  {% include "academy/manage/_nav.html" %}
+
+  <div class="mg-head">
+    <h2>Kursga yozilish so'rovlari</h2>
+  </div>
+
+  <div class="mg-filter">
+    <a class="mg-tab {% if not holat %}on{% endif %}" href="{% url 'manage_requests' %}">Hammasi</a>
+    <a class="mg-tab {% if holat == 'kutilmoqda' %}on{% endif %}" href="{% url 'manage_requests' %}?holat=kutilmoqda">Kutilmoqda</a>
+    <a class="mg-tab {% if holat == 'ochiq' %}on{% endif %}" href="{% url 'manage_requests' %}?holat=ochiq">Ruxsat berilgan</a>
+  </div>
+
+  {% if enrollments %}
+  <div class="mg-table">
+    {% for e in enrollments %}
+    <div class="mg-row">
+      <div class="mg-main">
+        <b>{{ e.student.get_full_name|default:e.student.username }} <small style="display:inline">({{ e.student.username }})</small></b>
+        <small>{{ e.course.title }}{% if e.phone %} · Tel: {{ e.phone }}{% endif %} · {{ e.created_at|date:"d.m.Y H:i" }}</small>
+        {% if e.note %}<small>Izoh: {{ e.note }}</small>{% endif %}
+      </div>
+      <span class="mg-pill {% if e.is_active %}on{% else %}off{% endif %}">{% if e.is_active %}Ruxsat berilgan{% else %}Kutilmoqda{% endif %}</span>
+      <div class="mg-actions">
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="id" value="{{ e.pk }}">
+          {% if e.is_active %}
+          <button class="mg-btn mg-btn-line mg-btn-sm" name="action" value="close" type="submit">Yopish</button>
+          {% else %}
+          <button class="mg-btn mg-btn-sm" name="action" value="open" type="submit">Ruxsat berish</button>
+          {% endif %}
+        </form>
+        <form method="post" onsubmit="return confirm('Bu so‘rov o‘chiriladi. Davom etasizmi?');">
+          {% csrf_token %}
+          <input type="hidden" name="id" value="{{ e.pk }}">
+          <button class="mg-btn mg-btn-red mg-btn-sm" name="action" value="delete" type="submit">O'chirish</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="mg-empty">Hozircha so'rovlar yo'q.</div>
+  {% endif %}
+</div>
+{% endblock %}
