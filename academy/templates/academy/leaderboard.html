@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block crumb %}Liderlar{% endblock %}
+{% block content %}
+<h1>Liderlar</h1>
+<p style="color:var(--mute)">Barcha o'quvchilarning eng yaxshi test natijalari bo'yicha reyting.</p>
+<div class="card">
+  {% for r in rows %}
+  <div class="row">
+    <div><b>{{ forloop.counter }}. {{ r.student__first_name|default:r.student__username }}</b></div>
+    <div><span class="pill">Eng yaxshi: {{ r.best }} ball</span> &nbsp; <small style="color:var(--mute)">{{ r.attempts_count }} ta urinish</small></div>
+  </div>
+  {% empty %}
+  <p>Hali hech kim test topshirmagan.</p>
+  {% endfor %}
+</div>
+{% endblock %}
