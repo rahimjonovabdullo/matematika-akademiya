@@ -4,9 +4,17 @@ from django.urls import reverse
 
 
 class Course(models.Model):
+    CATEGORY_CHOICES = [
+        ("asosiy", "Asosiy"),
+        ("milliy", "Milliy Sertifikat"),
+        ("attestatsiya", "Attestatsiya"),
+        ("sat", "SAT"),
+    ]
+
     title = models.CharField("Nomi", max_length=200)
     slug = models.SlugField("Slug", unique=True, help_text="Manzilda ko'rinadigan qism, masalan: algebra-asoslari")
     description = models.TextField("Tavsif", blank=True)
+    category = models.CharField("Toifa", max_length=20, choices=CATEGORY_CHOICES, default="asosiy")
     price = models.PositiveIntegerField("Narxi (so'm)", default=0)
     is_published = models.BooleanField("Sahifada ko'rinsinmi", default=True)
     created_at = models.DateTimeField(auto_now_add=True)
