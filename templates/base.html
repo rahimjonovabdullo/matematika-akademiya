@@ -12,6 +12,9 @@
 <link rel="stylesheet" href="{% static 'academy/topbar.css' %}">
 </head>
 <body>
+{% url 'home' as home_url %}
+{% url 'tests_list' as tests_url %}
+{% if request.path == tests_url %}{% url 'tests_list' as tab_base %}{% else %}{% url 'home' as tab_base %}{% endif %}
 <div class="app">
   <aside class="side">
     <div class="brand"><div class="logo">M</div><div><b>Matematika Akademiya</b><small>Ta'lim platformasi</small></div></div>
@@ -40,10 +43,10 @@
   <div class="main">
     <div class="tb">
       <nav class="tb-tabs">
-        <a class="tb-tab {% if request.resolver_match.url_name == 'home' and not request.GET.bolim %}on{% endif %}" href="{% url 'home' %}">Asosiy</a>
-        <a class="tb-tab {% if request.GET.bolim == 'milliy' %}on{% endif %}" href="{% url 'home' %}?bolim=milliy">Milliy Sertifikat</a>
-        <a class="tb-tab {% if request.GET.bolim == 'attestatsiya' %}on{% endif %}" href="{% url 'home' %}?bolim=attestatsiya">Attestatsiya</a>
-        <a class="tb-tab {% if request.GET.bolim == 'sat' %}on{% endif %}" href="{% url 'home' %}?bolim=sat">SAT</a>
+        <a class="tb-tab {% if request.path == tab_base and not request.GET.bolim %}on{% endif %}" href="{{ tab_base }}">Asosiy</a>
+        <a class="tb-tab {% if request.GET.bolim == 'milliy' %}on{% endif %}" href="{{ tab_base }}?bolim=milliy">Milliy Sertifikat</a>
+        <a class="tb-tab {% if request.GET.bolim == 'attestatsiya' %}on{% endif %}" href="{{ tab_base }}?bolim=attestatsiya">Attestatsiya</a>
+        <a class="tb-tab {% if request.GET.bolim == 'sat' %}on{% endif %}" href="{{ tab_base }}?bolim=sat">SAT</a>
       </nav>
       <div class="tb-right">
         {% if user.is_authenticated %}
