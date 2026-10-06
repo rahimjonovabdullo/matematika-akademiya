@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block crumb %}Testlar{% endblock %}
+{% block content %}
+<h1>Testlar</h1>
+<div class="grid">
+  {% for c in courses %}
+  <div class="card">
+    <span class="pill">{{ c.questions.count }} ta savol</span>
+    <h3>{{ c.title }}</h3>
+    <p style="color:var(--mute)">{{ c.description|truncatewords:16 }}</p>
+    <a class="btn" href="{% url 'course_detail' c.slug %}">Kursga o'tish</a>
+  </div>
+  {% empty %}
+  <div class="card"><p>Hozircha testlar yo'q.</p></div>
+  {% endfor %}
+</div>
+{% endblock %}
