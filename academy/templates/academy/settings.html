@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block crumb %}Sozlamalar{% endblock %}
+{% block content %}
+<h1>Sozlamalar</h1>
+{% if request.GET.saved %}<div class="msg success">Parolingiz muvaffaqiyatli yangilandi.</div>{% endif %}
+<div class="card" style="max-width:420px">
+  <h3>Parolni o'zgartirish</h3>
+  <form method="post">
+    {% csrf_token %}
+    {% for f in form %}
+      <label for="{{ f.id_for_label }}">{{ f.label }}</label>
+      {{ f }}
+      {% for e in f.errors %}<small style="color:var(--red)">{{ e }}</small>{% endfor %}
+    {% endfor %}
+    <div style="margin-top:16px"><button class="btn" type="submit">Saqlash</button></div>
+  </form>
+</div>
+{% endblock %}
