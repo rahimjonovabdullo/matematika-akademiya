@@ -8,13 +8,16 @@ from .forms import EnrollRequestForm, RegisterForm
 from .models import Choice, Course, Enrollment, Group, QuizAttempt
 
 
-def home(request):
+def filter_by_section(request, courses):
+    """?bolim=milliy kabi parametr bo'yicha kurslarni toifaga ajratadi."""
     bolim = request.GET.get("bolim", "")
-    courses = Course.objects.filter(is_published=True)
     if bolim in dict(Course.CATEGORY_CHOICES):
-        courses = courses.filter(category=bolim)
-    else:
-        bolim = ""
+        return courses.filter(category=bolim), bolim
+    return courses, ""
+
+
+def home(request):
+    courses, bolim = filter_by_section(request, Course.objects.filter(is_published=True))
     return render(
         request,
         "academy/home.html",
@@ -126,7 +129,8 @@ def quiz_result(request, attempt_id):
 
 def tests_list(request):
     courses = Course.objects.filter(is_published=True).prefetch_related("questions")
-    return render(request, "academy/tests_list.html", {"courses": courses})
+    courses, bolim = filter_by_section(request, courses)
+    return render(request, "academy/tests_list.html", {"courses": courses, "bolim": bolim})
 
 
 @login_required
