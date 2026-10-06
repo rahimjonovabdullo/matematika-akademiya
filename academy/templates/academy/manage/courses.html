@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Kurslar — Boshqaruv{% endblock %}
+{% block content %}
+<div class="mg">
+  <h1 class="mg-h">Boshqaruv paneli</h1>
+  {% include "academy/manage/_nav.html" %}
+
+  <div class="mg-head">
+    <h2>Kurslar</h2>
+    <a class="mg-add" href="{% url 'manage_course_new' %}">+ Yangi kurs</a>
+  </div>
+
+  {% if courses %}
+  <div class="mg-table">
+    {% for c in courses %}
+    <div class="mg-row">
+      <div class="mg-main">
+        <b>{{ c.title }}</b>
+        <small>{{ c.get_category_display }} · {{ c.price }} so'm · {{ c.lessons_count }} ta dars · {{ c.questions_count }} ta savol</small>
+      </div>
+      <span class="mg-pill {% if c.is_published %}on{% else %}off{% endif %}">{% if c.is_published %}Saytda ko'rinadi{% else %}Yashirin{% endif %}</span>
+      <div class="mg-actions">
+        <a class="mg-btn mg-btn-line mg-btn-sm" href="{% url 'course_detail' c.slug %}">Ko'rish</a>
+        <a class="mg-btn mg-btn-sm" href="{% url 'manage_course_edit' c.pk %}">Tahrirlash</a>
+        <form method="post" action="{% url 'manage_course_delete' c.pk %}" onsubmit="return confirm('«{{ c.title|escapejs }}» kursi butunlay o‘chiriladi. Davom etasizmi?');">
+          {% csrf_token %}
+          <button class="mg-btn mg-btn-red mg-btn-sm" type="submit">O'chirish</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="mg-empty">Hali kurs yo'q. «+ Yangi kurs» tugmasini bosing.</div>
+  {% endif %}
+</div>
+{% endblock %}
