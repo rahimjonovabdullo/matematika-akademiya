@@ -108,3 +108,25 @@ class QuizAttempt(models.Model):
 
     def __str__(self):
         return f"{self.student.username} — {self.course.title}: {self.score}/{self.total}"
+
+
+class Group(models.Model):
+    """O'qituvchi tomonidan yaratiladigan o'quvchilar guruhi."""
+
+    name = models.CharField("Nomi", max_length=150)
+    course = models.ForeignKey(
+        Course, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="groups", verbose_name="Bog'liq kurs"
+    )
+    members = models.ManyToManyField(
+        User, blank=True, related_name="study_groups", verbose_name="A'zolar"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Guruh"
+        verbose_name_plural = "Guruhlar"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.name
