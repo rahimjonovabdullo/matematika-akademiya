@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'academy/style.css' %}">
+<link rel="stylesheet" href="{% static 'academy/topbar.css' %}">
 </head>
 <body>
 <div class="app">
@@ -37,9 +38,21 @@
     {% endif %}
   </aside>
   <div class="main">
-    <div class="top">
-      <span class="crumb">{% block crumb %}Bosh sahifa{% endblock %}</span>
-      {% if user.is_authenticated %}<div class="av">{{ user.first_name|slice:":1"|default:user.username|slice:":1"|upper }}</div>{% endif %}
+    <div class="tb">
+      <nav class="tb-tabs">
+        <a class="tb-tab {% if request.resolver_match.url_name == 'home' and not request.GET.bolim %}on{% endif %}" href="{% url 'home' %}">Asosiy</a>
+        <a class="tb-tab {% if request.GET.bolim == 'milliy' %}on{% endif %}" href="{% url 'home' %}?bolim=milliy">Milliy Sertifikat</a>
+        <a class="tb-tab {% if request.GET.bolim == 'attestatsiya' %}on{% endif %}" href="{% url 'home' %}?bolim=attestatsiya">Attestatsiya</a>
+        <a class="tb-tab {% if request.GET.bolim == 'sat' %}on{% endif %}" href="{% url 'home' %}?bolim=sat">SAT</a>
+      </nav>
+      <div class="tb-right">
+        {% if user.is_authenticated %}
+        <div class="av">{{ user.first_name|slice:":1"|default:user.username|slice:":1"|upper }}</div>
+        {% else %}
+        <a class="tb-link" href="{% url 'login' %}">Kirish</a>
+        <a class="tb-btn" href="{% url 'register' %}">Ro'yxatdan o'tish</a>
+        {% endif %}
+      </div>
     </div>
     {% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}
     {% block content %}{% endblock %}
