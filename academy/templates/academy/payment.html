@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block crumb %}To'lov{% endblock %}
+{% block content %}
+<h1>To'lov va kurslarim</h1>
+<div class="card">
+  {% for e in enrollments %}
+  <div class="row">
+    <div><b>{{ e.course.title }}</b><br><small style="color:var(--mute)">{{ e.course.price }} so'm</small></div>
+    <div><span class="pill">{{ e.is_active|yesno:"To'langan / ochiq,Kutilmoqda" }}</span></div>
+  </div>
+  {% empty %}
+  <p>Hali hech qaysi kursga yozilmagansiz. <a href="{% url 'home' %}" style="text-decoration:underline">Kurslarni ko'ring</a>.</p>
+  {% endfor %}
+</div>
+<p style="color:var(--mute)">To'lovni tasdiqlash uchun o'qituvchingiz bilan bog'laning.</p>
+{% endblock %}
