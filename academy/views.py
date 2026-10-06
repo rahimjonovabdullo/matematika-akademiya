@@ -9,8 +9,17 @@ from .models import Choice, Course, Enrollment, Group, QuizAttempt
 
 
 def home(request):
+    bolim = request.GET.get("bolim", "")
     courses = Course.objects.filter(is_published=True)
-    return render(request, "academy/home.html", {"courses": courses})
+    if bolim in dict(Course.CATEGORY_CHOICES):
+        courses = courses.filter(category=bolim)
+    else:
+        bolim = ""
+    return render(
+        request,
+        "academy/home.html",
+        {"courses": courses, "bolim": bolim, "categories": Course.CATEGORY_CHOICES},
+    )
 
 
 def register(request):
