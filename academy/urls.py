@@ -1,7 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from . import views
+from . import manage_views, views
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -26,4 +26,11 @@ urlpatterns = [
     path("kurs/<slug:slug>/", views.course_detail, name="course_detail"),
     path("kurs/<slug:slug>/test/", views.take_quiz, name="take_quiz"),
     path("natija/<int:attempt_id>/", views.quiz_result, name="quiz_result"),
+
+    # Boshqaruv paneli (faqat admin uchun)
+    path("boshqaruv/", manage_views.manage_courses, name="manage_courses"),
+    path("boshqaruv/kurs/yangi/", manage_views.manage_course_form, name="manage_course_new"),
+    path("boshqaruv/kurs/<int:pk>/", manage_views.manage_course_form, name="manage_course_edit"),
+    path("boshqaruv/kurs/<int:pk>/ochirish/", manage_views.manage_course_delete, name="manage_course_delete"),
+    path("boshqaruv/sorovlar/", manage_views.manage_requests, name="manage_requests"),
 ]
