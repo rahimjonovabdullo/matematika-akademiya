@@ -1,10 +1,11 @@
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.db.models import Avg, Count, Max
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import EnrollRequestForm, RegisterForm
-from .models import Choice, Course, Enrollment, QuizAttempt
+from .models import Choice, Course, Enrollment, Group, QuizAttempt
 
 
 def home(request):
@@ -112,3 +113,39 @@ def take_quiz(request, slug):
 def quiz_result(request, attempt_id):
     attempt = get_object_or_404(QuizAttempt, id=attempt_id, student=request.user)
     return render(request, "academy/quiz_result.html", {"attempt": attempt})
+
+
+def tests_list(request):
+    courses = Course.objects.filter(is_published=True).prefetch_related("questions")
+    return render(request, "academy/tests_list.html", {"courses": courses})
+
+
+@login_required
+def results_list(request):
+    attempts = QuizAttempt.objects.filter(student=request.user).select_related("course")
+    return render(request, "academy/results_list.html", {"attempts": attempts})
+
+
+@login_required
+def my_groups(request):
+    groups = request.user.study_groups.select_related("course")
+    return render(request, "academy/groups.html", {"groups": groups})
+
+
+def leaderboard(request):
+    rows = (
+        QuizAttempt.objects.values("student__username", "student__first_name")
+        .annotate(best=Max("score"), attempts_count=Count("id"), avg_total=Avg("total"))
+        .order_by("-best")[:50]
+    )
+    return render(request, "academy/leaderboard.html", {"rows": rows})
+
+
+def help_page(request):
+    return render(request, "academy/help.html")
+
+
+@login_required
+def payment_page(request):
+    enrollments = Enrollment.objects.filter(student=request.user).select_related("course")
+    return render(request, "academy/payment.html", {"enrollments": enrollments})
