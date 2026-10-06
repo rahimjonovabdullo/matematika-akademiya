@@ -16,12 +16,21 @@
     <div class="brand"><div class="logo">M</div><div><b>Matematika Akademiya</b><small>Ta'lim platformasi</small></div></div>
     <div class="grp">Asosiy</div>
     <a class="nav {% if request.resolver_match.url_name == 'home' %}on{% endif %}" href="{% url 'home' %}">Bosh sahifa</a>
+    <a class="nav {% if request.resolver_match.url_name == 'tests_list' %}on{% endif %}" href="{% url 'tests_list' %}">Testlar</a>
     {% if user.is_authenticated %}
     <div class="grp">Bo'limlar</div>
     <a class="nav {% if request.resolver_match.url_name == 'dashboard' %}on{% endif %}" href="{% url 'dashboard' %}">Kabinet</a>
+    <a class="nav {% if request.resolver_match.url_name == 'my_groups' %}on{% endif %}" href="{% url 'my_groups' %}">Guruhlarim</a>
+    <a class="nav {% if request.resolver_match.url_name == 'results_list' %}on{% endif %}" href="{% url 'results_list' %}">Natijalarim</a>
+    <a class="nav {% if request.resolver_match.url_name == 'leaderboard' %}on{% endif %}" href="{% url 'leaderboard' %}">Liderlar</a>
+    <a class="nav {% if request.resolver_match.url_name == 'help_page' %}on{% endif %}" href="{% url 'help_page' %}">Yordam</a>
     <div class="grp">Tizim</div>
+    <a class="nav {% if request.resolver_match.url_name == 'payment_page' %}on{% endif %}" href="{% url 'payment_page' %}">To'lov</a>
+    <a class="nav {% if request.resolver_match.url_name == 'settings_page' %}on{% endif %}" href="{% url 'settings_page' %}">Sozlamalar</a>
     <a class="nav out" href="{% url 'logout' %}">Chiqish</a>
     {% else %}
+    <a class="nav {% if request.resolver_match.url_name == 'leaderboard' %}on{% endif %}" href="{% url 'leaderboard' %}">Liderlar</a>
+    <a class="nav {% if request.resolver_match.url_name == 'help_page' %}on{% endif %}" href="{% url 'help_page' %}">Yordam</a>
     <div class="grp">Tizim</div>
     <a class="nav {% if request.resolver_match.url_name == 'login' %}on{% endif %}" href="{% url 'login' %}">Kirish</a>
     <a class="nav" href="{% url 'register' %}">Ro'yxatdan o'tish</a>
