@@ -29,6 +29,8 @@ urlpatterns = [
 
     # Boshqaruv paneli (faqat admin uchun)
     path("boshqaruv/", manage_views.manage_courses, name="manage_courses"),
+    path("boshqaruv/testlar/", manage_views.manage_tests, name="manage_tests"),
+    path("boshqaruv/testlar/yangi/", manage_views.manage_test_form, name="manage_test_new"),
     path("boshqaruv/sorovlar/", manage_views.manage_requests, name="manage_requests"),
     path("boshqaruv/kurs/yangi/", manage_views.manage_course_form, name="manage_course_new"),
     path("boshqaruv/kurs/<int:pk>/", manage_views.manage_course_form, name="manage_course_edit"),
