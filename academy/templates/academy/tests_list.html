@@ -1,17 +1,126 @@
 {% extends "base.html" %}
-{% block crumb %}Testlar{% endblock %}
+{% block title %}Testlar — Matematika Akademiya{% endblock %}
 {% block content %}
-<h1>Testlar</h1>
-<div class="grid">
-  {% for c in courses %}
-  <div class="card">
-    <span class="pill">{{ c.questions.count }} ta savol</span>
-    <h3>{{ c.title }}</h3>
-    <p style="color:var(--mute)">{{ c.description|truncatewords:16 }}</p>
-    <a class="btn" href="{% url 'course_detail' c.slug %}">Kursga o'tish</a>
+<style>
+  .tl-chip {
+    display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px 6px 8px;
+    background: #fff; border: 1px solid #e8eae4; border-radius: 999px;
+    font-size: 12px; font-weight: 800; letter-spacing: .18em; color: #4a5561;
+  }
+  .tl-chip i { width: 26px; height: 26px; border-radius: 50%; background: #d3f24a; display: inline-block; }
+  .tl-h { font-size: 40px; font-weight: 800; letter-spacing: -.02em; margin: 16px 0 8px; line-height: 1.1; }
+  .tl-sub { color: #6b7580; max-width: 620px; margin: 0 0 24px; line-height: 1.5; }
+
+  .tl-tabsbox {
+    background: #fff; border: 1px solid #e8eae4; border-radius: 24px; padding: 12px;
+    margin-bottom: 24px; box-shadow: 0 2px 8px rgba(22, 40, 29, .04);
+  }
+  .tl-tabs {
+    display: inline-flex; gap: 4px; background: #f1f2f4; border-radius: 16px; padding: 5px;
+    max-width: 100%; overflow-x: auto; scrollbar-width: none;
+  }
+  .tl-tabs::-webkit-scrollbar { display: none; }
+  .tl-tab {
+    white-space: nowrap; padding: 10px 20px; border-radius: 12px; font-weight: 700; font-size: 14px;
+    color: #4a5561; text-decoration: none;
+  }
+  .tl-tab:hover { color: #111; }
+  .tl-tab.on { background: #fff; color: #111; box-shadow: 0 1px 4px rgba(0, 0, 0, .12); }
+
+  .tl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 22px; }
+  .tl-card {
+    background: #fff; border: 1px solid #e8eae4; border-radius: 28px; padding: 24px;
+    box-shadow: 0 2px 10px rgba(22, 40, 29, .05); transition: transform .15s, box-shadow .15s;
+    display: flex; flex-direction: column;
+  }
+  .tl-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(22, 40, 29, .12); }
+  .tl-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .tl-who { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .tl-ico {
+    width: 60px; height: 60px; border-radius: 18px; background: #f6f7f4; border: 1px solid #e8eae4;
+    display: flex; align-items: center; justify-content: center; color: #16281d; flex-shrink: 0;
+  }
+  .tl-cat b { display: block; font-size: 16px; }
+  .tl-cat small { color: #6b7580; font-size: 13px; }
+  .tl-price {
+    background: #d3f24a; color: #16281d; font-weight: 800; font-size: 14px;
+    padding: 9px 18px; border-radius: 999px; white-space: nowrap;
+  }
+  .tl-title {
+    font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: -.01em;
+    margin: 22px 0 18px; line-height: 1.15; word-break: break-word;
+  }
+  .tl-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .tl-stat {
+    background: #f6f7f4; border: 1px solid #eef0ea; border-radius: 18px; padding: 16px 8px; text-align: center;
+  }
+  .tl-stat b { display: block; font-size: 26px; font-weight: 800; }
+  .tl-stat small { color: #6b7580; font-weight: 700; font-size: 12px; }
+  .tl-foot { margin-top: 20px; display: flex; justify-content: flex-end; }
+  .tl-btn {
+    display: inline-block; padding: 12px 26px; border-radius: 999px; background: #16281d; color: #fff;
+    font-weight: 800; font-size: 14px; text-decoration: none;
+  }
+  .tl-btn:hover { background: #000; }
+  .tl-empty {
+    background: #fff; border: 1px dashed #cfd4c6; border-radius: 24px; padding: 48px 20px;
+    text-align: center; color: #6b7580;
+  }
+  @media (max-width: 720px) { .tl-h { font-size: 30px; } .tl-title { font-size: 20px; } }
+</style>
+
+<div class="tl">
+  <span class="tl-chip"><i></i>TESTLAR</span>
+  <h1 class="tl-h">Testlar to'plami</h1>
+  <p class="tl-sub">Milliy sertifikat, Attestatsiya va SAT testlari — mashq qiling, bilimingizni mustahkamlang va natijangizni kuzatib boring.</p>
+
+  <div class="tl-tabsbox">
+    <nav class="tl-tabs">
+      <a class="tl-tab {% if not bolim %}on{% endif %}" href="{% url 'tests_list' %}">Hammasi</a>
+      <a class="tl-tab {% if bolim == 'attestatsiya' %}on{% endif %}" href="{% url 'tests_list' %}?bolim=attestatsiya">Attestatsiya</a>
+      <a class="tl-tab {% if bolim == 'sat' %}on{% endif %}" href="{% url 'tests_list' %}?bolim=sat">SAT</a>
+      <a class="tl-tab {% if bolim == 'milliy' %}on{% endif %}" href="{% url 'tests_list' %}?bolim=milliy">Milliy sertifikat</a>
+    </nav>
   </div>
-  {% empty %}
-  <div class="card"><p>Hozircha testlar yo'q.</p></div>
-  {% endfor %}
+
+  {% if courses %}
+  <div class="tl-grid">
+    {% for c in courses %}
+    <div class="tl-card">
+      <div class="tl-top">
+        <div class="tl-who">
+          <div class="tl-ico">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              {% if c.category == 'sat' %}
+              <path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/>
+              {% elif c.category == 'milliy' %}
+              <circle cx="12" cy="8" r="6"/><path d="M15.5 13.5 17 22l-5-3-5 3 1.5-8.5"/>
+              {% else %}
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              {% endif %}
+            </svg>
+          </div>
+          <div class="tl-cat"><b>{{ c.get_category_display }}</b><small>Test</small></div>
+        </div>
+        <span class="tl-price">{% if c.price %}{{ c.price }} so'm{% else %}Bepul{% endif %}</span>
+      </div>
+
+      <div class="tl-title">{{ c.title }}</div>
+
+      <div class="tl-stats">
+        <div class="tl-stat"><b>{{ c.participants }}</b><small>Ishtirokchi</small></div>
+        <div class="tl-stat"><b>{% if c.duration_minutes %}{{ c.duration_minutes }}{% else %}—{% endif %}</b><small>Daqiqa</small></div>
+        <div class="tl-stat"><b>{{ c.questions_count }}</b><small>Savol</small></div>
+      </div>
+
+      <div class="tl-foot">
+        <a class="tl-btn" href="{% url 'course_detail' c.slug %}">Boshlash</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="tl-empty">Bu toifada hozircha testlar yo'q.</div>
+  {% endif %}
 </div>
 {% endblock %}
