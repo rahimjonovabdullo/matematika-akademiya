@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}{% if course %}Kursni tahrirlash{% else %}Yangi kurs{% endif %} — Boshqaruv{% endblock %}
+{% block title %}{% if course %}Tahrirlash{% else %}Yangi {{ info.singular }}{% endif %} — Boshqaruv{% endblock %}
 {% block content %}
 <div class="mg">
   <h1 class="mg-h">Boshqaruv paneli</h1>
   {% include "academy/manage/_nav.html" %}
 
   <div class="mg-head">
-    <h2>{% if course %}Kursni tahrirlash{% else %}Yangi kurs{% endif %}</h2>
+    <h2>{% if course %}{{ info.singular|capfirst }}ni tahrirlash{% else %}Yangi {{ info.singular }}{% endif %}</h2>
   </div>
 
   <form method="post" class="mg-form">
@@ -26,7 +26,7 @@
     {% endfor %}
     <div class="mg-form-actions">
       <button class="mg-btn" type="submit">Saqlash</button>
-      <a class="mg-btn mg-btn-line" href="{% url 'manage_courses' %}">Bekor qilish</a>
+      <a class="mg-btn mg-btn-line" href="{% url info.list_url %}">Bekor qilish</a>
     </div>
   </form>
 </div>
