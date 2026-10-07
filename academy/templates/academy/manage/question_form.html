@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{% if question %}Savolni tahrirlash{% else %}Yangi savol{% endif %} — Boshqaruv{% endblock %}
+{% block content %}
+<div class="mg">
+  <h1 class="mg-h">Boshqaruv paneli</h1>
+  {% include "academy/manage/_nav.html" %}
+
+  <div class="mg-head">
+    <h2>{{ course.title }}: {% if question %}savolni tahrirlash{% else %}yangi savol{% endif %}</h2>
+  </div>
+
+  <form method="post" class="mg-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for f in form %}
+    <div class="mg-field">
+      <label for="{{ f.id_for_label }}">{{ f.label }}</label>
+      {{ f }}
+      {% if f.help_text %}<small>{{ f.help_text }}</small>{% endif %}
+      {{ f.errors }}
+    </div>
+    {% endfor %}
+    <small style="display:block;color:#6b7580;margin-bottom:14px">A va B variantlar majburiy. C va D bo'sh qolsa, test ularsiz ko'rinadi.</small>
+    <div class="mg-form-actions">
+      <button class="mg-btn" type="submit">Saqlash</button>
+      <a class="mg-btn mg-btn-line" href="{% url 'manage_questions' course.pk %}">Bekor qilish</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
