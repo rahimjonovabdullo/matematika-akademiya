@@ -1,18 +1,123 @@
 {% extends "base.html" %}
-{% block crumb %}Natijalarim{% endblock %}
+{% block title %}Natijalarim — Matematika Akademiya{% endblock %}
 {% block content %}
-<h1>Natijalarim</h1>
-<div class="card">
-  {% for a in attempts %}
-  <div class="row">
-    <div><b>{{ a.course.title }}</b><br><small style="color:var(--mute)">{{ a.created_at|date:"d.m.Y H:i" }}</small></div>
-    <div style="min-width:160px">
-      {{ a.score }}/{{ a.total }} · {{ a.percent }}%
-      <div class="bar"><i style="width:{{ a.percent }}%"></i></div>
-    </div>
+<style>
+  .rl-chip {
+    display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px 6px 8px;
+    background: #fff; border: 1px solid #e8eae4; border-radius: 999px;
+    font-size: 12px; font-weight: 800; letter-spacing: .18em; color: #4a5561;
+  }
+  .rl-chip i { width: 26px; height: 26px; border-radius: 50%; background: #d3f24a; display: inline-block; }
+  .rl-h { font-size: 40px; font-weight: 800; letter-spacing: -.02em; margin: 16px 0 8px; line-height: 1.1; }
+  .rl-sub { color: #6b7580; max-width: 620px; margin: 0 0 24px; line-height: 1.5; }
+
+  .rl-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+  .rl-stat {
+    background: #fff; border: 1px solid #e8eae4; border-radius: 24px; padding: 20px 12px; text-align: center;
+    box-shadow: 0 2px 10px rgba(22, 40, 29, .05);
+  }
+  .rl-stat b { display: block; font-size: 32px; font-weight: 800; }
+  .rl-stat small { color: #6b7580; font-weight: 700; font-size: 12px; }
+
+  .rl-list { display: grid; gap: 14px; }
+  .rl-card {
+    background: #fff; border: 1px solid #e8eae4; border-radius: 26px; padding: 18px 22px;
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    box-shadow: 0 2px 10px rgba(22, 40, 29, .05); transition: transform .15s, box-shadow .15s;
+  }
+  .rl-card:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(22, 40, 29, .1); }
+  .rl-badge {
+    width: 72px; height: 72px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center;
+    justify-content: center; font-weight: 800; font-size: 18px; color: #16281d;
+    background: conic-gradient(var(--c) calc(var(--p) * 1%), #eef0ea 0);
+    position: relative;
+  }
+  .rl-badge::before { content: ""; position: absolute; inset: 7px; background: #fff; border-radius: 50%; }
+  .rl-badge span { position: relative; }
+  .rl-badge.good { --c: #7cb518; }
+  .rl-badge.mid { --c: #e0a100; }
+  .rl-badge.bad { --c: #e5173f; }
+  .rl-main { flex: 1 1 220px; min-width: 0; }
+  .rl-main b { display: block; font-size: 19px; font-weight: 800; }
+  .rl-main small { color: #6b7580; font-weight: 600; display: block; margin-top: 3px; }
+  .rl-score {
+    padding: 8px 16px; background: #f6f7f4; border: 1px solid #eef0ea; border-radius: 14px;
+    font-weight: 800; font-size: 14px; white-space: nowrap;
+  }
+  .rl-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .rl-btn {
+    padding: 10px 18px; border-radius: 999px; font-weight: 800; font-size: 13px; text-decoration: none;
+    background: #fff; border: 1px solid #d9ddd2; color: #16281d;
+  }
+  .rl-btn:hover { background: #f6f7f4; }
+  .rl-btn.main { background: #d3f24a; border-color: #d3f24a; }
+
+  .rl-empty {
+    background: #fff; border: 1px dashed #cfd4c6; border-radius: 28px; padding: 54px 20px; text-align: center;
+    color: #6b7580;
+  }
+  .rl-empty b { display: block; font-size: 20px; color: #16281d; margin-bottom: 8px; }
+  .rl-empty a {
+    display: inline-block; margin-top: 18px; padding: 13px 26px; border-radius: 999px; background: #16281d;
+    color: #fff; font-weight: 800; text-decoration: none;
+  }
+  @media (max-width: 720px) {
+    .rl-h { font-size: 30px; }
+    .rl-stats { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="rl">
+  <span class="rl-chip"><i></i>NATIJALARIM</span>
+  <h1 class="rl-h">Natijalarim</h1>
+  <p class="rl-sub">Barcha topshirgan testlaringiz natijasi shu yerda. Qayta urinib, natijangizni yaxshilang.</p>
+
+  {% if attempts %}
+  <div class="rl-stats">
+    <div class="rl-stat"><b id="rlCount">0</b><small>Urinishlar</small></div>
+    <div class="rl-stat"><b id="rlBest">0%</b><small>Eng yuqori natija</small></div>
+    <div class="rl-stat"><b id="rlAvg">0%</b><small>O'rtacha natija</small></div>
   </div>
-  {% empty %}
-  <p>Hali test topshirmagansiz. <a href="{% url 'tests_list' %}" style="text-decoration:underline">Testlar bo'limiga o'ting</a>.</p>
-  {% endfor %}
+
+  <div class="rl-list">
+    {% for a in attempts %}
+    <div class="rl-card" data-p="{{ a.percent }}">
+      <div class="rl-badge {% if a.percent >= 70 %}good{% elif a.percent >= 40 %}mid{% else %}bad{% endif %}" style="--p: {{ a.percent }}">
+        <span>{{ a.percent }}%</span>
+      </div>
+      <div class="rl-main">
+        <b>{{ a.course.title }}</b>
+        <small>{{ a.created_at|date:"d.m.Y H:i" }}</small>
+      </div>
+      <div class="rl-score">{{ a.score }} / {{ a.total }} to'g'ri</div>
+      <div class="rl-actions">
+        <a class="rl-btn" href="{% url 'quiz_result' a.id %}">Batafsil</a>
+        <a class="rl-btn main" href="{% url 'take_quiz' a.course.slug %}">Qayta urinish</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <script>
+  (function () {
+    var cards = document.querySelectorAll('.rl-card');
+    var sum = 0, best = 0;
+    cards.forEach(function (c) {
+      var p = parseInt(c.dataset.p, 10) || 0;
+      sum += p;
+      if (p > best) best = p;
+    });
+    document.getElementById('rlCount').textContent = cards.length;
+    document.getElementById('rlBest').textContent = best + '%';
+    document.getElementById('rlAvg').textContent = Math.round(sum / cards.length) + '%';
+  })();
+  </script>
+  {% else %}
+  <div class="rl-empty">
+    <b>Hali natija yo'q</b>
+    Birinchi testni yechib, natijangizni shu yerda ko'ring.
+    <br><a href="{% url 'tests_list' %}">Testlarga o'tish</a>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
