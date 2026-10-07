@@ -9,6 +9,7 @@
     <h2>{{ course.title }}: savollar</h2>
     <div class="mg-actions">
       <a class="mg-btn mg-btn-line mg-btn-sm" href="{% url info.list_url %}">← {{ info.plural }}</a>
+      <a class="mg-btn mg-btn-line mg-btn-sm" href="{% url 'manage_bulk_questions' course.pk %}">Ommaviy qo'shish</a>
       <a class="mg-add" href="{% url 'manage_question_new' course.pk %}">+ Yangi savol</a>
     </div>
   </div>
@@ -36,7 +37,7 @@
     {% endfor %}
   </div>
   {% else %}
-  <div class="mg-empty">Hali savol yo'q. «+ Yangi savol» tugmasini bosing.</div>
+  <div class="mg-empty">Hali savol yo'q. «Ommaviy qo'shish» yoki «+ Yangi savol» tugmasini bosing.</div>
   {% endif %}
 </div>
 {% endblock %}
