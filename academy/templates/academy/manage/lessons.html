@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Darslar — Boshqaruv{% endblock %}
+{% block content %}
+<div class="mg">
+  <h1 class="mg-h">Boshqaruv paneli</h1>
+  {% include "academy/manage/_nav.html" %}
+
+  <div class="mg-head">
+    <h2>{{ course.title }}: darslar</h2>
+    <div class="mg-actions">
+      <a class="mg-btn mg-btn-line mg-btn-sm" href="{% url 'manage_courses' %}">← Kurslar</a>
+      <a class="mg-add" href="{% url 'manage_lesson_new' course.pk %}">+ Yangi dars</a>
+    </div>
+  </div>
+
+  {% if lessons %}
+  <div class="mg-table">
+    {% for l in lessons %}
+    <div class="mg-row">
+      <div class="mg-main">
+        <b>{{ l.order }}. {{ l.title }}</b>
+        <small>{% if l.video_url %}Video bor{% else %}Video yo'q{% endif %}{% if l.is_free_preview %} · Bepul ko'rinadi{% endif %}</small>
+      </div>
+      <div class="mg-actions">
+        <a class="mg-btn mg-btn-sm" href="{% url 'manage_lesson_edit' course.pk l.pk %}">Tahrirlash</a>
+        <form method="post" action="{% url 'manage_lesson_delete' course.pk l.pk %}" onsubmit="return confirm('Bu dars o‘chiriladi. Davom etasizmi?');">
+          {% csrf_token %}
+          <button class="mg-btn mg-btn-red mg-btn-sm" type="submit">O'chirish</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="mg-empty">Bu kursda hali dars yo'q. «+ Yangi dars» tugmasini bosing.</div>
+  {% endif %}
+</div>
+{% endblock %}
