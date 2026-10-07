@@ -1,21 +1,153 @@
 {% extends "base.html" %}
-{% block crumb %}Test{% endblock %}
+{% block title %}{{ course.title }} — Test{% endblock %}
 {% block content %}
-<div class="card">
-  <h1>{{ course.title }} — Test</h1>
-  <form method="post">
-    {% csrf_token %}
-    {% for q in questions %}
-      <div style="margin:20px 0;padding-top:16px;border-top:1px solid var(--line)">
-        <b>{{ forloop.counter }}. {{ q.text }}</b>
-        {% for c in q.choices.all %}
-          <label class="opt" style="font-weight:500;display:flex;gap:10px;align-items:center">
-            <input type="radio" name="q{{ q.id }}" value="{{ c.id }}" required style="width:auto"> {{ c.text }}
-          </label>
-        {% endfor %}
-      </div>
+<style>
+  .qz-bar {
+    position: sticky; top: 0; z-index: 5; background: #fff; border: 1px solid #e8eae4;
+    border-radius: 24px; padding: 14px 20px; margin-bottom: 20px; display: flex; align-items: center;
+    justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: 0 4px 16px rgba(22, 40, 29, .08);
+  }
+  .qz-bar h1 { font-size: 20px; font-weight: 800; margin: 0; }
+  .qz-bar small { color: #6b7580; font-weight: 700; }
+  .qz-timer {
+    font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; background: #16281d; color: #d3f24a;
+    border-radius: 16px; padding: 8px 18px; min-width: 110px; text-align: center;
+  }
+  .qz-timer.warn { background: #e5173f; color: #fff; animation: qzpulse 1s infinite; }
+  @keyframes qzpulse { 50% { opacity: .75; } }
+  .qz-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .qz-nav a {
+    width: 38px; height: 38px; border-radius: 12px; background: #fff; border: 1px solid #e0e4d8;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;
+    color: #4a5561; text-decoration: none;
+  }
+  .qz-nav a.done { background: #d3f24a; border-color: #d3f24a; color: #16281d; }
+  .qz-q {
+    background: #fff; border: 1px solid #e8eae4; border-radius: 24px; padding: 22px 24px; margin-bottom: 16px;
+    scroll-margin-top: 110px;
+  }
+  .qz-q h3 { margin: 0 0 14px; font-size: 18px; line-height: 1.4; display: flex; gap: 12px; }
+  .qz-num {
+    flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; background: #16281d; color: #d3f24a;
+    display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800;
+  }
+  .qz-opt {
+    display: flex; align-items: center; gap: 12px; padding: 13px 16px; border: 1.5px solid #e0e4d8;
+    border-radius: 16px; margin-top: 10px; cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .qz-opt:hover { border-color: #b9d83a; background: #fafdf0; }
+  .qz-opt input { width: 20px; height: 20px; accent-color: #16281d; flex-shrink: 0; }
+  .qz-opt:has(input:checked) { border-color: #16281d; background: #f1fbc7; font-weight: 700; }
+  .qz-letter { font-weight: 800; color: #6b7580; }
+  .qz-submit { display: flex; justify-content: flex-end; margin: 24px 0 8px; }
+  .qz-submit button {
+    padding: 15px 34px; border: 0; border-radius: 999px; background: #d3f24a; color: #16281d;
+    font: inherit; font-weight: 800; font-size: 16px; cursor: pointer;
+  }
+  .qz-submit button:hover { filter: brightness(.95); }
+</style>
+
+<form method="post" id="quiz">
+  {% csrf_token %}
+
+  <div class="qz-bar">
+    <div>
+      <h1>{{ course.title }}</h1>
+      <small><span id="done">0</span> / {{ questions|length }} savolga javob berildi</small>
+    </div>
+    <div class="qz-timer" id="timer">{% if course.duration_minutes %}--:--{% else %}00:00{% endif %}</div>
+  </div>
+
+  <div class="qz-nav">
+    {% for q in questions %}<a href="#q{{ q.id }}" id="n{{ q.id }}">{{ forloop.counter }}</a>{% endfor %}
+  </div>
+
+  {% for q in questions %}
+  <div class="qz-q" id="q{{ q.id }}">
+    <h3><span class="qz-num">{{ forloop.counter }}</span><span>{{ q.text }}</span></h3>
+    {% for c in q.choices.all %}
+    <label class="qz-opt">
+      <input type="radio" name="q{{ q.id }}" value="{{ c.id }}" data-q="{{ q.id }}">
+      <span class="qz-letter">{{ forloop.counter0|add:65|stringformat:"c" }})</span>
+      <span>{{ c.text }}</span>
+    </label>
     {% endfor %}
-    <button class="btn" type="submit">Yakunlash</button>
-  </form>
-</div>
+  </div>
+  {% endfor %}
+
+  <div class="qz-submit">
+    <button type="submit" id="send">Testni yakunlash</button>
+  </div>
+</form>
+
+<script>
+(function () {
+  var form = document.getElementById('quiz');
+  var timer = document.getElementById('timer');
+  var doneEl = document.getElementById('done');
+  var total = {{ questions|length }};
+  var minutes = {{ course.duration_minutes }};
+  var key = 'quiz_end_{{ course.id }}';
+  var submitted = false;
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function fmt(s) { return pad(Math.floor(s / 60)) + ':' + pad(s % 60); }
+
+  function answered() {
+    var seen = {};
+    form.querySelectorAll('input[type=radio]:checked').forEach(function (r) { seen[r.dataset.q] = 1; });
+    return seen;
+  }
+  function refresh() {
+    var seen = answered();
+    var count = Object.keys(seen).length;
+    doneEl.textContent = count;
+    document.querySelectorAll('.qz-nav a').forEach(function (a) {
+      a.classList.toggle('done', !!seen[a.id.substring(1)]);
+    });
+    return count;
+  }
+  form.addEventListener('change', refresh);
+  refresh();
+
+  function clearKey() { try { sessionStorage.removeItem(key); } catch (e) {} }
+
+  form.addEventListener('submit', function (e) {
+    if (!submitted) {
+      var left = total - refresh();
+      if (left > 0 && !confirm(left + ' ta savolga javob bermadingiz. Baribir yakunlaysizmi?')) {
+        e.preventDefault();
+        return;
+      }
+    }
+    submitted = true;
+    clearKey();
+  });
+
+  if (minutes > 0) {
+    var end = 0;
+    try { end = parseInt(sessionStorage.getItem(key) || '0', 10); } catch (e) {}
+    if (!end || end < Date.now()) {
+      end = Date.now() + minutes * 60000;
+      try { sessionStorage.setItem(key, String(end)); } catch (e) {}
+    }
+    var tick = function () {
+      var left = Math.max(0, Math.round((end - Date.now()) / 1000));
+      timer.textContent = fmt(left);
+      if (left <= 60) timer.classList.add('warn');
+      if (left <= 0 && !submitted) {
+        submitted = true;
+        clearKey();
+        form.submit();
+        return;
+      }
+      if (!submitted) setTimeout(tick, 500);
+    };
+    tick();
+  } else {
+    var start = Date.now();
+    setInterval(function () { timer.textContent = fmt(Math.floor((Date.now() - start) / 1000)); }, 1000);
+  }
+})();
+</script>
 {% endblock %}
