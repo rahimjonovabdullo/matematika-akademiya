@@ -4,6 +4,10 @@ from django.urls import reverse
 
 
 class Course(models.Model):
+    KIND_CHOICES = [
+        ("kurs", "Kurs"),
+        ("test", "Test"),
+    ]
     CATEGORY_CHOICES = [
         ("asosiy", "Asosiy"),
         ("milliy", "Milliy Sertifikat"),
@@ -13,6 +17,7 @@ class Course(models.Model):
 
     title = models.CharField("Nomi", max_length=200)
     slug = models.SlugField("Slug", unique=True, help_text="Manzilda ko'rinadigan qism, masalan: algebra-asoslari")
+    kind = models.CharField("Turi", max_length=10, choices=KIND_CHOICES, default="kurs")
     description = models.TextField("Tavsif", blank=True)
     category = models.CharField("Toifa", max_length=20, choices=CATEGORY_CHOICES, default="asosiy")
     price = models.PositiveIntegerField("Narxi (so'm)", default=0)
