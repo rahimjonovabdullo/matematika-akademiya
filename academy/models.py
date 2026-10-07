@@ -16,6 +16,11 @@ class Course(models.Model):
     description = models.TextField("Tavsif", blank=True)
     category = models.CharField("Toifa", max_length=20, choices=CATEGORY_CHOICES, default="asosiy")
     price = models.PositiveIntegerField("Narxi (so'm)", default=0)
+    duration_minutes = models.PositiveIntegerField(
+        "Davomiyligi (daqiqa)",
+        default=0,
+        help_text="Test uchun vaqt. 0 bo'lsa ko'rsatilmaydi.",
+    )
     is_published = models.BooleanField("Sahifada ko'rinsinmi", default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
