@@ -1,9 +1,137 @@
 {% extends "base.html" %}
-{% block crumb %}Natija{% endblock %}
+{% block title %}Natija — {{ attempt.course.title }}{% endblock %}
 {% block content %}
-<div class="card">
-  <h1>Natija: {{ attempt.score }} / {{ attempt.total }} ({{ attempt.percent }}%)</h1>
-  <div class="bar"><i style="width:{{ attempt.percent }}%"></i></div>
-  <p style="margin-top:20px"><a class="btn ghost" href="{% url 'dashboard' %}">Kabinetga qaytish</a></p>
+<style>
+  .rs { max-width: 760px; margin: 0 auto; position: relative; }
+  .rs-card {
+    background: #fff; border: 1px solid #e8eae4; border-radius: 32px; padding: 36px 28px; text-align: center;
+    box-shadow: 0 8px 30px rgba(22, 40, 29, .08); animation: rsin .5s ease both;
+  }
+  @keyframes rsin { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  .rs-chip {
+    display: inline-block; padding: 6px 16px; border-radius: 999px; background: #f1f2f4;
+    font-size: 12px; font-weight: 800; letter-spacing: .18em; color: #4a5561;
+  }
+  .rs-title { font-size: 28px; font-weight: 800; margin: 14px 0 22px; letter-spacing: -.01em; }
+  .rs-ring { position: relative; width: 220px; height: 220px; margin: 0 auto 18px; }
+  .rs-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .rs-ring .bg { fill: none; stroke: #eef0ea; stroke-width: 16; }
+  .rs-ring .fg {
+    fill: none; stroke: #16281d; stroke-width: 16; stroke-linecap: round;
+    stroke-dasharray: 528; stroke-dashoffset: 528; transition: stroke-dashoffset 1.6s cubic-bezier(.2, .8, .2, 1);
+  }
+  .rs-ring.good .fg { stroke: #7cb518; }
+  .rs-ring.mid .fg { stroke: #e0a100; }
+  .rs-ring.bad .fg { stroke: #e5173f; }
+  .rs-pct {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .rs-pct b { font-size: 56px; font-weight: 800; line-height: 1; }
+  .rs-pct small { color: #6b7580; font-weight: 700; margin-top: 4px; }
+  .rs-msg { font-size: 22px; font-weight: 800; margin: 6px 0 4px; }
+  .rs-sub { color: #6b7580; margin: 0 0 24px; }
+  .rs-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 26px; }
+  .rs-stat { background: #f6f7f4; border: 1px solid #eef0ea; border-radius: 18px; padding: 16px 8px; }
+  .rs-stat b { display: block; font-size: 28px; font-weight: 800; }
+  .rs-stat small { color: #6b7580; font-weight: 700; font-size: 12px; }
+  .rs-stat.ok b { color: #5a8a0f; }
+  .rs-stat.no b { color: #e5173f; }
+  .rs-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .rs-btn {
+    padding: 13px 24px; border-radius: 999px; font-weight: 800; font-size: 14px; text-decoration: none;
+    border: 1px solid #d9ddd2; background: #fff; color: #16281d;
+  }
+  .rs-btn:hover { background: #f6f7f4; }
+  .rs-btn.main { background: #d3f24a; border-color: #d3f24a; }
+  .rs-btn.dark { background: #16281d; border-color: #16281d; color: #fff; }
+  .rs-conf {
+    position: fixed; top: -20px; width: 10px; height: 16px; border-radius: 2px; opacity: .9;
+    animation: rsfall linear forwards; pointer-events: none; z-index: 50;
+  }
+  @keyframes rsfall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+</style>
+
+<div class="rs">
+  <div class="rs-card">
+    <span class="rs-chip">NATIJA</span>
+    <h1 class="rs-title">{{ attempt.course.title }}</h1>
+
+    <div class="rs-ring" id="ring" data-p="{{ attempt.percent }}">
+      <svg viewBox="0 0 200 200">
+        <circle class="bg" cx="100" cy="100" r="84"></circle>
+        <circle class="fg" id="fg" cx="100" cy="100" r="84"></circle>
+      </svg>
+      <div class="rs-pct"><b id="pct">0%</b><small>{{ attempt.score }} / {{ attempt.total }}</small></div>
+    </div>
+
+    <div class="rs-msg">
+      {% if attempt.percent >= 85 %}Ajoyib natija!
+      {% elif attempt.percent >= 60 %}Yaxshi natija!
+      {% elif attempt.percent >= 40 %}Yomon emas, davom eting
+      {% else %}Yana mashq qiling{% endif %}
+    </div>
+    <p class="rs-sub">
+      {% if attempt.percent >= 85 %}Siz mavzuni juda yaxshi bilasiz.
+      {% elif attempt.percent >= 60 %}Bir oz takrorlasangiz, natija yanada yaxshilanadi.
+      {% elif attempt.percent >= 40 %}Xato qilgan mavzularni takrorlab, testni qayta yeching.
+      {% else %}Darslarni qayta ko'rib chiqib, yana urinib ko'ring. Albatta chiqadi!{% endif %}
+    </p>
+
+    <div class="rs-stats">
+      <div class="rs-stat ok"><b id="okn">0</b><small>To'g'ri</small></div>
+      <div class="rs-stat no"><b id="non">0</b><small>Xato</small></div>
+      <div class="rs-stat"><b>{{ attempt.total }}</b><small>Jami savol</small></div>
+    </div>
+
+    <div class="rs-actions">
+      <a class="rs-btn main" href="{% url 'take_quiz' attempt.course.slug %}">Qayta urinish</a>
+      <a class="rs-btn dark" href="{% url 'results_list' %}">Natijalarim</a>
+      <a class="rs-btn" href="{% url 'leaderboard' %}">Liderlar</a>
+      <a class="rs-btn" href="{% url 'tests_list' %}">Testlar</a>
+    </div>
+  </div>
 </div>
+
+<script>
+(function () {
+  var ring = document.getElementById('ring');
+  var p = parseInt(ring.dataset.p, 10) || 0;
+  var score = {{ attempt.score }};
+  var total = {{ attempt.total }};
+  var fg = document.getElementById('fg');
+  var pct = document.getElementById('pct');
+  var okn = document.getElementById('okn');
+  var non = document.getElementById('non');
+
+  ring.classList.add(p >= 70 ? 'good' : (p >= 40 ? 'mid' : 'bad'));
+
+  setTimeout(function () { fg.style.strokeDashoffset = 528 * (1 - p / 100); }, 150);
+
+  var t0 = null, dur = 1600;
+  function step(ts) {
+    if (!t0) t0 = ts;
+    var k = Math.min(1, (ts - t0) / dur);
+    var e = 1 - Math.pow(1 - k, 3);
+    pct.textContent = Math.round(p * e) + '%';
+    okn.textContent = Math.round(score * e);
+    non.textContent = Math.round((total - score) * e);
+    if (k < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+
+  if (p >= 80) {
+    var colors = ['#d3f24a', '#16281d', '#7cb518', '#ffd166', '#e5173f', '#4cc9f0'];
+    for (var i = 0; i < 70; i++) {
+      var c = document.createElement('div');
+      c.className = 'rs-conf';
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.background = colors[i % colors.length];
+      c.style.animationDuration = (2.2 + Math.random() * 2.2) + 's';
+      c.style.animationDelay = (Math.random() * 0.8) + 's';
+      document.body.appendChild(c);
+      setTimeout((function (el) { return function () { el.remove(); }; })(c), 6000);
+    }
+  }
+})();
+</script>
 {% endblock %}
