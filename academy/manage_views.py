@@ -17,15 +17,19 @@ staff_only = user_passes_test(lambda u: u.is_active and u.is_staff, login_url="l
 class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
-        fields = ["title", "category", "description", "price", "is_published"]
+        fields = ["title", "category", "description", "price", "duration_minutes", "is_published"]
         labels = {
             "title": "Kurs nomi",
             "category": "Toifa (qaysi bo'limda ko'rinadi)",
             "description": "Kurs haqida qisqacha",
             "price": "Narxi (so'm)",
+            "duration_minutes": "Test davomiyligi (daqiqa)",
             "is_published": "Saytda ko'rinsin",
         }
-        help_texts = {"price": "Bepul bo'lsa 0 yozing."}
+        help_texts = {
+            "price": "Bepul bo'lsa 0 yozing.",
+            "duration_minutes": "Masalan 60. Ko'rsatmoqchi bo'lmasangiz 0 qoldiring.",
+        }
         widgets = {"description": forms.Textarea(attrs={"rows": 5})}
 
     def save(self, commit=True):
