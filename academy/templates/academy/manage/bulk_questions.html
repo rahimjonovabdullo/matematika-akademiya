@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Savollarni ommaviy qo'shish{% endblock %}
+{% block content %}
+<style>
+  .bk { max-width: 860px; }
+  .bk h1 { font-size: 28px; font-weight: 800; margin: 0 0 6px; }
+  .bk .sub { color: #6b7580; margin: 0 0 22px; }
+  .bk-card { background: #fff; border: 1px solid #e8eae4; border-radius: 24px; padding: 22px 24px; margin-bottom: 18px; }
+  .bk-card h3 { margin: 0 0 10px; font-size: 16px; font-weight: 800; }
+  .bk textarea {
+    width: 100%; border: 1.5px solid #e0e4d8; border-radius: 16px; padding: 14px 16px; font: inherit;
+    font-size: 15px; line-height: 1.55; resize: vertical; box-sizing: border-box;
+  }
+  .bk textarea:focus { outline: none; border-color: #16281d; }
+  .bk .key { min-height: 70px; font-weight: 700; letter-spacing: .02em; }
+  .bk-hint { background: #f6f9e8; border-radius: 16px; padding: 14px 18px; font-size: 14px; color: #3c4a3f; line-height: 1.6; }
+  .bk-hint pre { margin: 8px 0 0; font: inherit; font-weight: 700; white-space: pre-wrap; }
+  .bk-err { background: #fff0f2; border: 1px solid #f6c3cc; color: #b0112f; border-radius: 16px; padding: 14px 18px; margin-bottom: 18px; }
+  .bk-err ul { margin: 6px 0 0; padding-left: 20px; }
+  .bk-live { color: #6b7580; font-weight: 700; font-size: 14px; margin-top: 8px; }
+  .bk-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .bk-btn {
+    padding: 14px 30px; border: 0; border-radius: 999px; background: #d3f24a; color: #16281d;
+    font: inherit; font-weight: 800; font-size: 16px; cursor: pointer;
+  }
+  .bk-btn:hover { filter: brightness(.95); }
+  .bk-ghost {
+    padding: 14px 24px; border-radius: 999px; border: 1.5px solid #e0e4d8; background: #fff; color: #16281d;
+    font: inherit; font-weight: 700; text-decoration: none; cursor: pointer;
+  }
+</style>
+
+<div class="bk">
+  <h1>Savollarni ommaviy qo'shish</h1>
+  <p class="sub">{{ course.title }}: ko'p savolni bir vaqtda kiriting</p>
+
+  {% if errors %}
+  <div class="bk-err">
+    <b>Savollar qo'shilmadi. Quyidagilarni to'g'rilang:</b>
+    <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="bk-card">
+      <h3>1. Savollar</h3>
+      <div class="bk-hint">
+        Har bir savol raqam bilan boshlansin, variantlar A, B, C, D bilan. Savollar orasida bo'sh qator bo'lsa yaxshi:
+        <pre>1. 2 + 2 nechiga teng?
+A) 3
+B) 4
+C) 5
+D) 6
+
+2. Eng katta tub son qaysi?
+A) 7
+B) 9
+C) 11
+D) 15</pre>
+      </div>
+      <textarea name="questions" id="qs" rows="14" placeholder="Savollarni shu yerga tashlang...">{{ raw }}</textarea>
+      <div class="bk-live" id="qcount">0 ta savol topildi</div>
+    </div>
+
+    <div class="bk-card">
+      <h3>2. Javoblar kaliti</h3>
+      <p style="margin:0 0 10px;color:#6b7580;font-size:14px">Bir qatorda: raqam va to'g'ri javob harfi, masalan <b>1B 2C 3A</b></p>
+      <textarea name="key" id="ky" class="key" rows="2" placeholder="1B 2C 3A ...">{{ key }}</textarea>
+      <div class="bk-live" id="kcount">0 ta javob topildi</div>
+    </div>
+
+    <div class="bk-row">
+      <button type="submit" class="bk-btn">Hammasini qo'shish</button>
+      <a class="bk-ghost" href="/boshqaruv/kurs/{{ course.id }}/testlar/">Bekor qilish</a>
+    </div>
+  </form>
+</div>
+
+<script>
+(function () {
+  var qs = document.getElementById('qs');
+  var ky = document.getElementById('ky');
+  function count() {
+    var q = (qs.value.match(/^\s*\d+\s*[.)]\s*\S/gm) || []).length;
+    var k = (ky.value.match(/\d+\s*[-:.)]?\s*[A-Fa-f](?![A-Za-z])/g) || []).length;
+    document.getElementById('qcount').textContent = q + ' ta savol topildi';
+    document.getElementById('kcount').textContent = k + ' ta javob topildi';
+  }
+  qs.addEventListener('input', count);
+  ky.addEventListener('input', count);
+  count();
+})();
+</script>
+{% endblock %}
