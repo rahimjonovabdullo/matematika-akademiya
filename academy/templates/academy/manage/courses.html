@@ -20,6 +20,8 @@
       </div>
       <span class="mg-pill {% if c.is_published %}on{% else %}off{% endif %}">{% if c.is_published %}Saytda ko'rinadi{% else %}Yashirin{% endif %}</span>
       <div class="mg-actions">
+        <a class="mg-btn mg-btn-dark mg-btn-sm" href="{% url 'manage_lessons' c.pk %}">Darslar</a>
+        <a class="mg-btn mg-btn-dark mg-btn-sm" href="{% url 'manage_questions' c.pk %}">Testlar</a>
         <a class="mg-btn mg-btn-line mg-btn-sm" href="{% url 'course_detail' c.slug %}">Ko'rish</a>
         <a class="mg-btn mg-btn-sm" href="{% url 'manage_course_edit' c.pk %}">Tahrirlash</a>
         <form method="post" action="{% url 'manage_course_delete' c.pk %}" onsubmit="return confirm('«{{ c.title|escapejs }}» kursi butunlay o‘chiriladi. Davom etasizmi?');">
