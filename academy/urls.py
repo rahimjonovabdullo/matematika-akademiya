@@ -29,8 +29,18 @@ urlpatterns = [
 
     # Boshqaruv paneli (faqat admin uchun)
     path("boshqaruv/", manage_views.manage_courses, name="manage_courses"),
+    path("boshqaruv/sorovlar/", manage_views.manage_requests, name="manage_requests"),
     path("boshqaruv/kurs/yangi/", manage_views.manage_course_form, name="manage_course_new"),
     path("boshqaruv/kurs/<int:pk>/", manage_views.manage_course_form, name="manage_course_edit"),
     path("boshqaruv/kurs/<int:pk>/ochirish/", manage_views.manage_course_delete, name="manage_course_delete"),
-    path("boshqaruv/sorovlar/", manage_views.manage_requests, name="manage_requests"),
+
+    path("boshqaruv/kurs/<int:course_id>/darslar/", manage_views.manage_lessons, name="manage_lessons"),
+    path("boshqaruv/kurs/<int:course_id>/darslar/yangi/", manage_views.manage_lesson_form, name="manage_lesson_new"),
+    path("boshqaruv/kurs/<int:course_id>/darslar/<int:pk>/", manage_views.manage_lesson_form, name="manage_lesson_edit"),
+    path("boshqaruv/kurs/<int:course_id>/darslar/<int:pk>/ochirish/", manage_views.manage_lesson_delete, name="manage_lesson_delete"),
+
+    path("boshqaruv/kurs/<int:course_id>/testlar/", manage_views.manage_questions, name="manage_questions"),
+    path("boshqaruv/kurs/<int:course_id>/testlar/yangi/", manage_views.manage_question_form, name="manage_question_new"),
+    path("boshqaruv/kurs/<int:course_id>/testlar/<int:pk>/", manage_views.manage_question_form, name="manage_question_edit"),
+    path("boshqaruv/kurs/<int:course_id>/testlar/<int:pk>/ochirish/", manage_views.manage_question_delete, name="manage_question_delete"),
 ]
