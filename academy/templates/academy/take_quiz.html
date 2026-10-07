@@ -50,7 +50,63 @@
     font: inherit; font-weight: 800; font-size: 16px; cursor: pointer;
   }
   .qz-submit button:hover { filter: brightness(.95); }
+
+  /* Kirish oynasi va sanoq animatsiyasi */
+  .qi {
+    position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 30% 20%, #254a33 0%, #16281d 55%, #0d1a12 100%); color: #fff;
+    padding: 20px; transition: opacity .5s ease, transform .5s ease;
+  }
+  .qi.out { opacity: 0; transform: scale(1.06); pointer-events: none; }
+  .qi-box { text-align: center; max-width: 520px; width: 100%; animation: qiin .6s ease both; }
+  @keyframes qiin { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+  .qi-chip {
+    display: inline-block; padding: 7px 18px; border-radius: 999px; background: #d3f24a; color: #16281d;
+    font-weight: 800; font-size: 12px; letter-spacing: .2em;
+  }
+  .qi-title { font-size: 36px; font-weight: 800; margin: 18px 0 8px; line-height: 1.15; letter-spacing: -.02em; }
+  .qi-sub { color: #b9c8bd; margin: 0 0 26px; }
+  .qi-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 28px; }
+  .qi-stat { background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .14); border-radius: 20px; padding: 18px 10px; }
+  .qi-stat b { display: block; font-size: 26px; font-weight: 800; color: #d3f24a; }
+  .qi-stat small { color: #b9c8bd; font-weight: 700; font-size: 12px; }
+  .qi-go {
+    padding: 17px 48px; border: 0; border-radius: 999px; background: #d3f24a; color: #16281d;
+    font: inherit; font-weight: 800; font-size: 18px; cursor: pointer; animation: qibeat 1.6s ease-in-out infinite;
+  }
+  @keyframes qibeat { 50% { transform: scale(1.06); box-shadow: 0 0 0 12px rgba(211, 242, 74, .15); } }
+  .qi-count { display: none; }
+  .qi-count b {
+    display: block; font-size: 150px; font-weight: 800; line-height: 1; color: #d3f24a; letter-spacing: -.04em;
+  }
+  .qi-count b.word { font-size: 64px; }
+  .qi-count b.pop { animation: qipop .9s ease both; }
+  @keyframes qipop {
+    0% { opacity: 0; transform: scale(.3); }
+    35% { opacity: 1; transform: scale(1.18); }
+    70% { transform: scale(1); }
+    100% { opacity: .15; transform: scale(.85); }
+  }
+  .qi-count small { color: #b9c8bd; font-weight: 700; letter-spacing: .1em; }
+  @media (max-width: 640px) { .qi-title { font-size: 28px; } .qi-count b { font-size: 110px; } }
 </style>
+
+<div class="qi" id="intro">
+  <div class="qi-box" id="qiMain">
+    <span class="qi-chip">TEST</span>
+    <h2 class="qi-title">{{ course.title }}</h2>
+    <p class="qi-sub">Tayyor bo'lsangiz, boshlang. Boshlash tugmasi bosilgach vaqt ishga tushadi.</p>
+    <div class="qi-stats">
+      <div class="qi-stat"><b>{{ questions|length }}</b><small>SAVOL</small></div>
+      <div class="qi-stat"><b id="qiTime">—</b><small>VAQT</small></div>
+    </div>
+    <button type="button" class="qi-go" id="qiGo">Boshlash</button>
+  </div>
+  <div class="qi-count" id="qiCount">
+    <b id="qiNum">3</b>
+    <small>TAYYORLANING</small>
+  </div>
+</div>
 
 <form method="post" id="quiz">
   {% csrf_token %}
@@ -99,6 +155,7 @@
   var tm = document.getElementById('tm');
   var ts = document.getElementById('ts');
   var doneEl = document.getElementById('done');
+  var intro = document.getElementById('intro');
   var total = {{ questions|length }};
   var minutes = {{ course.duration_minutes }};
   var key = 'quiz_end_{{ course.id }}';
@@ -142,31 +199,31 @@
     clearKey();
   });
 
-  if (minutes > 0) {
-    var end = 0;
-    try { end = parseInt(sessionStorage.getItem(key) || '0', 10); } catch (e) {}
-    if (!end || end < Date.now()) {
-      end = Date.now() + minutes * 60000;
-      try { sessionStorage.setItem(key, String(end)); } catch (e) {}
+  function runTimer(end) {
+    if (minutes > 0) {
+      var tick = function () {
+        var left = Math.max(0, Math.round((end - Date.now()) / 1000));
+        show(left);
+        if (left <= 60) timer.classList.add('warn');
+        if (left <= 0 && !submitted) {
+          submitted = true;
+          clearKey();
+          form.submit();
+          return;
+        }
+        if (!submitted) setTimeout(tick, 500);
+      };
+      tick();
+    } else {
+      var start = Date.now();
+      show(0);
+      setInterval(function () { show(Math.floor((Date.now() - start) / 1000)); }, 1000);
     }
-    var tick = function () {
-      var left = Math.max(0, Math.round((end - Date.now()) / 1000));
-      show(left);
-      if (left <= 60) timer.classList.add('warn');
-      if (left <= 0 && !submitted) {
-        submitted = true;
-        clearKey();
-        form.submit();
-        return;
-      }
-      if (!submitted) setTimeout(tick, 500);
-    };
-    tick();
-  } else {
-    var start = Date.now();
-    show(0);
-    setInterval(function () { show(Math.floor((Date.now() - start) / 1000)); }, 1000);
   }
-})();
-</script>
-{% endblock %}
+
+  // Vaqt matni kirish oynasida
+  var qiTime = document.getElementById('qiTime');
+  if (minutes > 0) {
+    var h = Math.floor(minutes / 60), m = minutes % 60, parts = [];
+    if (h) parts.push(h + ' soat');
+    if (m)
