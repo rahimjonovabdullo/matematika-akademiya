@@ -1,7 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from . import manage_views, views
+from . import bulk_views, manage_views, views
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -43,6 +43,7 @@ urlpatterns = [
 
     path("boshqaruv/kurs/<int:course_id>/testlar/", manage_views.manage_questions, name="manage_questions"),
     path("boshqaruv/kurs/<int:course_id>/testlar/yangi/", manage_views.manage_question_form, name="manage_question_new"),
+    path("boshqaruv/kurs/<int:course_id>/testlar/ommaviy/", bulk_views.manage_bulk_questions, name="manage_bulk_questions"),
     path("boshqaruv/kurs/<int:course_id>/testlar/<int:pk>/", manage_views.manage_question_form, name="manage_question_edit"),
     path("boshqaruv/kurs/<int:course_id>/testlar/<int:pk>/ochirish/", manage_views.manage_question_delete, name="manage_question_delete"),
 ]
