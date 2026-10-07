@@ -19,9 +19,9 @@ class CourseForm(forms.ModelForm):
         model = Course
         fields = ["title", "category", "description", "price", "duration_minutes", "is_published"]
         labels = {
-            "title": "Kurs nomi",
+            "title": "Nomi",
             "category": "Toifa (qaysi bo'limda ko'rinadi)",
-            "description": "Kurs haqida qisqacha",
+            "description": "Qisqacha tavsif",
             "price": "Narxi (so'm)",
             "duration_minutes": "Test davomiyligi (daqiqa)",
             "is_published": "Saytda ko'rinsin",
@@ -100,33 +100,81 @@ def _ctx(section, **extra):
     return data
 
 
-# ---------- Kurslar ----------
+def _kind_info(kind):
+    if kind == "test":
+        return {
+            "kind": "test",
+            "plural": "Testlar",
+            "singular": "test",
+            "list_url": "manage_tests",
+            "new_url": "manage_test_new",
+            "section": "tests",
+        }
+    return {
+        "kind": "kurs",
+        "plural": "Kurslar",
+        "singular": "kurs",
+        "list_url": "manage_courses",
+        "new_url": "manage_course_new",
+        "section": "courses",
+    }
 
-@staff_only
-def manage_courses(request):
-    courses = Course.objects.annotate(
+
+# ---------- Kurslar va testlar ----------
+
+def _list_view(request, kind):
+    info = _kind_info(kind)
+    items = Course.objects.filter(kind=kind).annotate(
         lessons_count=Count("lessons", distinct=True),
         questions_count=Count("questions", distinct=True),
     )
-    return render(request, "academy/manage/courses.html", _ctx("courses", courses=courses))
+    return render(
+        request,
+        "academy/manage/courses.html",
+        _ctx(info["section"], courses=items, info=info),
+    )
 
 
 @staff_only
-def manage_course_form(request, pk=None):
+def manage_courses(request):
+    return _list_view(request, "kurs")
+
+
+@staff_only
+def manage_tests(request):
+    return _list_view(request, "test")
+
+
+def _form_view(request, pk, kind):
     course = get_object_or_404(Course, pk=pk) if pk else None
+    if course:
+        kind = course.kind
+    info = _kind_info(kind)
     if request.method == "POST":
         form = CourseForm(request.POST, instance=course)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Kurs saqlandi.")
-            return redirect("manage_courses")
+            obj = form.save(commit=False)
+            obj.kind = kind
+            obj.save()
+            messages.success(request, "Saqlandi.")
+            return redirect(info["list_url"])
     else:
         form = CourseForm(instance=course)
     return render(
         request,
         "academy/manage/course_form.html",
-        _ctx("courses", form=form, course=course),
+        _ctx(info["section"], form=form, course=course, info=info),
     )
+
+
+@staff_only
+def manage_course_form(request, pk=None):
+    return _form_view(request, pk, "kurs")
+
+
+@staff_only
+def manage_test_form(request, pk=None):
+    return _form_view(request, pk, "test")
 
 
 @staff_only
@@ -134,9 +182,10 @@ def manage_course_form(request, pk=None):
 def manage_course_delete(request, pk):
     course = get_object_or_404(Course, pk=pk)
     title = course.title
+    info = _kind_info(course.kind)
     course.delete()
-    messages.success(request, f"«{title}» kursi o'chirildi.")
-    return redirect("manage_courses")
+    messages.success(request, f"«{title}» o'chirildi.")
+    return redirect(info["list_url"])
 
 
 # ---------- Darslar ----------
@@ -183,11 +232,12 @@ def manage_lesson_delete(request, course_id, pk):
     return redirect("manage_lessons", course_id=course_id)
 
 
-# ---------- Testlar (savollar) ----------
+# ---------- Savollar ----------
 
 @staff_only
 def manage_questions(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
+    info = _kind_info(course.kind)
     questions = list(course.questions.prefetch_related("choices"))
     for q in questions:
         q.rows = [
@@ -197,13 +247,14 @@ def manage_questions(request, course_id):
     return render(
         request,
         "academy/manage/questions.html",
-        _ctx("courses", course=course, questions=questions),
+        _ctx(info["section"], course=course, questions=questions, info=info),
     )
 
 
 @staff_only
 def manage_question_form(request, course_id, pk=None):
     course = get_object_or_404(Course, pk=course_id)
+    info = _kind_info(course.kind)
     question = get_object_or_404(Question, pk=pk, course=course) if pk else None
 
     if request.method == "POST":
@@ -241,7 +292,7 @@ def manage_question_form(request, course_id, pk=None):
     return render(
         request,
         "academy/manage/question_form.html",
-        _ctx("courses", course=course, question=question, form=form),
+        _ctx(info["section"], course=course, question=question, form=form, info=info),
     )
 
 
