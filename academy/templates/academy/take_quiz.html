@@ -10,10 +10,15 @@
   .qz-bar h1 { font-size: 20px; font-weight: 800; margin: 0; }
   .qz-bar small { color: #6b7580; font-weight: 700; }
   .qz-timer {
-    font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; background: #16281d; color: #d3f24a;
-    border-radius: 16px; padding: 8px 18px; min-width: 110px; text-align: center;
+    display: flex; align-items: flex-start; gap: 8px; background: #16281d; color: #d3f24a;
+    border-radius: 18px; padding: 10px 20px 8px; font-variant-numeric: tabular-nums;
   }
+  .qz-timer i { font-style: normal; font-size: 26px; font-weight: 800; line-height: 1.15; opacity: .6; }
+  .qz-seg { text-align: center; min-width: 46px; }
+  .qz-seg b { display: block; font-size: 28px; font-weight: 800; line-height: 1.15; }
+  .qz-seg small { display: block; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #a9c43a; font-weight: 700; }
   .qz-timer.warn { background: #e5173f; color: #fff; animation: qzpulse 1s infinite; }
+  .qz-timer.warn .qz-seg small { color: #ffd0d8; }
   @keyframes qzpulse { 50% { opacity: .75; } }
   .qz-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
   .qz-nav a {
@@ -24,7 +29,7 @@
   .qz-nav a.done { background: #d3f24a; border-color: #d3f24a; color: #16281d; }
   .qz-q {
     background: #fff; border: 1px solid #e8eae4; border-radius: 24px; padding: 22px 24px; margin-bottom: 16px;
-    scroll-margin-top: 110px;
+    scroll-margin-top: 120px;
   }
   .qz-q h3 { margin: 0 0 14px; font-size: 18px; line-height: 1.4; display: flex; gap: 12px; }
   .qz-num {
@@ -55,7 +60,13 @@
       <h1>{{ course.title }}</h1>
       <small><span id="done">0</span> / {{ questions|length }} savolga javob berildi</small>
     </div>
-    <div class="qz-timer" id="timer">{% if course.duration_minutes %}--:--{% else %}00:00{% endif %}</div>
+    <div class="qz-timer" id="timer">
+      <div class="qz-seg"><b id="th">00</b><small>soat</small></div>
+      <i>:</i>
+      <div class="qz-seg"><b id="tm">00</b><small>daqiqa</small></div>
+      <i>:</i>
+      <div class="qz-seg"><b id="ts">00</b><small>soniya</small></div>
+    </div>
   </div>
 
   <div class="qz-nav">
@@ -84,6 +95,9 @@
 (function () {
   var form = document.getElementById('quiz');
   var timer = document.getElementById('timer');
+  var th = document.getElementById('th');
+  var tm = document.getElementById('tm');
+  var ts = document.getElementById('ts');
   var doneEl = document.getElementById('done');
   var total = {{ questions|length }};
   var minutes = {{ course.duration_minutes }};
@@ -91,7 +105,11 @@
   var submitted = false;
 
   function pad(n) { return (n < 10 ? '0' : '') + n; }
-  function fmt(s) { return pad(Math.floor(s / 60)) + ':' + pad(s % 60); }
+  function show(sec) {
+    th.textContent = pad(Math.floor(sec / 3600));
+    tm.textContent = pad(Math.floor((sec % 3600) / 60));
+    ts.textContent = pad(sec % 60);
+  }
 
   function answered() {
     var seen = {};
@@ -133,7 +151,7 @@
     }
     var tick = function () {
       var left = Math.max(0, Math.round((end - Date.now()) / 1000));
-      timer.textContent = fmt(left);
+      show(left);
       if (left <= 60) timer.classList.add('warn');
       if (left <= 0 && !submitted) {
         submitted = true;
@@ -146,7 +164,8 @@
     tick();
   } else {
     var start = Date.now();
-    setInterval(function () { timer.textContent = fmt(Math.floor((Date.now() - start) / 1000)); }, 1000);
+    show(0);
+    setInterval(function () { show(Math.floor((Date.now() - start) / 1000)); }, 1000);
   }
 })();
 </script>
