@@ -1,15 +1,18 @@
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
+from django.db import transaction
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.text import slugify
 from django.views.decorators.http import require_POST
 
-from .models import Course, Enrollment
+from .models import Choice, Course, Enrollment, Lesson, Question
 
 staff_only = user_passes_test(lambda u: u.is_active and u.is_staff, login_url="login")
 
+
+# ---------- Formalar ----------
 
 class CourseForm(forms.ModelForm):
     class Meta:
@@ -39,6 +42,51 @@ class CourseForm(forms.ModelForm):
         return obj
 
 
+class LessonForm(forms.ModelForm):
+    class Meta:
+        model = Lesson
+        fields = ["title", "video_url", "content", "order", "is_free_preview"]
+        labels = {
+            "title": "Dars nomi",
+            "video_url": "Video havolasi",
+            "content": "Dars matni / izoh",
+            "order": "Tartib raqami",
+            "is_free_preview": "Bepul ko'rsatilsin (kursga yozilmaganlar ham ko'rsin)",
+        }
+        help_texts = {
+            "video_url": "To'liq havola yozing, masalan: https://youtu.be/abc123. Video bo'lmasa bo'sh qoldiring.",
+            "order": "1, 2, 3 ... Kichik raqam birinchi chiqadi.",
+        }
+        widgets = {
+            "video_url": forms.TextInput(),
+            "content": forms.Textarea(attrs={"rows": 6}),
+        }
+
+
+LETTERS = ["A", "B", "C", "D"]
+
+
+class QuestionForm(forms.Form):
+    text = forms.CharField(label="Savol matni", widget=forms.Textarea(attrs={"rows": 3}))
+    order = forms.IntegerField(label="Tartib raqami", min_value=0, initial=1,
+                               help_text="Savol nechanchi bo'lib chiqishi.")
+    choice1 = forms.CharField(label="A variant", max_length=300)
+    choice2 = forms.CharField(label="B variant", max_length=300)
+    choice3 = forms.CharField(label="C variant", max_length=300, required=False)
+    choice4 = forms.CharField(label="D variant", max_length=300, required=False)
+    correct = forms.ChoiceField(
+        label="To'g'ri javob",
+        choices=[("1", "A"), ("2", "B"), ("3", "C"), ("4", "D")],
+    )
+
+    def clean(self):
+        data = super().clean()
+        correct = data.get("correct")
+        if correct and not data.get(f"choice{correct}"):
+            self.add_error("correct", "To'g'ri javob sifatida tanlangan variant bo'sh. Uni to'ldiring.")
+        return data
+
+
 def _ctx(section, **extra):
     data = {
         "section": section,
@@ -47,6 +95,8 @@ def _ctx(section, **extra):
     data.update(extra)
     return data
 
+
+# ---------- Kurslar ----------
 
 @staff_only
 def manage_courses(request):
@@ -84,6 +134,123 @@ def manage_course_delete(request, pk):
     messages.success(request, f"«{title}» kursi o'chirildi.")
     return redirect("manage_courses")
 
+
+# ---------- Darslar ----------
+
+@staff_only
+def manage_lessons(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    lessons = course.lessons.all()
+    return render(
+        request,
+        "academy/manage/lessons.html",
+        _ctx("courses", course=course, lessons=lessons),
+    )
+
+
+@staff_only
+def manage_lesson_form(request, course_id, pk=None):
+    course = get_object_or_404(Course, pk=course_id)
+    lesson = get_object_or_404(Lesson, pk=pk, course=course) if pk else None
+    if request.method == "POST":
+        form = LessonForm(request.POST, instance=lesson)
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.course = course
+            obj.save()
+            messages.success(request, "Dars saqlandi.")
+            return redirect("manage_lessons", course_id=course.pk)
+    else:
+        initial = {} if lesson else {"order": course.lessons.count() + 1}
+        form = LessonForm(instance=lesson, initial=initial)
+    return render(
+        request,
+        "academy/manage/lesson_form.html",
+        _ctx("courses", course=course, lesson=lesson, form=form),
+    )
+
+
+@staff_only
+@require_POST
+def manage_lesson_delete(request, course_id, pk):
+    lesson = get_object_or_404(Lesson, pk=pk, course_id=course_id)
+    lesson.delete()
+    messages.success(request, "Dars o'chirildi.")
+    return redirect("manage_lessons", course_id=course_id)
+
+
+# ---------- Testlar (savollar) ----------
+
+@staff_only
+def manage_questions(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    questions = list(course.questions.prefetch_related("choices"))
+    for q in questions:
+        q.rows = [
+            {"letter": LETTERS[i], "text": c.text, "is_correct": c.is_correct}
+            for i, c in enumerate(q.choices.all()[:4])
+        ]
+    return render(
+        request,
+        "academy/manage/questions.html",
+        _ctx("courses", course=course, questions=questions),
+    )
+
+
+@staff_only
+def manage_question_form(request, course_id, pk=None):
+    course = get_object_or_404(Course, pk=course_id)
+    question = get_object_or_404(Question, pk=pk, course=course) if pk else None
+
+    if request.method == "POST":
+        form = QuestionForm(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+            with transaction.atomic():
+                if question is None:
+                    question = Question(course=course)
+                question.text = cd["text"]
+                question.order = cd["order"]
+                question.save()
+                question.choices.all().delete()
+                for i in range(1, 5):
+                    text = cd.get(f"choice{i}")
+                    if text:
+                        Choice.objects.create(
+                            question=question,
+                            text=text,
+                            is_correct=(cd["correct"] == str(i)),
+                        )
+            messages.success(request, "Savol saqlandi.")
+            return redirect("manage_questions", course_id=course.pk)
+    else:
+        if question:
+            initial = {"text": question.text, "order": question.order, "correct": "1"}
+            for i, c in enumerate(question.choices.all()[:4], start=1):
+                initial[f"choice{i}"] = c.text
+                if c.is_correct:
+                    initial["correct"] = str(i)
+        else:
+            initial = {"order": course.questions.count() + 1, "correct": "1"}
+        form = QuestionForm(initial=initial)
+
+    return render(
+        request,
+        "academy/manage/question_form.html",
+        _ctx("courses", course=course, question=question, form=form),
+    )
+
+
+@staff_only
+@require_POST
+def manage_question_delete(request, course_id, pk):
+    question = get_object_or_404(Question, pk=pk, course_id=course_id)
+    question.delete()
+    messages.success(request, "Savol o'chirildi.")
+    return redirect("manage_questions", course_id=course_id)
+
+
+# ---------- So'rovlar ----------
 
 @staff_only
 def manage_requests(request):
