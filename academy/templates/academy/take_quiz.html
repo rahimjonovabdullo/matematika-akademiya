@@ -226,4 +226,56 @@
   if (minutes > 0) {
     var h = Math.floor(minutes / 60), m = minutes % 60, parts = [];
     if (h) parts.push(h + ' soat');
-    if (m)
+    if (m) parts.push(m + ' daqiqa');
+    qiTime.textContent = parts.join(' ');
+  } else {
+    qiTime.textContent = 'Cheklanmagan';
+  }
+
+  // Test davom etayotgan bo'lsa, kirish oynasi chiqmaydi
+  var resumeEnd = 0;
+  if (minutes > 0) {
+    try { resumeEnd = parseInt(sessionStorage.getItem(key) || '0', 10); } catch (e) {}
+  }
+  if (resumeEnd && resumeEnd > Date.now()) {
+    intro.remove();
+    runTimer(resumeEnd);
+    return;
+  }
+
+  show(minutes > 0 ? minutes * 60 : 0);
+  document.body.style.overflow = 'hidden';
+
+  var qiMain = document.getElementById('qiMain');
+  var qiCount = document.getElementById('qiCount');
+  var qiNum = document.getElementById('qiNum');
+
+  function finishIntro() {
+    document.body.style.overflow = '';
+    intro.classList.add('out');
+    setTimeout(function () { intro.remove(); }, 600);
+    var end = 0;
+    if (minutes > 0) {
+      end = Date.now() + minutes * 60000;
+      try { sessionStorage.setItem(key, String(end)); } catch (e) {}
+    }
+    runTimer(end);
+  }
+
+  document.getElementById('qiGo').addEventListener('click', function () {
+    qiMain.style.display = 'none';
+    qiCount.style.display = 'block';
+    var steps = ['3', '2', '1', 'Boshladik!'];
+    var i = 0;
+    (function next() {
+      if (i >= steps.length) { finishIntro(); return; }
+      qiNum.textContent = steps[i];
+      qiNum.className = (steps[i].length > 1 ? 'word ' : '') + 'pop';
+      void qiNum.offsetWidth;
+      i++;
+      setTimeout(next, i === steps.length ? 800 : 900);
+    })();
+  });
+})();
+</script>
+{% endblock %}
