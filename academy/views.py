@@ -17,7 +17,9 @@ def filter_by_section(request, courses):
 
 
 def home(request):
-    courses, bolim = filter_by_section(request, Course.objects.filter(is_published=True))
+    courses, bolim = filter_by_section(
+        request, Course.objects.filter(is_published=True, kind="kurs")
+    )
     return render(
         request,
         "academy/home.html",
@@ -129,12 +131,11 @@ def quiz_result(request, attempt_id):
 
 def tests_list(request):
     courses = (
-        Course.objects.filter(is_published=True)
+        Course.objects.filter(is_published=True, kind="test")
         .annotate(
             questions_count=Count("questions", distinct=True),
             participants=Count("attempts__student", distinct=True),
         )
-        .filter(questions_count__gt=0)
     )
     courses, bolim = filter_by_section(request, courses)
     return render(request, "academy/tests_list.html", {"courses": courses, "bolim": bolim})
