@@ -20,6 +20,9 @@
     <div class="mg-row">
       <div class="mg-main">
         <b>{{ q.order }}. {{ q.text|truncatechars:140 }}</b>
+        {% if q.has_image %}
+        <img src="{% url 'question_image' q.pk %}" alt="Rasm" style="max-width:220px;max-height:140px;border:1px solid #e0e4d8;border-radius:12px;margin:6px 0;display:block">
+        {% endif %}
         {% for r in q.rows %}
         <small{% if r.is_correct %} style="color:#2c4a14;font-weight:800"{% endif %}>{{ r.letter }}) {{ r.text }}{% if r.is_correct %} ✓{% endif %}</small>
         {% empty %}
@@ -27,6 +30,7 @@
         {% endfor %}
       </div>
       <div class="mg-actions">
+        <a class="mg-btn mg-btn-line mg-btn-sm" href="{% url 'manage_question_image' course.pk q.pk %}">{% if q.has_image %}Rasmni almashtirish{% else %}Rasm{% endif %}</a>
         <a class="mg-btn mg-btn-sm" href="{% url 'manage_question_edit' course.pk q.pk %}">Tahrirlash</a>
         <form method="post" action="{% url 'manage_question_delete' course.pk q.pk %}" onsubmit="return confirm('Bu savol o‘chiriladi. Davom etasizmi?');">
           {% csrf_token %}
