@@ -1,7 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from . import bulk_views, manage_views, views
+from . import bulk_views, image_views, manage_views, views
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -26,6 +26,7 @@ urlpatterns = [
     path("kurs/<slug:slug>/", views.course_detail, name="course_detail"),
     path("kurs/<slug:slug>/test/", views.take_quiz, name="take_quiz"),
     path("natija/<int:attempt_id>/", views.quiz_result, name="quiz_result"),
+    path("savol-rasm/<int:pk>/", image_views.question_image, name="question_image"),
 
     # Boshqaruv paneli (faqat admin uchun)
     path("boshqaruv/", manage_views.manage_courses, name="manage_courses"),
@@ -45,5 +46,6 @@ urlpatterns = [
     path("boshqaruv/kurs/<int:course_id>/testlar/yangi/", manage_views.manage_question_form, name="manage_question_new"),
     path("boshqaruv/kurs/<int:course_id>/testlar/ommaviy/", bulk_views.manage_bulk_questions, name="manage_bulk_questions"),
     path("boshqaruv/kurs/<int:course_id>/testlar/<int:pk>/", manage_views.manage_question_form, name="manage_question_edit"),
+    path("boshqaruv/kurs/<int:course_id>/testlar/<int:pk>/rasm/", image_views.manage_question_image, name="manage_question_image"),
     path("boshqaruv/kurs/<int:course_id>/testlar/<int:pk>/ochirish/", manage_views.manage_question_delete, name="manage_question_delete"),
 ]
