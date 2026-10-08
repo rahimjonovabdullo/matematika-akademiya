@@ -19,7 +19,7 @@
     {% for q in questions %}
     <div class="mg-row">
       <div class="mg-main">
-        <b>{{ q.order }}. {{ q.text|truncatechars:140 }}</b>
+        <b>{{ q.order }}. {{ q.text }}</b>
         {% if q.has_image %}
         <img src="{% url 'question_image' q.pk %}" alt="Rasm" style="max-width:220px;max-height:140px;border:1px solid #e0e4d8;border-radius:12px;margin:6px 0;display:block">
         {% endif %}
