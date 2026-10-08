@@ -62,6 +62,8 @@ class Question(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="questions", verbose_name="Kurs")
     text = models.TextField("Savol matni")
     order = models.PositiveIntegerField("Tartib raqami", default=0)
+    image_data = models.BinaryField(null=True, blank=True, editable=False)
+    image_type = models.CharField(max_length=50, blank=True, default="")
 
     class Meta:
         verbose_name = "Savol"
@@ -70,6 +72,10 @@ class Question(models.Model):
 
     def __str__(self):
         return self.text[:60]
+
+    @property
+    def has_image(self):
+        return bool(self.image_type)
 
 
 class Choice(models.Model):
