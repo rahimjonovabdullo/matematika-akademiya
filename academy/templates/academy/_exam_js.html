@@ -1,0 +1,209 @@
+<script>
+(function () {
+  var form = document.getElementById('quiz');
+  var qs = [].slice.call(document.querySelectorAll('.ex-q'));
+  var total = qs.length;
+  var minutes = {{ course.duration_minutes }};
+  var key = 'quiz_end_{{ course.id }}';
+  var tt = document.getElementById('tt');
+  var timer = document.getElementById('timer');
+  var intro = document.getElementById('intro');
+  var ex = document.getElementById('ex');
+  var prevB = document.getElementById('prev');
+  var nextB = document.getElementById('next');
+  var grid = document.getElementById('grid');
+  var cur = 0, submitted = false, paused = false, pausedAt = 0, tid = null;
+  var endAt = 0, startAt = 0;
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function show(sec) {
+    tt.textContent = pad(Math.floor(sec / 3600)) + ':' + pad(Math.floor((sec % 3600) / 60)) + ':' + pad(sec % 60);
+  }
+
+  /* Savollar katakchalari */
+  var cells = [];
+  for (var i = 0; i < total; i++) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = i + 1;
+    b.dataset.i = i;
+    b.addEventListener('click', function () { go(parseInt(this.dataset.i, 10)); });
+    grid.appendChild(b);
+    cells.push(b);
+  }
+
+  function answeredMap() {
+    var seen = {};
+    form.querySelectorAll('input[type=radio]:checked').forEach(function (r) { seen[r.dataset.q] = 1; });
+    return seen;
+  }
+  function refresh() {
+    var seen = answeredMap(), n = 0;
+    qs.forEach(function (q, i) {
+      var qid = q.id.substring(1), a = !!seen[qid];
+      if (a) n++;
+      cells[i].classList.toggle('ans', a && i !== cur);
+      cells[i].classList.toggle('cur', i === cur);
+    });
+    document.getElementById('done').textContent = n;
+    document.getElementById('bar').style.width = (total ? n * 100 / total : 0) + '%';
+    return n;
+  }
+  function go(i) {
+    if (i < 0 || i >= total) return;
+    qs[cur].classList.remove('on');
+    cur = i;
+    qs[cur].classList.add('on');
+    document.getElementById('curLabel').textContent = (cur + 1) + '-savol';
+    prevB.disabled = cur === 0;
+    nextB.disabled = cur === total - 1;
+    refresh();
+    document.querySelector('.ex-main').scrollIntoView({ block: 'nearest' });
+  }
+  prevB.addEventListener('click', function () { go(cur - 1); });
+  nextB.addEventListener('click', function () { go(cur + 1); });
+  form.addEventListener('change', refresh);
+
+  document.addEventListener('keydown', function (e) {
+    if (paused || document.getElementById('intro')) return;
+    if (e.target && /input|textarea/i.test(e.target.tagName) && e.target.type !== 'radio') return;
+    if (e.key === 'ArrowRight') go(cur + 1);
+    else if (e.key === 'ArrowLeft') go(cur - 1);
+    else {
+      var k = e.key.toUpperCase().charCodeAt(0) - 65;
+      var radios = qs[cur].querySelectorAll('input[type=radio]');
+      if (e.key.length === 1 && k >= 0 && k < radios.length) { radios[k].checked = true; refresh(); }
+    }
+  });
+
+  /* Yakunlash */
+  function clearKey() { try { sessionStorage.removeItem(key); } catch (e) {} }
+  function finishNow() { submitted = true; clearKey(); form.submit(); }
+  document.getElementById('finish').addEventListener('click', function () {
+    var left = total - refresh();
+    var msg = left > 0 ? left + ' ta savolga javob bermadingiz. Baribir yakunlaysizmi?' : 'Testni yakunlaysizmi?';
+    if (confirm(msg)) finishNow();
+  });
+  form.addEventListener('submit', function () { submitted = true; clearKey(); });
+
+  /* Taymer */
+  function tick() {
+    var sec;
+    if (minutes > 0) {
+      sec = Math.max(0, Math.round((endAt - Date.now()) / 1000));
+      show(sec);
+      timer.classList.toggle('warn', sec <= 60);
+      if (sec <= 0 && !submitted) { finishNow(); return; }
+    } else {
+      show(Math.floor((Date.now() - startAt) / 1000));
+    }
+    if (!submitted && !paused) tid = setTimeout(tick, 500);
+  }
+  function startTimer(end) {
+    if (minutes > 0) endAt = end; else startAt = Date.now();
+    tick();
+  }
+
+  /* To'xtatish */
+  var pauseEl = document.getElementById('pause');
+  document.getElementById('pauseBtn').addEventListener('click', function () {
+    if (paused) return;
+    paused = true; pausedAt = Date.now();
+    clearTimeout(tid);
+    pauseEl.classList.add('on');
+  });
+  document.getElementById('resume').addEventListener('click', function () {
+    if (!paused) return;
+    var d = Date.now() - pausedAt;
+    if (minutes > 0) {
+      endAt += d;
+      try { sessionStorage.setItem(key, String(endAt)); } catch (e) {}
+    } else { startAt += d; }
+    paused = false;
+    pauseEl.classList.remove('on');
+    tick();
+  });
+
+  /* Kalkulyator */
+  var calcbox = document.getElementById('calcbox');
+  var cd = document.getElementById('cd');
+  var expr = '';
+  var keys = ['C', '(', ')', '⌫', '7', '8', '9', '÷', '4', '5', '6', '×', '1', '2', '3', '−', '0', '.', '=', '+'];
+  var ck = document.getElementById('ck');
+  keys.forEach(function (k) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = k;
+    if ('÷×−+C⌫'.indexOf(k) >= 0) b.className = 'op';
+    if (k === '=') b.className = 'eq';
+    b.addEventListener('click', function () { press(k); });
+    ck.appendChild(b);
+  });
+  function press(k) {
+    if (k === 'C') expr = '';
+    else if (k === '⌫') expr = expr.slice(0, -1);
+    else if (k === '=') {
+      var e = expr.replace(/÷/g, '/').replace(/×/g, '*').replace(/−/g, '-');
+      if (/^[0-9+\-*/().\s]+$/.test(e)) {
+        try {
+          var r = Function('"use strict";return (' + e + ')')();
+          expr = (typeof r === 'number' && isFinite(r)) ? String(Math.round(r * 1e10) / 1e10) : '';
+        } catch (x) { expr = ''; }
+      }
+    } else expr += k;
+    cd.textContent = expr || '0';
+  }
+  document.getElementById('calcBtn').addEventListener('click', function () { calcbox.classList.toggle('on'); });
+  document.getElementById('calcX').addEventListener('click', function () { calcbox.classList.remove('on'); });
+
+  /* Kirish oynasi */
+  var qiTime = document.getElementById('qiTime');
+  if (minutes > 0) {
+    var h = Math.floor(minutes / 60), m = minutes % 60, parts = [];
+    if (h) parts.push(h + ' soat');
+    if (m) parts.push(m + ' daqiqa');
+    qiTime.textContent = parts.join(' ');
+  } else { qiTime.textContent = 'Cheklanmagan'; }
+
+  go(0);
+
+  var resumeEnd = 0;
+  if (minutes > 0) {
+    try { resumeEnd = parseInt(sessionStorage.getItem(key) || '0', 10); } catch (e) {}
+  }
+  if (resumeEnd && resumeEnd > Date.now()) {
+    intro.remove();
+    startTimer(resumeEnd);
+    return;
+  }
+
+  show(minutes > 0 ? minutes * 60 : 0);
+  document.body.style.overflow = 'hidden';
+  var qiMain = document.getElementById('qiMain');
+  var qiCount = document.getElementById('qiCount');
+  var qiNum = document.getElementById('qiNum');
+
+  function finishIntro() {
+    intro.classList.add('out');
+    setTimeout(function () { intro.remove(); }, 600);
+    var end = 0;
+    if (minutes > 0) {
+      end = Date.now() + minutes * 60000;
+      try { sessionStorage.setItem(key, String(end)); } catch (e) {}
+    }
+    startTimer(end);
+  }
+  document.getElementById('qiGo').addEventListener('click', function () {
+    qiMain.style.display = 'none';
+    qiCount.style.display = 'block';
+    var steps = ['3', '2', '1', 'Boshladik!'], i = 0;
+    (function next() {
+      if (i >= steps.length) { finishIntro(); return; }
+      qiNum.textContent = steps[i];
+      qiNum.className = (steps[i].length > 1 ? 'word ' : '') + 'pop';
+      void qiNum.offsetWidth;
+      i++;
+      setTimeout(next, i === steps.length ? 800 : 900);
+    })();
+  });
+})();
+</script>
