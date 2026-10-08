@@ -1,96 +1,290 @@
 {% extends "base.html" %}
-{% block title %}Savollarni ommaviy qo'shish{% endblock %}
+{% block title %}Savollarni qo'shish — {{ course.title }}{% endblock %}
 {% block content %}
 <style>
-  .bk { max-width: 860px; }
-  .bk h1 { font-size: 28px; font-weight: 800; margin: 0 0 6px; }
-  .bk .sub { color: #6b7580; margin: 0 0 22px; }
-  .bk-card { background: #fff; border: 1px solid #e8eae4; border-radius: 24px; padding: 22px 24px; margin-bottom: 18px; }
-  .bk-card h3 { margin: 0 0 10px; font-size: 16px; font-weight: 800; }
-  .bk textarea {
-    width: 100%; border: 1.5px solid #e0e4d8; border-radius: 16px; padding: 14px 16px; font: inherit;
-    font-size: 15px; line-height: 1.55; resize: vertical; box-sizing: border-box;
-  }
-  .bk textarea:focus { outline: none; border-color: #16281d; }
-  .bk .key { min-height: 70px; font-weight: 700; letter-spacing: .02em; }
-  .bk-hint { background: #f6f9e8; border-radius: 16px; padding: 14px 18px; font-size: 14px; color: #3c4a3f; line-height: 1.6; }
-  .bk-hint pre { margin: 8px 0 0; font: inherit; font-weight: 700; white-space: pre-wrap; }
-  .bk-err { background: #fff0f2; border: 1px solid #f6c3cc; color: #b0112f; border-radius: 16px; padding: 14px 18px; margin-bottom: 18px; }
-  .bk-err ul { margin: 6px 0 0; padding-left: 20px; }
-  .bk-live { color: #6b7580; font-weight: 700; font-size: 14px; margin-top: 8px; }
-  .bk-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-  .bk-btn {
-    padding: 14px 30px; border: 0; border-radius: 999px; background: #d3f24a; color: #16281d;
-    font: inherit; font-weight: 800; font-size: 16px; cursor: pointer;
-  }
-  .bk-btn:hover { filter: brightness(.95); }
-  .bk-ghost {
-    padding: 14px 24px; border-radius: 999px; border: 1.5px solid #e0e4d8; background: #fff; color: #16281d;
-    font: inherit; font-weight: 700; text-decoration: none; cursor: pointer;
-  }
+  .bq { max-width: 1100px; margin: 0 auto; padding: 8px 4px 40px; color: #16281d; }
+  .bq-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+  .bq-head h1 { margin: 0; font-size: 26px; letter-spacing: -.02em; }
+  .bq-head small { display: block; color: #6b7580; font-weight: 600; margin-top: 4px; }
+  .bq-back { padding: 10px 18px; border-radius: 999px; border: 1.5px solid #e0e4d8; background: #fff; color: #16281d; font-weight: 700; text-decoration: none; font-size: 14px; }
+  .bq-card { background: #fff; border: 1px solid #e8eae4; border-radius: 28px; padding: 22px 24px; margin-bottom: 16px; box-shadow: 0 6px 24px rgba(22, 40, 29, .05); }
+  .bq-step { display: flex; align-items: center; gap: 10px; margin: 0 0 6px; font-size: 18px; font-weight: 800; }
+  .bq-step i { font-style: normal; width: 30px; height: 30px; border-radius: 50%; background: #d3f24a; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; }
+  .bq-help { color: #6b7580; font-size: 14px; margin: 0 0 12px; line-height: 1.55; }
+  .bq-help code { background: #f3f4f0; padding: 2px 7px; border-radius: 8px; font-size: 13px; }
+  .bq textarea { width: 100%; box-sizing: border-box; border: 1.5px solid #e0e4d8; border-radius: 18px; padding: 14px 16px; font: inherit; font-size: 15px; line-height: 1.55; resize: vertical; background: #fafbf8; color: #16281d; }
+  .bq textarea:focus { outline: none; border-color: #c4dc5a; box-shadow: 0 0 0 3px #eef8bd; }
+  .bq-meta { margin-top: 8px; font-size: 13px; font-weight: 700; color: #6b7580; }
+  .bq-err { background: #ffe9ed; border: 1px solid #ffc7d1; color: #a3102b; border-radius: 18px; padding: 14px 18px; margin-bottom: 16px; font-weight: 600; font-size: 14px; line-height: 1.6; }
+  .bq-err ul { margin: 6px 0 0; padding-left: 20px; }
+  .bq-drop { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .bq-file { position: relative; display: inline-block; padding: 13px 24px; border-radius: 999px; background: #16281d; color: #fff; font-weight: 800; font-size: 15px; cursor: pointer; }
+  .bq-file input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .bq-clear { border: 0; background: none; color: #a3102b; font: inherit; font-weight: 700; cursor: pointer; font-size: 14px; }
+  .bq-clear[hidden] { display: none; }
+  .bq-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .bq-table th { text-align: left; color: #6b7580; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; padding: 8px 10px; border-bottom: 1px solid #eef0ea; }
+  .bq-table td { padding: 10px; border-bottom: 1px solid #f1f3ec; vertical-align: middle; }
+  .bq-table td.t { max-width: 460px; overflow-wrap: anywhere; }
+  .bq-n { font-weight: 800; }
+  .bq-ans { display: inline-flex; width: 28px; height: 28px; border-radius: 50%; background: #e3f6ea; color: #1b8a4b; font-weight: 800; align-items: center; justify-content: center; }
+  .bq-ans.no { background: #ffe9ed; color: #a3102b; }
+  .bq-th { width: 54px; height: 40px; object-fit: cover; border-radius: 8px; border: 1px solid #e8eae4; display: block; }
+  .bq-warn { color: #a3102b; font-weight: 700; font-size: 13px; }
+  .bq-okimg { color: #6b7580; font-size: 13px; }
+  .bq-empty { color: #6b7580; padding: 14px 4px; font-size: 14px; }
+  .bq-sum { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .bq-pill { background: #f3f4f0; border-radius: 999px; padding: 7px 14px; font-weight: 800; font-size: 13px; }
+  .bq-pill.bad { background: #ffe9ed; color: #a3102b; }
+  .bq-pill.good { background: #e3f6ea; color: #1b8a4b; }
+  .bq-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; position: sticky; bottom: 0; background: rgba(243, 244, 240, .94); padding: 14px 0 6px; backdrop-filter: blur(4px); }
+  .bq-save { border: 0; padding: 16px 38px; border-radius: 999px; background: #d3f24a; color: #16281d; font: inherit; font-weight: 800; font-size: 17px; cursor: pointer; }
+  .bq-save:disabled { opacity: .45; cursor: not-allowed; }
+  .bq-hint { color: #6b7580; font-size: 13px; font-weight: 600; }
+  @media (max-width: 700px) { .bq-table td.t { max-width: 200px; } .bq-card { padding: 18px 16px; border-radius: 22px; } }
 </style>
 
-<div class="bk">
-  <h1>Savollarni ommaviy qo'shish</h1>
-  <p class="sub">{{ course.title }}: ko'p savolni bir vaqtda kiriting</p>
+<div class="bq">
+  <div class="bq-head">
+    <div>
+      <h1>Savollarni qo'shish</h1>
+      <small>{{ course.title }}</small>
+    </div>
+    <a class="bq-back" href="/boshqaruv/kurs/{{ course.id }}/testlar/">← Savollar ro'yxati</a>
+  </div>
 
   {% if errors %}
-  <div class="bk-err">
-    <b>Savollar qo'shilmadi. Quyidagilarni to'g'rilang:</b>
+  <div class="bq-err">Saqlanmadi. Quyidagilarni tuzating:
     <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+    {% if errors %}<div style="margin-top:8px">Rasmlarni qaytadan tanlang (3-qadam).</div>{% endif %}
   </div>
   {% endif %}
 
-  <form method="post">
+  <form method="post" enctype="multipart/form-data" id="bqForm">
     {% csrf_token %}
 
-    <div class="bk-card">
-      <h3>1. Savollar</h3>
-      <div class="bk-hint">
-        Har bir savol raqam bilan boshlansin, variantlar A, B, C, D bilan. Savollar orasida bo'sh qator bo'lsa yaxshi:
-        <pre>1. 2 + 2 nechiga teng?
-A) 3
-B) 4
-C) 5
-D) 6
+    <div class="bq-card">
+      <h2 class="bq-step"><i>1</i> Savollar matni</h2>
+      <p class="bq-help">Har bir savol <code>1. Savol matni</code> ko'rinishida boshlansin, variantlar <code>A) ...</code> <code>B) ...</code> qatorlarda. Kasr, ildiz, daraja: <code>$\frac{1}{2}$</code> <code>$\sqrt{144}$</code> <code>$2^{10}$</code>.</p>
+      <textarea name="questions" id="bqQ" rows="12" placeholder="1. 2 + 2 nechiga teng?&#10;A) 3&#10;B) 4&#10;C) 5&#10;D) 6">{{ raw }}</textarea>
+      <div class="bq-meta" id="bqQMeta">0 ta savol topildi</div>
+    </div>
 
-2. Eng katta tub son qaysi?
-A) 7
-B) 9
-C) 11
-D) 15</pre>
+    <div class="bq-card">
+      <h2 class="bq-step"><i>2</i> Javoblar kaliti</h2>
+      <p class="bq-help">Bitta qatorda: <code>1C 2A 3B 4D ...</code> Agar kalitni savollar oxiriga <code>Kalit: 1C 2A ...</code> deb yozgan bo'lsangiz, bu qutini bo'sh qoldirishingiz mumkin.</p>
+      <textarea name="key" id="bqK" rows="3" placeholder="1C 2A 3B 4D 5A">{{ key }}</textarea>
+      <div class="bq-meta" id="bqKMeta">0 ta javob topildi</div>
+    </div>
+
+    <div class="bq-card">
+      <h2 class="bq-step"><i>3</i> Rasmlar (ixtiyoriy)</h2>
+      <p class="bq-help">Chizmali savollar uchun rasmlarni tanlang. <b>Fayl nomi savol raqami bilan boshlansin:</b> <code>5.png</code>, <code>12.jpg</code>, <code>7-chizma.png</code>. Bir vaqtda bir nechta faylni belgilash mumkin (eng ko'pi 100 ta). Rasm avtomatik kichraytiriladi.</p>
+      <div class="bq-drop">
+        <label class="bq-file">Rasmlarni tanlash
+          <input type="file" name="images" id="bqImg" accept="image/png,image/jpeg,image/webp,image/gif" multiple>
+        </label>
+        <button type="button" class="bq-clear" id="bqClear" hidden>Rasmlarni tozalash</button>
+        <span class="bq-meta" id="bqImgMeta"></span>
       </div>
-      <textarea name="questions" id="qs" rows="14" placeholder="Savollarni shu yerga tashlang...">{{ raw }}</textarea>
-      <div class="bk-live" id="qcount">0 ta savol topildi</div>
     </div>
 
-    <div class="bk-card">
-      <h3>2. Javoblar kaliti</h3>
-      <p style="margin:0 0 10px;color:#6b7580;font-size:14px">Bir qatorda: raqam va to'g'ri javob harfi, masalan <b>1B 2C 3A</b></p>
-      <textarea name="key" id="ky" class="key" rows="2" placeholder="1B 2C 3A ...">{{ key }}</textarea>
-      <div class="bk-live" id="kcount">0 ta javob topildi</div>
+    <div class="bq-card">
+      <h2 class="bq-step"><i>4</i> Tekshirish</h2>
+      <div class="bq-sum" id="bqSum"></div>
+      <div id="bqPrev"></div>
     </div>
 
-    <div class="bk-row">
-      <button type="submit" class="bk-btn">Hammasini qo'shish</button>
-      <a class="bk-ghost" href="/boshqaruv/kurs/{{ course.id }}/testlar/">Bekor qilish</a>
+    <div class="bq-actions">
+      <button type="submit" class="bq-save" id="bqSave" disabled>Saqlash</button>
+      <span class="bq-hint" id="bqHint">Avval savollarni kiriting.</span>
     </div>
   </form>
 </div>
 
 <script>
 (function () {
-  var qs = document.getElementById('qs');
-  var ky = document.getElementById('ky');
-  function count() {
-    var q = (qs.value.match(/^\s*\d+\s*[.)]\s*\S/gm) || []).length;
-    var k = (ky.value.match(/\d+\s*[-:.)]?\s*[A-Fa-f](?![A-Za-z])/g) || []).length;
-    document.getElementById('qcount').textContent = q + ' ta savol topildi';
-    document.getElementById('kcount').textContent = k + ' ta javob topildi';
+  var Q_RE = /^\s*(\d+)\s*[.)]\s*(.*\S)\s*$/;
+  var O_RE = /^\s*([A-Fa-f])\s*[.)]\s*(.*\S)\s*$/;
+  var KEY_RE = /(\d+)\s*[-:.)]?\s*([A-Fa-f])(?![A-Za-z])/g;
+  var KEYLINE_RE = /^\s*(kalit|javoblar)\b/i;
+  var LETTERS = 'ABCDEF';
+  var MAX = 2 * 1024 * 1024;
+
+  var qEl = document.getElementById('bqQ');
+  var kEl = document.getElementById('bqK');
+  var imgEl = document.getElementById('bqImg');
+  var clearB = document.getElementById('bqClear');
+  var imgMeta = document.getElementById('bqImgMeta');
+  var prev = document.getElementById('bqPrev');
+  var sum = document.getElementById('bqSum');
+  var save = document.getElementById('bqSave');
+  var hint = document.getElementById('bqHint');
+  var form = document.getElementById('bqForm');
+  var files = [];          // tayyor (kichraytirilgan) fayllar
+  var urls = {};           // savol raqami -> rasm URL
+
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
-  qs.addEventListener('input', count);
-  ky.addEventListener('input', count);
-  count();
+
+  function parse(text) {
+    var items = [], keyLines = [], cur = null, inKey = false;
+    text.replace(/\r/g, '').split('\n').forEach(function (line) {
+      if (!line.trim()) return;
+      if (inKey || KEYLINE_RE.test(line)) { inKey = true; keyLines.push(line); return; }
+      var om = line.match(O_RE), qm = line.match(Q_RE);
+      if (om && cur) cur.options.push(om[2].trim());
+      else if (qm) { cur = { num: parseInt(qm[1], 10), text: qm[2].trim(), options: [] }; items.push(cur); }
+      else if (cur) {
+        if (cur.options.length) cur.options[cur.options.length - 1] += ' ' + line.trim();
+        else cur.text += ' ' + line.trim();
+      }
+    });
+    return { items: items, keyText: keyLines.join('\n') };
+  }
+
+  function parseKey(t) {
+    var map = {}, m;
+    KEY_RE.lastIndex = 0;
+    while ((m = KEY_RE.exec(t)) !== null) map[parseInt(m[1], 10)] = m[2].toUpperCase();
+    return map;
+  }
+
+  function numOf(name) {
+    var m = name.match(/\d+/);
+    return m ? parseInt(m[0], 10) : null;
+  }
+
+  function update() {
+    var p = parse(qEl.value);
+    var keyText = kEl.value.trim() ? kEl.value : p.keyText;
+    var key = parseKey(keyText);
+    var nums = p.items.map(function (i) { return i.num; });
+    var problems = 0, rows = '';
+
+    var dup = nums.some(function (n, i) { return nums.indexOf(n) !== i; });
+
+    p.items.forEach(function (it) {
+      var warns = [];
+      var ans = key[it.num];
+      if (it.options.length < 2) warns.push('kamida 2 ta variant kerak');
+      else if (!ans) warns.push('kalitda javob yo\'q');
+      else if (LETTERS.indexOf(ans) >= it.options.length) warns.push(ans + ' varianti yo\'q');
+      if (warns.length) problems++;
+      var img = urls[it.num] ? '<img class="bq-th" src="' + urls[it.num] + '" alt="">' : '<span class="bq-okimg">—</span>';
+      var a = ans ? '<span class="bq-ans' + (warns.length ? ' no' : '') + '">' + ans + '</span>' : '<span class="bq-ans no">?</span>';
+      rows += '<tr><td class="bq-n">' + it.num + '</td><td class="t">' + esc(it.text.length > 110 ? it.text.slice(0, 110) + '…' : it.text) +
+        '</td><td>' + it.options.length + '</td><td>' + a + '</td><td>' + img + '</td><td class="bq-warn">' + esc(warns.join(', ')) + '</td></tr>';
+    });
+
+    // rasm xatolari
+    var imgProblems = [], seen = {};
+    files.forEach(function (f) {
+      var n = numOf(f.name);
+      if (n === null) imgProblems.push(f.name + ': nomida raqam yo\'q');
+      else if (nums.indexOf(n) < 0) imgProblems.push(f.name + ': ' + n + '-savol topilmadi');
+      else if (seen[n]) imgProblems.push(n + '-savolga bittadan ortiq rasm');
+      else if (f.size > MAX) imgProblems.push(f.name + ': 2 MB dan katta');
+      seen[n] = true;
+    });
+
+    // urls faqat joriy savollar uchun
+    var usedImgs = Object.keys(urls).filter(function (n) { return nums.indexOf(parseInt(n, 10)) >= 0; }).length;
+
+    document.getElementById('bqQMeta').textContent = p.items.length + ' ta savol topildi';
+    var kc = Object.keys(key).length;
+    document.getElementById('bqKMeta').textContent = kc + ' ta javob topildi' + (!kEl.value.trim() && p.keyText ? ' (savollar oxiridagi «Kalit» qatoridan)' : '');
+
+    if (!p.items.length) {
+      prev.innerHTML = '<div class="bq-empty">Savollar kiritilgach, shu yerda tekshiruv jadvali chiqadi.</div>';
+    } else {
+      prev.innerHTML = '<div style="overflow-x:auto"><table class="bq-table"><thead><tr><th>№</th><th>Savol</th><th>Variant</th><th>Javob</th><th>Rasm</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+      if (window.renderMathInElement) {
+        try {
+          renderMathInElement(prev, { delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }], throwOnError: false });
+        } catch (e) {}
+      }
+    }
+
+    var total = problems + imgProblems.length + (dup ? 1 : 0);
+    sum.innerHTML =
+      '<span class="bq-pill">' + p.items.length + ' savol</span>' +
+      '<span class="bq-pill">' + usedImgs + ' rasm</span>' +
+      (total ? '<span class="bq-pill bad">' + total + ' ta muammo</span>' : (p.items.length ? '<span class="bq-pill good">Hammasi joyida</span>' : '')) +
+      (dup ? '<span class="bq-pill bad">Savol raqami takrorlangan</span>' : '') +
+      imgProblems.map(function (t) { return '<span class="bq-pill bad">' + esc(t) + '</span>'; }).join('');
+
+    var ok = p.items.length > 0 && total === 0;
+    save.disabled = !ok;
+    hint.textContent = !p.items.length ? 'Avval savollarni kiriting.' : (ok ? p.items.length + ' ta savol saqlanadi.' : 'Qizil belgilangan muammolarni tuzating.');
+  }
+
+  /* Rasmni kichraytirish */
+  function shrink(file) {
+    return new Promise(function (resolve) {
+      var url = URL.createObjectURL(file);
+      var im = new Image();
+      im.onload = function () {
+        var w = im.naturalWidth, h = im.naturalHeight, big = Math.max(w, h);
+        if (big <= 1200 && file.size <= 1800 * 1024) { URL.revokeObjectURL(url); resolve(file); return; }
+        var k = big > 1200 ? 1200 / big : 1;
+        var c = document.createElement('canvas');
+        c.width = Math.round(w * k); c.height = Math.round(h * k);
+        var x = c.getContext('2d');
+        x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+        x.drawImage(im, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob(function (b) {
+          if (!b) { resolve(file); return; }
+          var stem = file.name.replace(/\.[^.]*$/, '');
+          resolve(new File([b], stem + '.jpg', { type: 'image/jpeg' }));
+        }, 'image/jpeg', 0.88);
+      };
+      im.onerror = function () { URL.revokeObjectURL(url); resolve(file); };
+      im.src = url;
+    });
+  }
+
+  function syncInput() {
+    try {
+      var dt = new DataTransfer();
+      files.forEach(function (f) { dt.items.add(f); });
+      imgEl.files = dt.files;
+    } catch (e) {}
+    Object.keys(urls).forEach(function (n) { URL.revokeObjectURL(urls[n]); });
+    urls = {};
+    files.forEach(function (f) {
+      var n = numOf(f.name);
+      if (n !== null) urls[n] = URL.createObjectURL(f);
+    });
+    clearB.hidden = files.length === 0;
+    imgMeta.textContent = files.length ? files.length + ' ta rasm tanlandi' : '';
+  }
+
+  imgEl.addEventListener('change', function () {
+    var picked = [].slice.call(imgEl.files);
+    if (!picked.length) return;
+    imgMeta.textContent = 'Rasmlar tayyorlanmoqda...';
+    Promise.all(picked.map(shrink)).then(function (res) {
+      // oldin tanlanganlarga qo'shiladi; bir xil nomlisi almashtiriladi
+      res.forEach(function (f) {
+        files = files.filter(function (o) { return o.name !== f.name; });
+        files.push(f);
+      });
+      files = files.slice(0, 100);
+      syncInput();
+      update();
+    });
+  });
+  clearB.addEventListener('click', function () { files = []; syncInput(); update(); });
+
+  qEl.addEventListener('input', update);
+  kEl.addEventListener('input', update);
+  form.addEventListener('submit', function () { save.disabled = true; save.textContent = 'Saqlanmoqda...'; });
+
+  syncInput();
+  update();
 })();
 </script>
 {% endblock %}
