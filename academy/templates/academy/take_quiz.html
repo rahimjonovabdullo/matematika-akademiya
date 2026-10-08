@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block title %}{{ course.title }} — Test{% endblock %}
 {% block content %}
+{% if course.category == "attestatsiya" %}
+{% include "academy/_exam.html" %}
+{% else %}
 <style>
   .qz-bar {
     position: sticky; top: 0; z-index: 5; background: #fff; border: 1px solid #e8eae4;
@@ -280,4 +283,5 @@
   });
 })();
 </script>
+{% endif %}
 {% endblock %}
