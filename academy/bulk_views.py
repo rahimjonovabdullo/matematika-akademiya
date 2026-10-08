@@ -20,6 +20,10 @@ ALLOWED_IMAGES = {"image/png", "image/jpeg", "image/webp", "image/gif"}
 MAX_IMAGE = 2 * 1024 * 1024
 
 
+class _SaveError(Exception):
+    pass
+
+
 def _is_staff(user):
     return user.is_authenticated and user.is_staff
 
@@ -100,25 +104,42 @@ def manage_bulk_questions(request, course_id):
             if f.size > MAX_IMAGE:
                 errors.append(f"«{name}»: rasm 2 MB dan katta.")
                 continue
-            images[n] = (f.read(), f.content_type)
+            data = f.read()
+            if not data:
+                errors.append(f"«{name}» fayl bo'sh (0 bayt). Rasmni qaytadan saqlab tanlang.")
+                continue
+            images[n] = (data, f.content_type)
 
         if not errors:
             start = (course.questions.aggregate(m=Max("order"))["m"] or 0)
-            with transaction.atomic():
-                for i, it in enumerate(items, 1):
-                    data, ctype = images.get(it["num"], (None, ""))
-                    q = Question.objects.create(
-                        course=course, text=it["text"], order=start + i,
-                        image_data=data, image_type=ctype,
-                    )
-                    right = LETTERS.index(key[it["num"]])
-                    for idx, opt in enumerate(it["options"]):
-                        Choice.objects.create(question=q, text=opt[:300], is_correct=(idx == right))
-            msg = f"{len(items)} ta savol qo'shildi"
-            if images:
-                msg += f", {len(images)} tasiga rasm biriktirildi"
-            messages.success(request, msg + ".")
-            return redirect(f"/boshqaruv/kurs/{course.id}/testlar/")
+            try:
+                with transaction.atomic():
+                    for i, it in enumerate(items, 1):
+                        data, ctype = images.get(it["num"], (None, ""))
+                        q = Question.objects.create(
+                            course=course, text=it["text"], order=start + i,
+                            image_data=data, image_type=ctype,
+                        )
+                        if data:
+                            saved = Question.objects.only("image_data").get(pk=q.pk).image_data
+                            got = len(bytes(saved)) if saved is not None else 0
+                            if got != len(data):
+                                raise _SaveError(
+                                    f"{it['num']}-savol rasmi bazaga to'liq yozilmadi: "
+                                    f"yuborilgan {len(data)} bayt, bazada {got} bayt. Hech narsa saqlanmadi."
+                                )
+                        right = LETTERS.index(key[it["num"]])
+                        for idx, opt in enumerate(it["options"]):
+                            Choice.objects.create(question=q, text=opt[:300], is_correct=(idx == right))
+            except _SaveError as e:
+                errors.append(str(e))
+            else:
+                msg = f"{len(items)} ta savol qo'shildi"
+                if images:
+                    total = sum(len(v[0]) for v in images.values())
+                    msg += f", {len(images)} tasiga rasm biriktirildi ({total // 1024} KB)"
+                messages.success(request, msg + ".")
+                return redirect(f"/boshqaruv/kurs/{course.id}/testlar/")
         return render(request, "academy/manage/bulk_questions.html",
                       {"course": course, "errors": errors, "raw": raw, "key": key_raw})
     return render(request, "academy/manage/bulk_questions.html",
