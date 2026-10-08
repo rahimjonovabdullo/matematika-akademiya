@@ -51,14 +51,12 @@
         <span class="tb-tab on">Testlar</span>
       </nav>
       {% else %}
-      {% with bolim=request.GET.bolim|default:course.category %}
       <nav class="tb-tabs">
         <a class="tb-tab {% if request.path == home_url and not request.GET.bolim %}on{% endif %}" href="{{ home_url }}">Asosiy</a>
-        <a class="tb-tab {% if bolim == 'milliy' %}on{% endif %}" href="{{ home_url }}?bolim=milliy">Milliy Sertifikat</a>
-        <a class="tb-tab {% if bolim == 'attestatsiya' %}on{% endif %}" href="{{ home_url }}?bolim=attestatsiya">Attestatsiya</a>
-        <a class="tb-tab {% if bolim == 'sat' %}on{% endif %}" href="{{ home_url }}?bolim=sat">SAT</a>
+        <a class="tb-tab {% if request.GET.bolim == 'milliy' or course.category == 'milliy' %}on{% endif %}" href="{{ home_url }}?bolim=milliy">Milliy Sertifikat</a>
+        <a class="tb-tab {% if request.GET.bolim == 'attestatsiya' or course.category == 'attestatsiya' %}on{% endif %}" href="{{ home_url }}?bolim=attestatsiya">Attestatsiya</a>
+        <a class="tb-tab {% if request.GET.bolim == 'sat' or course.category == 'sat' %}on{% endif %}" href="{{ home_url }}?bolim=sat">SAT</a>
       </nav>
-      {% endwith %}
       {% endif %}
       <div class="tb-right">
         {% if user.is_authenticated %}
