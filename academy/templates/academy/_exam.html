@@ -1,0 +1,411 @@
+<style>
+  .ex {
+    position: fixed; inset: 0; z-index: 50; background: #f3f4f0; overflow: auto; padding: 28px;
+    font-family: inherit; color: #16281d;
+  }
+  .ex-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 28px; max-width: 1500px; margin: 0 auto; align-items: start; }
+  .ex-main, .ex-side { background: #fff; border: 1px solid #e8eae4; border-radius: 32px; box-shadow: 0 6px 24px rgba(22, 40, 29, .07); }
+  .ex-main { display: flex; flex-direction: column; min-height: 640px; }
+  .ex-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 22px 28px; border-bottom: 1px solid #eef0ea; flex-wrap: wrap; }
+  .ex-chip { background: #d3f24a; padding: 9px 18px; border-radius: 999px; font-weight: 800; font-size: 15px; }
+  .ex-time {
+    display: flex; align-items: center; gap: 8px; background: #e8f0fe; color: #1d4ed8; border-radius: 16px;
+    padding: 12px 18px; font-weight: 800; font-size: 20px;
+  }
+  .ex-time b { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+  .ex-time svg { width: 20px; height: 20px; }
+  .ex-time.warn { background: #ffe3e8; color: #e5173f; animation: expulse 1s infinite; }
+  @keyframes expulse { 50% { opacity: .7; } }
+  .ex-body { flex: 1; padding: 30px 28px; }
+  .ex-q { display: none; }
+  .ex-q.on { display: block; animation: exin .25s ease both; }
+  @keyframes exin { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .ex-text { font-size: 19px; line-height: 1.7; margin: 0 0 22px; }
+  .ex-img { display: block; max-width: 100%; max-height: 420px; margin: 0 0 22px; border-radius: 16px; border: 1px solid #e8eae4; }
+  .ex-opt {
+    display: flex; align-items: center; gap: 16px; padding: 16px 20px; border: 1.5px solid #e6e9df;
+    border-radius: 20px; margin-top: 14px; cursor: pointer; font-size: 17px; transition: border-color .12s, background .12s;
+  }
+  .ex-opt:hover { border-color: #c4dc5a; }
+  .ex-opt input { position: absolute; opacity: 0; pointer-events: none; }
+  .ex-l {
+    flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid #d6dacb; background: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: #4a5561;
+  }
+  .ex-opt:has(input:checked) { border-color: #d3f24a; background: #fafde8; box-shadow: 0 0 0 2px #e4f78d inset; }
+  .ex-opt:has(input:checked) .ex-l { background: #d3f24a; border-color: #d3f24a; color: #16281d; }
+  .ex-foot { display: flex; justify-content: space-between; padding: 20px 28px; border-top: 1px solid #eef0ea; }
+  .ex-ghost, .ex-next, .ex-pb, .ex-fin, .ex-calc {
+    border-radius: 999px; font: inherit; font-weight: 700; font-size: 15px; cursor: pointer; padding: 13px 24px;
+  }
+  .ex-ghost { border: 1.5px solid #e0e4d8; background: #fff; color: #16281d; }
+  .ex-next { border: 0; background: #d3f24a; color: #16281d; font-weight: 800; }
+  .ex-ghost:disabled, .ex-next:disabled { opacity: .4; cursor: default; }
+  .ex-side { padding: 22px; position: sticky; top: 0; }
+  .ex-top { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ex-pb { border: 1.5px solid #e0e4d8; background: #fff; color: #16281d; padding: 12px 10px; }
+  .ex-fin { border: 0; background: #d3f24a; color: #16281d; font-weight: 800; padding: 12px 10px; }
+  .ex-calc { width: 100%; margin-top: 10px; border: 1.5px solid #e0e4d8; background: #fff; color: #16281d; }
+  .ex-prog { margin: 18px 0 4px; display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: #6b7580; }
+  .ex-bar { height: 7px; border-radius: 999px; background: #edf0e6; overflow: hidden; }
+  .ex-bar i { display: block; height: 100%; width: 0; background: #22a65a; border-radius: 999px; transition: width .25s ease; }
+  .ex-sec { display: flex; justify-content: space-between; align-items: baseline; margin: 22px 0 12px; padding-top: 18px; border-top: 1px solid #eef0ea; font-weight: 800; }
+  .ex-sec small { color: #6b7580; font-weight: 600; font-size: 13px; }
+  .ex-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .ex-grid button {
+    height: 50px; border-radius: 14px; border: 1.5px solid #e6e9df; background: #f6f7f2; font: inherit;
+    font-weight: 800; font-size: 15px; color: #5b6573; cursor: pointer;
+  }
+  .ex-grid button.ans { background: #e3f6ea; border-color: #bfe6cd; color: #1b8a4b; }
+  .ex-grid button.cur { background: #d3f24a; border-color: #16281d; color: #16281d; box-shadow: 0 0 0 3px #e4f78d; }
+  .ex-leg { display: flex; gap: 16px; margin-top: 18px; padding-top: 16px; border-top: 1px solid #eef0ea; font-size: 12px; color: #6b7580; font-weight: 600; flex-wrap: wrap; }
+  .ex-leg span::before { content: ""; display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; border: 1.5px solid #d6dacb; background: #f6f7f2; }
+  .ex-leg .a::before { background: #d3f24a; border-color: #d3f24a; }
+  .ex-leg .b::before { background: #e3f6ea; border-color: #8fd3a9; }
+
+  .ex-pause {
+    display: none; position: fixed; inset: 0; z-index: 70; background: rgba(243, 244, 240, .96);
+    align-items: center; justify-content: center; text-align: center; padding: 20px;
+  }
+  .ex-pause.on { display: flex; }
+  .ex-pause h2 { font-size: 32px; margin: 0 0 8px; }
+  .ex-pause p { color: #6b7580; margin: 0 0 22px; }
+  .ex-calcbox {
+    display: none; position: fixed; right: 36px; bottom: 36px; z-index: 60; width: 270px; background: #16281d;
+    border-radius: 24px; padding: 16px; box-shadow: 0 18px 50px rgba(0, 0, 0, .3);
+  }
+  .ex-calcbox.on { display: block; }
+  .ex-cd { background: #0d1a12; color: #d3f24a; border-radius: 14px; padding: 12px 14px; text-align: right; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 22px; min-height: 28px; overflow: hidden; margin-bottom: 12px; word-break: break-all; }
+  .ex-ck { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .ex-ck button { height: 44px; border: 0; border-radius: 12px; background: #2a4a36; color: #fff; font: inherit; font-weight: 800; font-size: 17px; cursor: pointer; }
+  .ex-ck button.op { background: #3b6a4c; }
+  .ex-ck button.eq { background: #d3f24a; color: #16281d; }
+  .ex-calcbox .x { position: absolute; top: -12px; right: -12px; width: 30px; height: 30px; border-radius: 50%; border: 0; background: #fff; font-weight: 800; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+
+  .qi {
+    position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 30% 20%, #254a33 0%, #16281d 55%, #0d1a12 100%); color: #fff;
+    padding: 20px; transition: opacity .5s ease, transform .5s ease;
+  }
+  .qi.out { opacity: 0; transform: scale(1.06); pointer-events: none; }
+  .qi-box { text-align: center; max-width: 520px; width: 100%; animation: qiin .6s ease both; }
+  @keyframes qiin { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+  .qi-chip { display: inline-block; padding: 7px 18px; border-radius: 999px; background: #d3f24a; color: #16281d; font-weight: 800; font-size: 12px; letter-spacing: .2em; }
+  .qi-title { font-size: 36px; font-weight: 800; margin: 18px 0 8px; line-height: 1.15; letter-spacing: -.02em; }
+  .qi-sub { color: #b9c8bd; margin: 0 0 26px; }
+  .qi-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 28px; }
+  .qi-stat { background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .14); border-radius: 20px; padding: 18px 10px; }
+  .qi-stat b { display: block; font-size: 26px; font-weight: 800; color: #d3f24a; }
+  .qi-stat small { color: #b9c8bd; font-weight: 700; font-size: 12px; }
+  .qi-go { padding: 17px 48px; border: 0; border-radius: 999px; background: #d3f24a; color: #16281d; font: inherit; font-weight: 800; font-size: 18px; cursor: pointer; animation: qibeat 1.6s ease-in-out infinite; }
+  @keyframes qibeat { 50% { transform: scale(1.06); box-shadow: 0 0 0 12px rgba(211, 242, 74, .15); } }
+  .qi-count { display: none; }
+  .qi-count b { display: block; font-size: 150px; font-weight: 800; line-height: 1; color: #d3f24a; letter-spacing: -.04em; }
+  .qi-count b.word { font-size: 64px; }
+  .qi-count b.pop { animation: qipop .9s ease both; }
+  @keyframes qipop { 0% { opacity: 0; transform: scale(.3); } 35% { opacity: 1; transform: scale(1.18); } 70% { transform: scale(1); } 100% { opacity: .15; transform: scale(.85); } }
+  .qi-count small { color: #b9c8bd; font-weight: 700; letter-spacing: .1em; }
+
+  @media (max-width: 960px) {
+    .ex { padding: 14px; }
+    .ex-wrap { grid-template-columns: 1fr; gap: 16px; }
+    .ex-side { position: static; }
+    .ex-main { min-height: 0; }
+    .qi-title { font-size: 28px; } .qi-count b { font-size: 110px; }
+    .ex-calcbox { right: 14px; bottom: 14px; }
+  }
+</style>
+
+<div class="qi" id="intro">
+  <div class="qi-box" id="qiMain">
+    <span class="qi-chip">TEST</span>
+    <h2 class="qi-title">{{ course.title }}</h2>
+    <p class="qi-sub">Tayyor bo'lsangiz, boshlang. Boshlash tugmasi bosilgach vaqt ishga tushadi.</p>
+    <div class="qi-stats">
+      <div class="qi-stat"><b>{{ questions|length }}</b><small>SAVOL</small></div>
+      <div class="qi-stat"><b id="qiTime">—</b><small>VAQT</small></div>
+    </div>
+    <button type="button" class="qi-go" id="qiGo">Boshlash</button>
+  </div>
+  <div class="qi-count" id="qiCount">
+    <b id="qiNum">3</b>
+    <small>TAYYORLANING</small>
+  </div>
+</div>
+
+<div class="ex" id="ex">
+  <form method="post" id="quiz" class="ex-wrap">
+    {% csrf_token %}
+
+    <section class="ex-main">
+      <div class="ex-head">
+        <span class="ex-chip" id="curLabel">1-savol</span>
+        <div class="ex-time" id="timer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <b id="tt">00:00:00</b>
+        </div>
+      </div>
+
+      <div class="ex-body">
+        {% for q in questions %}
+        <div class="ex-q" data-i="{{ forloop.counter0 }}" id="q{{ q.id }}">
+          <p class="ex-text">{{ q.text }}</p>
+          {% if q.has_image %}<img class="ex-img" src="{% url 'question_image' q.pk %}" alt="Savol rasmi">{% endif %}
+          {% for c in q.choices.all %}
+          <label class="ex-opt">
+            <input type="radio" name="q{{ q.id }}" value="{{ c.id }}" data-q="{{ q.id }}">
+            <span class="ex-l">{{ forloop.counter0|add:65|stringformat:"c" }}</span>
+            <span>{{ c.text }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="ex-foot">
+        <button type="button" class="ex-ghost" id="prev">Ortga</button>
+        <button type="button" class="ex-next" id="next">Keyingi</button>
+      </div>
+    </section>
+
+    <aside class="ex-side">
+      <div class="ex-top">
+        <button type="button" class="ex-pb" id="pauseBtn">To'xtatish</button>
+        <button type="button" class="ex-fin" id="finish">Yakunlash</button>
+      </div>
+      <button type="button" class="ex-calc" id="calcBtn">Kalkulyator</button>
+
+      <div class="ex-prog"><span>Javob berilgan</span><span><b id="done">0</b> / {{ questions|length }}</span></div>
+      <div class="ex-bar"><i id="bar"></i></div>
+
+      <div class="ex-sec"><span>Savollar</span><small>{{ questions|length }} ta savol</small></div>
+      <div class="ex-grid" id="grid"></div>
+
+      <div class="ex-leg"><span class="a">Joriy</span><span class="b">Belgilangan</span><span>Bo'sh</span></div>
+    </aside>
+  </form>
+</div>
+
+<div class="ex-pause" id="pause">
+  <div>
+    <h2>Test to'xtatildi</h2>
+    <p>Vaqt to'xtab turibdi. Davom etish uchun tugmani bosing.</p>
+    <button type="button" class="ex-next" id="resume" style="padding:15px 36px;font-size:17px">Davom etish</button>
+  </div>
+</div>
+
+<div class="ex-calcbox" id="calcbox">
+  <button type="button" class="x" id="calcX">×</button>
+  <div class="ex-cd" id="cd">0</div>
+  <div class="ex-ck" id="ck"></div>
+</div>
+
+<script>
+(function () {
+  var form = document.getElementById('quiz');
+  var qs = [].slice.call(document.querySelectorAll('.ex-q'));
+  var total = qs.length;
+  var minutes = {{ course.duration_minutes }};
+  var key = 'quiz_end_{{ course.id }}';
+  var tt = document.getElementById('tt');
+  var timer = document.getElementById('timer');
+  var intro = document.getElementById('intro');
+  var ex = document.getElementById('ex');
+  var prevB = document.getElementById('prev');
+  var nextB = document.getElementById('next');
+  var grid = document.getElementById('grid');
+  var cur = 0, submitted = false, paused = false, pausedAt = 0, tid = null;
+  var endAt = 0, startAt = 0;
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function show(sec) {
+    tt.textContent = pad(Math.floor(sec / 3600)) + ':' + pad(Math.floor((sec % 3600) / 60)) + ':' + pad(sec % 60);
+  }
+
+  /* Savollar katakchalari */
+  var cells = [];
+  for (var i = 0; i < total; i++) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = i + 1;
+    b.dataset.i = i;
+    b.addEventListener('click', function () { go(parseInt(this.dataset.i, 10)); });
+    grid.appendChild(b);
+    cells.push(b);
+  }
+
+  function answeredMap() {
+    var seen = {};
+    form.querySelectorAll('input[type=radio]:checked').forEach(function (r) { seen[r.dataset.q] = 1; });
+    return seen;
+  }
+  function refresh() {
+    var seen = answeredMap(), n = 0;
+    qs.forEach(function (q, i) {
+      var qid = q.id.substring(1), a = !!seen[qid];
+      if (a) n++;
+      cells[i].classList.toggle('ans', a && i !== cur);
+      cells[i].classList.toggle('cur', i === cur);
+    });
+    document.getElementById('done').textContent = n;
+    document.getElementById('bar').style.width = (total ? n * 100 / total : 0) + '%';
+    return n;
+  }
+  function go(i) {
+    if (i < 0 || i >= total) return;
+    qs[cur].classList.remove('on');
+    cur = i;
+    qs[cur].classList.add('on');
+    document.getElementById('curLabel').textContent = (cur + 1) + '-savol';
+    prevB.disabled = cur === 0;
+    nextB.disabled = cur === total - 1;
+    refresh();
+    document.querySelector('.ex-main').scrollIntoView({ block: 'nearest' });
+  }
+  prevB.addEventListener('click', function () { go(cur - 1); });
+  nextB.addEventListener('click', function () { go(cur + 1); });
+  form.addEventListener('change', refresh);
+
+  document.addEventListener('keydown', function (e) {
+    if (paused || document.getElementById('intro')) return;
+    if (e.target && /input|textarea/i.test(e.target.tagName) && e.target.type !== 'radio') return;
+    if (e.key === 'ArrowRight') go(cur + 1);
+    else if (e.key === 'ArrowLeft') go(cur - 1);
+    else {
+      var k = e.key.toUpperCase().charCodeAt(0) - 65;
+      var radios = qs[cur].querySelectorAll('input[type=radio]');
+      if (e.key.length === 1 && k >= 0 && k < radios.length) { radios[k].checked = true; refresh(); }
+    }
+  });
+
+  /* Yakunlash */
+  function clearKey() { try { sessionStorage.removeItem(key); } catch (e) {} }
+  function finishNow() { submitted = true; clearKey(); form.submit(); }
+  document.getElementById('finish').addEventListener('click', function () {
+    var left = total - refresh();
+    var msg = left > 0 ? left + ' ta savolga javob bermadingiz. Baribir yakunlaysizmi?' : 'Testni yakunlaysizmi?';
+    if (confirm(msg)) finishNow();
+  });
+  form.addEventListener('submit', function () { submitted = true; clearKey(); });
+
+  /* Taymer */
+  function tick() {
+    var sec;
+    if (minutes > 0) {
+      sec = Math.max(0, Math.round((endAt - Date.now()) / 1000));
+      show(sec);
+      timer.classList.toggle('warn', sec <= 60);
+      if (sec <= 0 && !submitted) { finishNow(); return; }
+    } else {
+      show(Math.floor((Date.now() - startAt) / 1000));
+    }
+    if (!submitted && !paused) tid = setTimeout(tick, 500);
+  }
+  function startTimer(end) {
+    if (minutes > 0) endAt = end; else startAt = Date.now();
+    tick();
+  }
+
+  /* To'xtatish */
+  var pauseEl = document.getElementById('pause');
+  document.getElementById('pauseBtn').addEventListener('click', function () {
+    if (paused) return;
+    paused = true; pausedAt = Date.now();
+    clearTimeout(tid);
+    pauseEl.classList.add('on');
+  });
+  document.getElementById('resume').addEventListener('click', function () {
+    if (!paused) return;
+    var d = Date.now() - pausedAt;
+    if (minutes > 0) {
+      endAt += d;
+      try { sessionStorage.setItem(key, String(endAt)); } catch (e) {}
+    } else { startAt += d; }
+    paused = false;
+    pauseEl.classList.remove('on');
+    tick();
+  });
+
+  /* Kalkulyator */
+  var calcbox = document.getElementById('calcbox');
+  var cd = document.getElementById('cd');
+  var expr = '';
+  var keys = ['C', '(', ')', '⌫', '7', '8', '9', '÷', '4', '5', '6', '×', '1', '2', '3', '−', '0', '.', '=', '+'];
+  var ck = document.getElementById('ck');
+  keys.forEach(function (k) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = k;
+    if ('÷×−+C⌫'.indexOf(k) >= 0) b.className = 'op';
+    if (k === '=') b.className = 'eq';
+    b.addEventListener('click', function () { press(k); });
+    ck.appendChild(b);
+  });
+  function press(k) {
+    if (k === 'C') expr = '';
+    else if (k === '⌫') expr = expr.slice(0, -1);
+    else if (k === '=') {
+      var e = expr.replace(/÷/g, '/').replace(/×/g, '*').replace(/−/g, '-');
+      if (/^[0-9+\-*/().\s]+$/.test(e)) {
+        try {
+          var r = Function('"use strict";return (' + e + ')')();
+          expr = (typeof r === 'number' && isFinite(r)) ? String(Math.round(r * 1e10) / 1e10) : '';
+        } catch (x) { expr = ''; }
+      }
+    } else expr += k;
+    cd.textContent = expr || '0';
+  }
+  document.getElementById('calcBtn').addEventListener('click', function () { calcbox.classList.toggle('on'); });
+  document.getElementById('calcX').addEventListener('click', function () { calcbox.classList.remove('on'); });
+
+  /* Kirish oynasi */
+  var qiTime = document.getElementById('qiTime');
+  if (minutes > 0) {
+    var h = Math.floor(minutes / 60), m = minutes % 60, parts = [];
+    if (h) parts.push(h + ' soat');
+    if (m) parts.push(m + ' daqiqa');
+    qiTime.textContent = parts.join(' ');
+  } else { qiTime.textContent = 'Cheklanmagan'; }
+
+  go(0);
+
+  var resumeEnd = 0;
+  if (minutes > 0) {
+    try { resumeEnd = parseInt(sessionStorage.getItem(key) || '0', 10); } catch (e) {}
+  }
+  if (resumeEnd && resumeEnd > Date.now()) {
+    intro.remove();
+    startTimer(resumeEnd);
+    return;
+  }
+
+  show(minutes > 0 ? minutes * 60 : 0);
+  document.body.style.overflow = 'hidden';
+  var qiMain = document.getElementById('qiMain');
+  var qiCount = document.getElementById('qiCount');
+  var qiNum = document.getElementById('qiNum');
+
+  function finishIntro() {
+    intro.classList.add('out');
+    setTimeout(function () { intro.remove(); }, 600);
+    var end = 0;
+    if (minutes > 0) {
+      end = Date.now() + minutes * 60000;
+      try { sessionStorage.setItem(key, String(end)); } catch (e) {}
+    }
+    startTimer(end);
+  }
+  document.getElementById('qiGo').addEventListener('click', function () {
+    qiMain.style.display = 'none';
+    qiCount.style.display = 'block';
+    var steps = ['3', '2', '1', 'Boshladik!'], i = 0;
+    (function next() {
+      if (i >= steps.length) { finishIntro(); return; }
+      qiNum.textContent = steps[i];
+      qiNum.className = (steps[i].length > 1 ? 'word ' : '') + 'pop';
+      void qiNum.offsetWidth;
+      i++;
+      setTimeout(next, i === steps.length ? 800 : 900);
+    })();
+  });
+})();
+</script>
