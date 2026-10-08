@@ -53,8 +53,14 @@ def manage_question_image(request, course_id, pk):
 def question_image(request, pk):
     """Savol rasmini ko'rsatadi."""
     q = get_object_or_404(Question.objects.only("id", "image_data", "image_type"), pk=pk)
-    if not q.image_type or not q.image_data:
-        raise Http404
-    resp = HttpResponse(bytes(q.image_data), content_type=q.image_type)
+    if not q.image_type:
+        return HttpResponse(f"Savol {pk}: rasm turi yozilmagan (rasm yo'q).", status=404,
+                            content_type="text/plain; charset=utf-8")
+    data = bytes(q.image_data) if q.image_data is not None else b""
+    if not data:
+        return HttpResponse(
+            f"Savol {pk}: rasm turi bor ({q.image_type}), lekin rasm ma'lumoti bazada bo'sh.",
+            status=404, content_type="text/plain; charset=utf-8")
+    resp = HttpResponse(data, content_type=q.image_type)
     resp["Cache-Control"] = "public, max-age=60"
     return resp
