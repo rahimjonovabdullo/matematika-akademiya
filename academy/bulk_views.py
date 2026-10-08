@@ -1,3 +1,4 @@
+import os
 import re
 
 from django.contrib import messages
@@ -12,6 +13,11 @@ LETTERS = "ABCDEF"
 Q_RE = re.compile(r"^\s*(\d+)\s*[.)]\s*(.*\S)\s*$")
 O_RE = re.compile(r"^\s*([A-Fa-f])\s*[.)]\s*(.*\S)\s*$")
 KEY_RE = re.compile(r"(\d+)\s*[-:.)]?\s*([A-Fa-f])(?![A-Za-z])")
+KEYLINE_RE = re.compile(r"^\s*(kalit|javoblar)\b", re.I)
+NUM_RE = re.compile(r"\d+")
+
+ALLOWED_IMAGES = {"image/png", "image/jpeg", "image/webp", "image/gif"}
+MAX_IMAGE = 2 * 1024 * 1024
 
 
 def _is_staff(user):
@@ -19,11 +25,17 @@ def _is_staff(user):
 
 
 def parse_questions(text):
-    """Matndan savollar ro'yxatini ajratadi: [{num, text, options[]}]."""
+    """Matndan savollarni ajratadi. Qaytaradi: (savollar, matn ichidagi kalit qatorlari)."""
     items = []
+    key_lines = []
     cur = None
+    in_key = False
     for line in text.replace("\r", "").split("\n"):
         if not line.strip():
+            continue
+        if in_key or KEYLINE_RE.match(line):
+            in_key = True
+            key_lines.append(line)
             continue
         om = O_RE.match(line)
         qm = Q_RE.match(line)
@@ -37,7 +49,7 @@ def parse_questions(text):
                 cur["options"][-1] += " " + line.strip()
             else:
                 cur["text"] += " " + line.strip()
-    return items
+    return items, "\n".join(key_lines)
 
 
 @login_required
@@ -48,11 +60,16 @@ def manage_bulk_questions(request, course_id):
     if request.method == "POST":
         raw = request.POST.get("questions", "")
         key_raw = request.POST.get("key", "")
-        items = parse_questions(raw)
+        items, inline_key = parse_questions(raw)
+        if not key_raw.strip() and inline_key:
+            key_raw = inline_key
         key = {int(n): l.upper() for n, l in KEY_RE.findall(key_raw)}
 
         if not items:
             errors.append("Savollar topilmadi. Har bir savol «1. matn» ko'rinishida boshlansin.")
+        nums = [it["num"] for it in items]
+        if len(set(nums)) != len(nums):
+            errors.append("Ba'zi savol raqamlari ikki marta yozilgan. Raqamlar takrorlanmasin.")
         for it in items:
             n = it["num"]
             if len(it["options"]) < 2:
@@ -62,15 +79,45 @@ def manage_bulk_questions(request, course_id):
             elif LETTERS.index(key[n]) >= len(it["options"]):
                 errors.append(f"{n}-savolda {key[n]} varianti yo'q.")
 
+        # Rasmlar: fayl nomidagi birinchi raqam = savol raqami (5.png, 5-rasm.jpg ...)
+        images = {}
+        for f in request.FILES.getlist("images"):
+            name = os.path.basename(f.name)
+            m = NUM_RE.search(name)
+            if not m:
+                errors.append(f"«{name}» fayl nomida savol raqami yo'q (masalan 5.png).")
+                continue
+            n = int(m.group(0))
+            if n not in nums:
+                errors.append(f"«{name}»: {n}-savol yuqoridagi matnda topilmadi.")
+                continue
+            if n in images:
+                errors.append(f"{n}-savol uchun bittadan ortiq rasm tanlangan.")
+                continue
+            if f.content_type not in ALLOWED_IMAGES:
+                errors.append(f"«{name}»: faqat PNG, JPG, WEBP yoki GIF mumkin.")
+                continue
+            if f.size > MAX_IMAGE:
+                errors.append(f"«{name}»: rasm 2 MB dan katta.")
+                continue
+            images[n] = (f.read(), f.content_type)
+
         if not errors:
             start = (course.questions.aggregate(m=Max("order"))["m"] or 0)
             with transaction.atomic():
                 for i, it in enumerate(items, 1):
-                    q = Question.objects.create(course=course, text=it["text"], order=start + i)
+                    data, ctype = images.get(it["num"], (None, ""))
+                    q = Question.objects.create(
+                        course=course, text=it["text"], order=start + i,
+                        image_data=data, image_type=ctype,
+                    )
                     right = LETTERS.index(key[it["num"]])
                     for idx, opt in enumerate(it["options"]):
                         Choice.objects.create(question=q, text=opt[:300], is_correct=(idx == right))
-            messages.success(request, f"{len(items)} ta savol qo'shildi.")
+            msg = f"{len(items)} ta savol qo'shildi"
+            if images:
+                msg += f", {len(images)} tasiga rasm biriktirildi"
+            messages.success(request, msg + ".")
             return redirect(f"/boshqaruv/kurs/{course.id}/testlar/")
         return render(request, "academy/manage/bulk_questions.html",
                       {"course": course, "errors": errors, "raw": raw, "key": key_raw})
