@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Savolga rasm{% endblock %}
+{% block content %}
+<style>
+  .qi2 { max-width: 760px; }
+  .qi2 h1 { font-size: 28px; font-weight: 800; margin: 0 0 6px; }
+  .qi2 .sub { color: #6b7580; margin: 0 0 20px; }
+  .qi2-card { background: #fff; border: 1px solid #e8eae4; border-radius: 24px; padding: 22px 24px; margin-bottom: 18px; }
+  .qi2-card h3 { margin: 0 0 10px; font-size: 16px; font-weight: 800; }
+  .qi2-q { font-size: 17px; line-height: 1.5; }
+  .qi2-img { max-width: 100%; border: 1px solid #e0e4d8; border-radius: 16px; margin-top: 12px; display: block; }
+  .qi2-err { background: #fff0f2; border: 1px solid #f6c3cc; color: #b0112f; border-radius: 16px; padding: 12px 16px; margin-bottom: 16px; }
+  .qi2-file {
+    display: block; width: 100%; box-sizing: border-box; padding: 26px 16px; border: 2px dashed #c9d3b4;
+    border-radius: 18px; background: #fafdf0; text-align: center; font: inherit; font-weight: 700; cursor: pointer;
+  }
+  .qi2-note { color: #6b7580; font-size: 14px; margin: 10px 0 0; }
+  .qi2-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 16px; }
+  .qi2-btn {
+    padding: 14px 30px; border: 0; border-radius: 999px; background: #d3f24a; color: #16281d;
+    font: inherit; font-weight: 800; font-size: 16px; cursor: pointer;
+  }
+  .qi2-ghost {
+    padding: 14px 24px; border-radius: 999px; border: 1.5px solid #e0e4d8; background: #fff; color: #16281d;
+    font: inherit; font-weight: 700; text-decoration: none; cursor: pointer;
+  }
+  .qi2-red { border-color: #f6c3cc; color: #e5173f; }
+  #pv { display: none; }
+</style>
+
+<div class="qi2">
+  <h1>Savolga rasm qo'shish</h1>
+  <p class="sub">{{ course.title }}</p>
+
+  {% if error %}<div class="qi2-err">{{ error }}</div>{% endif %}
+
+  <div class="qi2-card">
+    <h3>Savol</h3>
+    <div class="qi2-q">{{ question.order }}. {{ question.text }}</div>
+    {% if question.has_image %}
+    <img class="qi2-img" src="{% url 'question_image' question.pk %}?t={{ question.image_type|length }}{{ question.pk }}" alt="Hozirgi rasm">
+    {% endif %}
+  </div>
+
+  <div class="qi2-card">
+    <h3>{% if question.has_image %}Rasmni almashtirish{% else %}Rasm yuklash{% endif %}</h3>
+    <form method="post" enctype="multipart/form-data" id="f">
+      {% csrf_token %}
+      <input class="qi2-file" type="file" name="image" id="file" accept="image/png,image/jpeg,image/webp,image/gif">
+      <p class="qi2-note" id="note">Chizma, grafik yoki shakl rasmini tanlang. Katta rasm avtomatik kichraytiriladi.</p>
+      <img class="qi2-img" id="pv" alt="Ko'rinish">
+      <div class="qi2-row">
+        <button type="submit" class="qi2-btn">Saqlash</button>
+        <a class="qi2-ghost" href="{{ back }}">Bekor qilish</a>
+      </div>
+    </form>
+
+    {% if question.has_image %}
+    <form method="post" onsubmit="return confirm('Rasm o‘chiriladi. Davom etasizmi?');">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="delete">
+      <div class="qi2-row"><button type="submit" class="qi2-ghost qi2-red">Rasmni o'chirish</button></div>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById('file');
+  var pv = document.getElementById('pv');
+  var note = document.getElementById('note');
+  var MAX_W = 1200;
+
+  input.addEventListener('change', function () {
+    var file = input.files[0];
+    if (!file) return;
+    if (file.type === 'image/gif') { preview(file); return; }
+
+    var url = URL.createObjectURL(file);
+    var img = new Image();
+    img.onload = function () {
+      var w = img.naturalWidth, h = img.naturalHeight;
+      if (w <= MAX_W && file.size < 400 * 1024) { URL.revokeObjectURL(url); preview(file); return; }
+      var k = Math.min(1, MAX_W / w);
+      var c = document.createElement('canvas');
+      c.width = Math.round(w * k);
+      c.height = Math.round(h * k);
+      var ctx = c.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      c.toBlob(function (blob) {
+        if (!blob) { preview(file); return; }
+        var small = new File([blob], 'rasm.jpg', { type: 'image/jpeg' });
+        try {
+          var dt = new DataTransfer();
+          dt.items.add(small);
+          input.files = dt.files;
+          preview(small);
+        } catch (e) { preview(file); }
+      }, 'image/jpeg', 0.88);
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); };
+    img.src = url;
+  });
+
+  function preview(f) {
+    pv.src = URL.createObjectURL(f);
+    pv.style.display = 'block';
+    note.textContent = 'Tanlandi: ' + Math.round(f.size / 1024) + ' KB. Saqlash tugmasini bosing.';
+  }
+})();
+</script>
+{% endblock %}
