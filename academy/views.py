@@ -20,7 +20,13 @@ def _open_free_access(user, course):
 
 
 def home(request):
-    courses = Course.objects.filter(is_published=True)
+    # Bosh sahifada faqat darsi bor kurslar chiqadi. Darssiz (faqat test) kurslar
+    # "Testlar" bo'limida ko'rinadi.
+    courses = (
+        Course.objects.filter(is_published=True)
+        .annotate(lesson_total=Count("lessons"))
+        .filter(lesson_total__gt=0)
+    )
     bolim = request.GET.get("bolim", "")
     if bolim in ("milliy", "attestatsiya", "sat"):
         courses = courses.filter(category=bolim)
