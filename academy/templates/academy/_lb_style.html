@@ -1,7 +1,6 @@
 <style>
-  .lb { --g: #16281d; --g2: #234a31; --lime: #d3f24a; --line: #e8eae4; --mute: #6b7580; }
+  .lb { --g: #16281d; --lime: #d3f24a; --line: #e8eae4; --mute: #6b7580; }
 
-  /* ---------- Banner ---------- */
   .lb-hero {
     position: relative; overflow: hidden; border-radius: 32px; padding: 34px 36px 30px; margin-bottom: 26px; color: #fff;
     background: radial-gradient(700px 300px at 92% -20%, rgba(211, 242, 74, .38), transparent 60%),
@@ -23,16 +22,12 @@
   .lb-h { font-size: 52px; font-weight: 800; letter-spacing: -.03em; margin: 18px 0 8px; line-height: 1.05; color: #fff; }
   .lb-h span { color: var(--lime); }
   .lb-sub { color: #b9c8be; max-width: 560px; margin: 0 0 26px; line-height: 1.55; }
-  .lb-trophy { position: absolute !important; right: 40px; top: 24px; width: 150px; height: 150px; opacity: .95; animation: lbFloat 4s ease-in-out infinite; filter: drop-shadow(0 12px 24px rgba(0, 0, 0, .35)); }
+  .lb-trophy { position: absolute !important; right: 40px; top: 24px; width: 150px; height: 150px; animation: lbFloat 4s ease-in-out infinite; filter: drop-shadow(0 12px 24px rgba(0, 0, 0, .35)); }
   .lb-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; max-width: 640px; }
-  .lb-stat {
-    background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .14); border-radius: 20px; padding: 14px 16px;
-    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-  }
+  .lb-stat { background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .14); border-radius: 20px; padding: 14px 16px; }
   .lb-stat b { display: block; font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; color: #fff; }
   .lb-stat small { color: #a9bbb0; font-weight: 700; font-size: 12px; letter-spacing: .04em; }
 
-  /* ---------- Sizning o'rningiz ---------- */
   .lb-me {
     display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap;
     background: #fff; border: 2px solid var(--lime); border-radius: 28px; padding: 18px 24px; margin-bottom: 30px;
@@ -46,7 +41,7 @@
   .lb-me-rank b { font-size: 30px; font-weight: 800; }
   .lb-me-rank small { font-size: 10px; font-weight: 800; letter-spacing: .12em; margin-top: 4px; color: #b7c4bb; }
   .lb-me h3 { margin: 0 0 4px; font-size: 20px; font-weight: 800; }
-  .lb-me p { margin: 0; color: var(--mute); font-size: 14px; line-height: 1.45; }
+  .lb-me p { margin: 0; color: var(--mute); font-size: 14px; line-height: 1.5; }
   .lb-me p b { color: var(--g); background: var(--lime); padding: 1px 7px; border-radius: 8px; }
   .lb-btn {
     display: inline-block; padding: 13px 26px; border-radius: 999px; background: var(--g); color: #fff;
@@ -54,44 +49,25 @@
   }
   .lb-btn:hover { background: #000; transform: translateY(-2px); }
 
-  /* ---------- Podium ---------- */
-  .lb-podium {
-    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: end;
-    max-width: 880px; margin: 8px auto 34px; padding-top: 40px;
+  .lb-ring { transform: rotate(-90deg); }
+  .lb-ring circle { fill: none; stroke-linecap: round; }
+  .lb-ring .trk { stroke: #eceee8; }
+  .lb-ring .arc { stroke: var(--c); stroke-dasharray: 276.46; animation: lbRing 1.6s cubic-bezier(.2, .9, .3, 1) both; animation-delay: .5s; }
+  .lb-lvl {
+    display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px 4px 9px; border-radius: 999px; background: #fff;
+    border: 2px solid var(--c); font-size: 12px; font-weight: 800; color: var(--g); white-space: nowrap;
   }
-  .lb-pod { text-align: center; position: relative; animation: lbRise .7s cubic-bezier(.2, .9, .3, 1) both; }
-  .lb-pod.p1 { order: 2; animation-delay: .1s; }
-  .lb-pod.p2 { order: 1; animation-delay: .3s; }
-  .lb-pod.p3 { order: 3; animation-delay: .5s; }
-  .lb-pod-top { padding: 0 6px 14px; }
-  .lb-pod-av {
-    position: relative; margin: 0 auto 12px; width: 88px; height: 88px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 800; color: var(--g);
-    border: 5px solid #fff; box-shadow: 0 8px 22px rgba(22, 40, 29, .2);
+  .lb-lvl::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+  .lb-more {
+    border: 0; cursor: pointer; background: var(--g); color: #fff; padding: 9px 18px; border-radius: 999px;
+    font: inherit; font-weight: 800; font-size: 13px; white-space: nowrap; transition: transform .18s, background .18s, color .18s;
   }
-  .p1 .lb-pod-av { width: 116px; height: 116px; font-size: 48px; box-shadow: 0 0 0 6px rgba(247, 207, 74, .35), 0 14px 34px rgba(217, 169, 21, .45); animation: lbGlow 2.6s ease-in-out infinite; }
-  .p1 .lb-pod-av { background: linear-gradient(145deg, #ffe27a, #f2b92a); }
-  .p2 .lb-pod-av { background: linear-gradient(145deg, #eef1f5, #bfc7d1); }
-  .p3 .lb-pod-av { background: linear-gradient(145deg, #f3c39a, #d48d56); }
-  .lb-crown { position: absolute; top: -40px; left: 50%; width: 56px; height: 42px; margin-left: -28px; animation: lbBob 2.4s ease-in-out infinite; filter: drop-shadow(0 4px 6px rgba(160, 120, 0, .35)); }
-  .lb-spark { position: absolute; width: 14px; height: 14px; color: #f2b92a; animation: lbTwinkle 2.2s ease-in-out infinite; }
-  .lb-spark.s1 { left: 14%; top: 8%; }
-  .lb-spark.s2 { right: 12%; top: 22%; animation-delay: .7s; width: 11px; height: 11px; }
-  .lb-spark.s3 { left: 22%; top: 48%; animation-delay: 1.3s; width: 9px; height: 9px; }
-  .lb-pod-name { font-size: 17px; font-weight: 800; margin: 0 0 4px; word-break: break-word; line-height: 1.2; }
-  .p1 .lb-pod-name { font-size: 21px; }
-  .lb-pod-name em { font-style: normal; font-size: 10px; font-weight: 800; letter-spacing: .08em; background: var(--g); color: var(--lime); padding: 3px 8px; border-radius: 999px; margin-left: 6px; vertical-align: middle; }
-  .lb-pod-ball { font-size: 32px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
-  .p1 .lb-pod-ball { font-size: 44px; }
-  .lb-pod-ball small { font-size: 13px; font-weight: 700; color: var(--mute); letter-spacing: 0; margin-left: 4px; }
-  .lb-pod-try { margin-top: 2px; font-size: 13px; color: var(--mute); }
-  .lb-ped {
-    position: relative; border-radius: 24px 24px 0 0; display: flex; align-items: flex-start; justify-content: center;
-    font-size: 64px; font-weight: 800; line-height: 1; padding-top: 14px; color: rgba(255, 255, 255, .85);
-    box-shadow: inset 0 2px 0 rgba(255, 255, 255, .5);
+  .lb-more span { display: inline-block; transition: transform .18s; }
+  .lb-more:hover { background: var(--lime); color: var(--g); transform: translateY(-2px); }
+  .lb-more:hover span { transform: translateX(4px); }
+  .lb-nm {
+    background: linear-gradient(var(--lime), var(--lime)) no-repeat 0 90% / 0 42%; transition: background-size .35s ease, transform .25s ease;
+    display: inline-block; max-width: 100%; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; vertical-align: bottom;
   }
-  .p1 .lb-ped { height: 150px; background: linear-gradient(180deg, #f6c437, #d9a315); font-size: 78px; box-shadow: inset 0 2px 0 rgba(255, 255, 255, .55), 0 18px 40px rgba(217, 163, 21, .28); }
-  .p2 .lb-ped { height: 112px; background: linear-gradient(180deg, #b9c2cd, #929dab); }
-  .p3 .lb-ped { height: 84px; background: linear-gradient(180deg, #dba070, #b97741); }
-  .lb-pod.me .lb-pod-av { outline: 4px solid var(--lime); outline-offset: 3px; }
+  .lb-who:hover .lb-nm, .lb-pod-name:hover .lb-nm { background-size: 100% 42%; transform: translateX(5px); }
 </style>
