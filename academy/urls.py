@@ -1,7 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from . import bulk_views, image_views, manage_views, views
+from . import bulk_views, image_views, manage_views, payment_views, views
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -33,6 +33,7 @@ urlpatterns = [
     path("boshqaruv/testlar/", manage_views.manage_tests, name="manage_tests"),
     path("boshqaruv/testlar/yangi/", manage_views.manage_test_form, name="manage_test_new"),
     path("boshqaruv/sorovlar/", manage_views.manage_requests, name="manage_requests"),
+    path("boshqaruv/tolov/", payment_views.manage_payment_settings, name="manage_payment"),
     path("boshqaruv/kurs/yangi/", manage_views.manage_course_form, name="manage_course_new"),
     path("boshqaruv/kurs/<int:pk>/", manage_views.manage_course_form, name="manage_course_edit"),
     path("boshqaruv/kurs/<int:pk>/ochirish/", manage_views.manage_course_delete, name="manage_course_delete"),
