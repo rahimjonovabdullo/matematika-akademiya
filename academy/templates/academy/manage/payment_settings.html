@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}To'lov sozlamalari — Matematika Akademiya{% endblock %}
+{% block content %}
+<style>
+  .ps { max-width: 1000px; padding: 4px 0 40px; }
+  .ps h1 { margin: 0 0 6px; font-size: 26px; }
+  .ps-sub { color: var(--mute); margin: 0 0 18px; line-height: 1.55; }
+  .ps-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 16px; align-items: start; }
+  .ps-field { margin-bottom: 14px; }
+  .ps-field label { margin: 0 0 6px; }
+  .ps-field small { display: block; color: var(--mute); margin-top: 5px; font-size: 13px; }
+  .ps-err { color: #a3102b; font-weight: 700; font-size: 13px; margin-top: 5px; }
+  .ps-warn { background: #fff6d6; border: 1px solid #f0e0a0; color: #6b5200; border-radius: 14px; padding: 12px 16px; margin-bottom: 14px; font-weight: 600; font-size: 14px; }
+  .ps-prev h3 { margin: 0 0 12px; }
+  .pay-box { background: #f7f9ef; border: 1.5px dashed #c4dc5a; border-radius: 18px; padding: 18px; }
+  .pay-amount { font-size: 13px; color: var(--mute); font-weight: 700; letter-spacing: .06em; }
+  .pay-amount b { display: block; font-size: 26px; color: var(--ink); letter-spacing: 0; margin-top: 2px; }
+  .pay-card { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #16281d; color: #fff; border-radius: 16px; padding: 16px 18px; margin: 14px 0 8px; }
+  .pay-card b { font-size: 20px; letter-spacing: .08em; font-variant-numeric: tabular-nums; }
+  .pay-owner { font-weight: 700; margin-bottom: 4px; }
+  .pay-bank { color: var(--mute); font-size: 14px; margin-bottom: 10px; }
+  .pay-steps { margin: 10px 0 0; padding-left: 20px; line-height: 1.7; font-size: 14px; }
+  .ps-tg { color: #1d6fd8; font-weight: 700; }
+  .ps-empty { color: var(--mute); }
+</style>
+
+<div class="ps">
+  <h1>To'lov sozlamalari</h1>
+  <p class="ps-sub">Bu yerga karta ma'lumotlaringizni yozing. Pullik testni boshlamoqchi bo'lgan o'quvchiga shu ma'lumotlar ko'rsatiladi. Chekni o'quvchi Telegramdan sizga yuboradi.</p>
+
+  {% if not ready %}
+  <div class="ps-warn">Karta raqami va ism-familiya hali kiritilmagan. Ular yozilmaguncha pullik testlarda to'lov ma'lumoti ko'rinmaydi.</div>
+  {% endif %}
+
+  <div class="ps-grid">
+    <form method="post" class="card" style="margin:0">
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="ps-err">{{ form.non_field_errors }}</div>{% endif %}
+
+      <div class="ps-field">
+        <label for="{{ form.card_number.id_for_label }}">Karta raqami</label>
+        {{ form.card_number }}
+        {% for e in form.card_number.errors %}<div class="ps-err">{{ e }}</div>{% endfor %}
+        <small>16 ta raqam. Bo'sh joylarni o'zi qo'yadi.</small>
+      </div>
+
+      <div class="ps-field">
+        <label for="{{ form.card_owner.id_for_label }}">Karta egasining ism-familiyasi</label>
+        {{ form.card_owner }}
+        {% for e in form.card_owner.errors %}<div class="ps-err">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="ps-field">
+        <label for="{{ form.bank_name.id_for_label }}">Bank nomi (ixtiyoriy)</label>
+        {{ form.bank_name }}
+        {% for e in form.bank_name.errors %}<div class="ps-err">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="ps-field">
+        <label for="{{ form.telegram.id_for_label }}">Telegram manzilingiz (chek shu yerga yuboriladi)</label>
+        {{ form.telegram }}
+        {% for e in form.telegram.errors %}<div class="ps-err">{{ e }}</div>{% endfor %}
+        <small>Masalan: @sizning_telegram</small>
+      </div>
+
+      <div class="ps-field">
+        <label for="{{ form.instructions.id_for_label }}">Qo'shimcha izoh (ixtiyoriy)</label>
+        {{ form.instructions }}
+        {% for e in form.instructions.errors %}<div class="ps-err">{{ e }}</div>{% endfor %}
+      </div>
+
+      <button class="btn" type="submit">Saqlash</button>
+    </form>
+
+    <div class="card ps-prev" style="margin:0">
+      <h3>O'quvchi shunday ko'radi (namuna)</h3>
+      <div class="pay-box">
+        <div class="pay-amount">TO'LOV SUMMASI<b>50 000 so'm</b></div>
+        <div class="pay-card"><b id="pvCard" class="">0000 0000 0000 0000</b></div>
+        <div class="pay-owner" id="pvOwner">Ism Familiya</div>
+        <div class="pay-bank" id="pvBank"></div>
+        <ol class="pay-steps">
+          <li>Yuqoridagi kartaga summani o'tkazing.</li>
+          <li>To'lov chekini Telegramdan <span class="ps-tg" id="pvTg">@telegram</span> ga yuboring.</li>
+          <li>Pastdagi shaklni to'ldirib, «To'lov qildim» tugmasini bosing.</li>
+        </ol>
+        <p class="ps-empty" id="pvNote" style="margin:10px 0 0;font-size:14px"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  function $(id) { return document.getElementById(id); }
+  var c = $('{{ form.card_number.id_for_label }}'), o = $('{{ form.card_owner.id_for_label }}'),
+      b = $('{{ form.bank_name.id_for_label }}'), t = $('{{ form.telegram.id_for_label }}'),
+      n = $('{{ form.instructions.id_for_label }}');
+  function fmt(v) {
+    var d = v.replace(/\D/g, '').slice(0, 16), out = [];
+    for (var i = 0; i < d.length; i += 4) out.push(d.slice(i, i + 4));
+    return out.join(' ');
+  }
+  function upd() {
+    $('pvCard').textContent = c.value.trim() ? fmt(c.value) : '0000 0000 0000 0000';
+    $('pvOwner').textContent = o.value.trim() || 'Ism Familiya';
+    $('pvBank').textContent = b.value.trim();
+    var h = t.value.trim().replace(/^(https?:\/\/)?t\.me\//i, '').replace(/^@/, '');
+    $('pvTg').textContent = h ? '@' + h : '@telegram';
+    $('pvNote').textContent = n.value.trim();
+  }
+  c.addEventListener('input', function () {
+    var pos = c.selectionStart, before = c.value.length;
+    c.value = fmt(c.value);
+    upd();
+  });
+  [o, b, t, n].forEach(function (el) { el.addEventListener('input', upd); });
+  upd();
+})();
+</script>
+{% endblock %}
