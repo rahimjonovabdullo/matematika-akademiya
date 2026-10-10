@@ -14,6 +14,39 @@
   @keyframes lbTwinkle { 0%, 100% { opacity: .15; transform: scale(.5) rotate(0); } 50% { opacity: 1; transform: scale(1.2) rotate(30deg); } }
   @media (prefers-reduced-motion: reduce) { .lb *, .lb *::before, .lb *::after, .lb-modal * { animation: none !important; } }
 
+  /* ---- Ixchamroq o'lcham ---- */
+  .lb-hero { padding: 22px 30px 20px; border-radius: 28px; margin-bottom: 20px; }
+  .lb-chip { font-size: 11px; padding: 4px 14px 4px 6px; }
+  .lb-chip i { width: 20px; height: 20px; }
+  .lb-h { font-size: 38px; margin: 12px 0 6px; }
+  .lb-sub { font-size: 14px; margin: 0 0 16px; max-width: 520px; }
+  .lb-trophy { width: 100px; height: 100px; right: 36px; top: 20px; }
+  .lb-stats { max-width: 520px; gap: 10px; }
+  .lb-stat { padding: 10px 14px; border-radius: 16px; }
+  .lb-stat b { font-size: 24px; }
+  .lb-stat small { font-size: 11px; }
+  .lb-podium { max-width: 720px; margin: 4px auto 32px; padding-top: 24px; gap: 12px; }
+  .lb-pod { --h: 118px; }
+  .lb-pod.p2 { --h: 88px; }
+  .lb-pod.p3 { --h: 66px; }
+  .lb-pod.p1::before { width: 340px; height: 340px; margin-left: -170px; top: -40px; }
+  .lb-av-wrap { width: 96px; height: 96px; }
+  .p1 .lb-av-wrap { width: 124px; height: 124px; }
+  .lb-pod-av { font-size: 30px; }
+  .p1 .lb-pod-av { font-size: 40px; }
+  .lb-medal-b { width: 24px; height: 24px; margin-left: -12px; font-size: 12px; }
+  .lb-crown { width: 52px; height: 40px; margin-left: -26px; top: -30px; }
+  .lb-pod-name { font-size: 15px; margin: 4px 0 6px; }
+  .p1 .lb-pod-name { font-size: 18px; }
+  .lb-pct { font-size: 32px; }
+  .p1 .lb-pct { font-size: 44px; }
+  .lb-cap { margin: 3px 0 8px; }
+  .lb-pod-try { margin: 8px 0 10px; font-size: 12px; }
+  .lb-more { padding: 7px 15px; font-size: 12px; }
+  .lb-ped span { font-size: 46px; }
+  .p1 .lb-ped span { font-size: 60px; }
+  .lb-ped { padding-top: 10px; }
+
   @media (max-width: 760px) {
     .lb-hero { padding: 24px 20px; border-radius: 26px; }
     .lb-h { font-size: 36px; }
@@ -36,7 +69,7 @@
     .lb-cap, .lb-pod-try { display: none; }
     .lb-lvl { font-size: 10px; padding: 2px 8px 2px 6px; }
     .lb-more { padding: 7px 12px; font-size: 12px; margin-top: 8px; }
-    .lb-pod { --h: 110px; }
+    .lb-pod { --h: 96px; }
     .lb-pod.p2 { --h: 84px; }
     .lb-pod.p3 { --h: 64px; }
     .lb-ped span { font-size: 40px; }
