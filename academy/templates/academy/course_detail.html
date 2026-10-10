@@ -2,29 +2,71 @@
 {% block title %}{{ course.title }} — Matematika Akademiya{% endblock %}
 {% block crumb %}{{ course.title }}{% endblock %}
 {% block content %}
+<style>
+  .pay-box { background: #f7f9ef; border: 1.5px dashed #c4dc5a; border-radius: 18px; padding: 18px; margin: 14px 0 18px; max-width: 560px; }
+  .pay-amount { font-size: 13px; color: var(--mute); font-weight: 700; letter-spacing: .06em; }
+  .pay-amount b { display: block; font-size: 26px; color: var(--ink); letter-spacing: 0; margin-top: 2px; }
+  .pay-card { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #16281d; color: #fff; border-radius: 16px; padding: 14px 16px; margin: 14px 0 8px; flex-wrap: wrap; }
+  .pay-card b { font-size: 20px; letter-spacing: .08em; font-variant-numeric: tabular-nums; }
+  .pay-copy { border: 0; border-radius: 99px; background: #d3f24a; color: #16281d; font: inherit; font-weight: 800; font-size: 13px; padding: 8px 16px; cursor: pointer; }
+  .pay-owner { font-weight: 700; margin-bottom: 4px; }
+  .pay-bank { color: var(--mute); font-size: 14px; margin-bottom: 6px; }
+  .pay-steps { margin: 10px 0 0; padding-left: 20px; line-height: 1.7; font-size: 14px; }
+  .pay-note { margin: 10px 0 0; font-size: 14px; color: var(--mute); }
+  .pay-tg { display: inline-flex; margin-top: 12px; }
+</style>
+
 <div class="card">
-  <span class="pill">{{ course.price }} so'm</span>
+  <span class="pill">{% if is_free %}Bepul{% else %}{{ course.price }} so'm{% endif %}</span>
   <h1>{{ course.title }}</h1>
   <p style="color:var(--mute)">{{ course.description }}</p>
 
   {% if has_access %}
     <a class="btn" href="{% url 'take_quiz' course.slug %}">Testni boshlash</a>
+
   {% elif enrollment %}
-    <p><b>So'rovingiz qabul qilingan.</b> To'lov tasdiqlangach, kursga kirish ochiladi.</p>
+    <p><b>So'rovingiz qabul qilingan.</b> To'lov chekini Telegramdan yuboring, tasdiqlangach kirish ochiladi.</p>
+    {% if pay and pay.telegram_url %}
+      <a class="btn pay-tg" href="{{ pay.telegram_url }}" target="_blank" rel="noopener">Chekni {{ pay.telegram_handle|default:"Telegram" }}ga yuborish</a>
+    {% endif %}
+
   {% elif user.is_authenticated %}
-    <h3>Kursga yozilish</h3>
-    <p style="color:var(--mute)">Quyidagi ma'lumotlarni to'ldiring, to'lov tasdiqlangach kirish ochiladi.</p>
-    <form method="post">
+    <h3>To'lov</h3>
+    {% if pay and pay.is_ready %}
+    <div class="pay-box">
+      <div class="pay-amount">TO'LOV SUMMASI<b>{{ course.price }} so'm</b></div>
+      <div class="pay-card">
+        <b id="payCard">{{ pay.card_number }}</b>
+        <button type="button" class="pay-copy" id="payCopy">Nusxalash</button>
+      </div>
+      <div class="pay-owner">{{ pay.card_owner }}</div>
+      {% if pay.bank_name %}<div class="pay-bank">{{ pay.bank_name }}</div>{% endif %}
+      <ol class="pay-steps">
+        <li>Yuqoridagi kartaga {{ course.price }} so'm o'tkazing.</li>
+        <li>To'lov chekini (skrinshotini) Telegramdan {% if pay.telegram_handle %}<b>@{{ pay.telegram_handle }}</b>{% else %}adminga{% endif %} yuboring.</li>
+        <li>Pastdagi shaklni to'ldirib, «To'lov qildim» tugmasini bosing.</li>
+      </ol>
+      {% if pay.instructions %}<p class="pay-note">{{ pay.instructions }}</p>{% endif %}
+      {% if pay.telegram_url %}
+      <a class="btn ghost pay-tg" href="{{ pay.telegram_url }}" target="_blank" rel="noopener">Telegramda chekni yuborish</a>
+      {% endif %}
+    </div>
+    {% else %}
+    <p style="color:var(--mute)">To'lov ma'lumotlari tez orada qo'shiladi. Quyidagi shaklni to'ldirib so'rov qoldiring, admin siz bilan bog'lanadi.</p>
+    {% endif %}
+
+    <form method="post" style="max-width:560px">
       {% csrf_token %}
       {% for f in form %}
         <label for="{{ f.id_for_label }}">{{ f.label }}</label>
         {{ f }}
         {% if f.help_text %}<small style="color:var(--mute)">{{ f.help_text }}</small>{% endif %}
       {% endfor %}
-      <div style="margin-top:14px"><button class="btn" type="submit">So'rov yuborish</button></div>
+      <div style="margin-top:14px"><button class="btn" type="submit">{% if pay and pay.is_ready %}To'lov qildim{% else %}So'rov yuborish{% endif %}</button></div>
     </form>
+
   {% else %}
-    <a class="btn" href="{% url 'login' %}?next={{ request.path }}">Kursga yozilish uchun kiring</a>
+    <a class="btn" href="{% url 'login' %}?next={{ request.path }}">{% if is_free %}Testni boshlash uchun kiring{% else %}Kursga yozilish uchun kiring{% endif %}</a>
   {% endif %}
 </div>
 
@@ -39,4 +81,23 @@
   <p>{% if has_access %}Hali dars qo'shilmagan.{% else %}Darslarni ko'rish uchun kursga yoziling.{% endif %}</p>
   {% endfor %}
 </div>
+
+<script>
+(function () {
+  var b = document.getElementById('payCopy'), c = document.getElementById('payCard');
+  if (!b || !c) return;
+  b.addEventListener('click', function () {
+    var digits = c.textContent.replace(/\s+/g, '');
+    function done() { b.textContent = 'Nusxalandi ✓'; setTimeout(function () { b.textContent = 'Nusxalash'; }, 1800); }
+    function fallback() {
+      var t = document.createElement('textarea');
+      t.value = digits; document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(t);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(digits).then(done, fallback);
+    else fallback();
+  });
+})();
+</script>
 {% endblock %}
