@@ -20,10 +20,10 @@
     </svg>
     <span class="lb-chip"><i></i>REYTING</span>
     <h1 class="lb-h">Liderlar <span>jadvali</span></h1>
-    <p class="lb-sub">Reyting o'zlashtirish foizi bo'yicha tuziladi. Eng yaxshi natijangiz qanchalik yuqori bo'lsa, o'rningiz shunchalik baland.</p>
+    <p class="lb-sub">Reyting o'rtacha o'zlashtirish foizi bo'yicha tuziladi. Barcha urinishlaringiz o'rtachasi qanchalik yuqori bo'lsa, o'rningiz shunchalik baland.</p>
     <div class="lb-stats">
       <div class="lb-stat"><b><span data-cu="{{ total_students }}">{{ total_students }}</span></b><small>O'QUVCHI</small></div>
-      <div class="lb-stat"><b><span data-cu="{{ top_pct }}">{{ top_pct }}</span>%</b><small>ENG YUQORI NATIJA</small></div>
+      <div class="lb-stat"><b><span data-cu="{{ top_pct }}">{{ top_pct }}</span>%</b><small>ENG YUQORI O'RTACHA</small></div>
       <div class="lb-stat"><b><span data-cu="{{ total_attempts }}">{{ total_attempts }}</span></b><small>JAMI URINISH</small></div>
     </div>
   </div>
@@ -36,7 +36,7 @@
       <div>
         <h3>Sizning o'rningiz</h3>
         <p>
-          Eng yaxshi natija: <b><span data-cu="{{ me.best }}">{{ me.best }}</span>%</b>
+          O'rtacha natija: <b><span data-cu="{{ me.best }}">{{ me.best }}</span>%</b>
           {% if me.rank == 1 %}
             Siz hozir birinchisiz! Uni saqlab qoling.
           {% elif me_gap > 0 %}
@@ -89,7 +89,7 @@
   {% endif %}
 
   {% if rest %}
-  <div class="lb-listhead"><b>Boshqa ishtirokchilar</b><span>O'zlashtirish foizi bo'yicha</span></div>
+  <div class="lb-listhead"><b>Boshqa ishtirokchilar</b><span>O'rtacha foiz bo'yicha</span></div>
   <div class="lb-list">
     {% for r in rest %}
     <div class="lb-row{% if r.rank <= 10 %} top{% endif %}{% if r.me %} me{% endif %}" style="--c: {{ r.color }}; animation-delay: {{ forloop.counter0|add:3 }}0ms" data-rank="{{ r.rank }}">
