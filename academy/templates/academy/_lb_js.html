@@ -1,0 +1,80 @@
+<script>
+(function () {
+  var data = {};
+  try { data = JSON.parse(document.getElementById('lb-data').textContent); } catch (e) {}
+
+  /* Foiz sanog'i */
+  var els = document.querySelectorAll('[data-cu]');
+  for (var i = 0; i < els.length; i++) {
+    (function (el) {
+      var to = parseInt(el.getAttribute('data-cu'), 10);
+      if (isNaN(to) || to <= 0 || !window.requestAnimationFrame) return;
+      var start = null, dur = 1500;
+      el.textContent = '0';
+      function step(t) {
+        if (start === null) start = t;
+        var p = Math.min((t - start) / dur, 1);
+        el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3)));
+        if (p < 1) requestAnimationFrame(step);
+      }
+      setTimeout(function () { requestAnimationFrame(step); }, 600);
+    })(els[i]);
+  }
+
+  /* Batafsil oynasi */
+  var modal = document.getElementById('lbModal');
+  if (!modal) return;
+  var $ = function (id) { return document.getElementById(id); };
+
+  function pctColor(p) { return p >= 85 ? '#2fa84f' : p >= 70 ? '#8cc63f' : p >= 50 ? '#f2a93b' : p >= 30 ? '#ee6b3b' : '#e5393f'; }
+
+  function openModal(rank) {
+    var d = data[rank];
+    if (!d) return;
+    modal.style.setProperty('--c', d.color);
+    $('lbMdRank').textContent = d.rank + '-O\'RIN';
+    $('lbMdName').textContent = d.name;
+    $('lbMdLvl').textContent = d.level;
+    $('lbMdLvl').style.setProperty('--c', d.color);
+    $('lbMdPct').textContent = d.best + '%';
+    var arc = $('lbMdArc');
+    arc.style.animation = 'none';
+    arc.style.stroke = d.color;
+    arc.style.strokeDashoffset = (276.46 * (1 - d.best / 100)).toFixed(2);
+    void arc.getBoundingClientRect();
+    arc.style.animation = '';
+    arc.style.animationDelay = '.15s';
+    $('lbMdBest').textContent = d.best + '%';
+    $('lbMdBestS').textContent = d.bs + '/' + d.bn + ' to\'g\'ri';
+    $('lbMdAvg').textContent = d.avg + '%';
+    $('lbMdTry').textContent = d.attempts;
+    $('lbMdTests').textContent = d.tests;
+    var box = $('lbMdList');
+    while (box.firstChild) box.removeChild(box.firstChild);
+    (d.list || []).forEach(function (t) {
+      var row = document.createElement('div'); row.className = 'lb-md-test';
+      var a = document.createElement('span'); a.textContent = t.t; a.title = t.t;
+      var bar = document.createElement('i'); var fill = document.createElement('s');
+      fill.style.width = t.p + '%'; fill.style.setProperty('--c', pctColor(t.p)); bar.appendChild(fill);
+      var e = document.createElement('em'); e.textContent = t.p + '%';
+      row.appendChild(a); row.appendChild(bar); row.appendChild(e);
+      box.appendChild(row);
+    });
+    modal.classList.add('on');
+    document.body.classList.add('lb-lock');
+  }
+  function closeModal() { modal.classList.remove('on'); document.body.classList.remove('lb-lock'); }
+
+  document.addEventListener('click', function (ev) {
+    var t = ev.target;
+    if (t.closest && t.closest('[data-close]')) { closeModal(); return; }
+    var more = t.closest ? t.closest('.lb-more, .lb-row, .lb-pod-name') : null;
+    if (more) {
+      var holder = more.closest('[data-rank]') || more;
+      var r = holder.getAttribute('data-rank');
+      if (r) openModal(r);
+    }
+  });
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') closeModal(); });
+})();
+</script>
