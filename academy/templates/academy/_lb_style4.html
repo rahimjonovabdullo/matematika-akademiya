@@ -1,0 +1,56 @@
+<style>
+  @keyframes lbRing { from { stroke-dashoffset: 276.46; } }
+  @keyframes lbFade { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @keyframes lbFadeIn { from { opacity: 0; } }
+  @keyframes lbPop { from { opacity: 0; transform: translateY(24px) scale(.92); } }
+  @keyframes lbGrow { from { transform: scaleX(0); } }
+  @keyframes lbDrop { from { opacity: 0; transform: translateY(-60px) scale(.85); } to { opacity: 1; transform: none; } }
+  @keyframes lbPed { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes lbBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  @keyframes lbFloat { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-10px) rotate(3deg); } }
+  @keyframes lbPulse { 0% { opacity: .75; transform: scale(1); } 100% { opacity: 0; transform: scale(1.45); } }
+  @keyframes lbShine { 0% { left: -70%; } 55%, 100% { left: 130%; } }
+  @keyframes lbSpin { to { transform: rotate(360deg); } }
+  @keyframes lbTwinkle { 0%, 100% { opacity: .15; transform: scale(.5) rotate(0); } 50% { opacity: 1; transform: scale(1.2) rotate(30deg); } }
+  @media (prefers-reduced-motion: reduce) { .lb *, .lb *::before, .lb *::after, .lb-modal * { animation: none !important; } }
+
+  @media (max-width: 760px) {
+    .lb-hero { padding: 24px 20px; border-radius: 26px; }
+    .lb-h { font-size: 36px; }
+    .lb-trophy { width: 84px; height: 84px; right: 16px; top: 16px; }
+    .lb-stats { gap: 8px; }
+    .lb-stat { padding: 10px 12px; border-radius: 16px; }
+    .lb-stat b { font-size: 22px; }
+    .lb-podium { gap: 6px; padding-top: 24px; }
+    .lb-pod-top { padding: 0 2px 12px; }
+    .lb-av-wrap { width: 84px; height: 84px; }
+    .p1 .lb-av-wrap { width: 108px; height: 108px; }
+    .lb-pod-av { font-size: 24px; border-width: 3px; }
+    .p1 .lb-pod-av { font-size: 34px; }
+    .lb-medal-b { width: 24px; height: 24px; margin-left: -12px; font-size: 12px; }
+    .lb-crown { width: 40px; height: 30px; margin-left: -20px; top: -24px; }
+    .lb-pod-name { font-size: 12px; }
+    .p1 .lb-pod-name { font-size: 14px; }
+    .lb-pct { font-size: 26px; }
+    .p1 .lb-pct { font-size: 36px; }
+    .lb-cap, .lb-pod-try { display: none; }
+    .lb-lvl { font-size: 10px; padding: 2px 8px 2px 6px; }
+    .lb-more { padding: 7px 12px; font-size: 12px; margin-top: 8px; }
+    .lb-pod { --h: 110px; }
+    .lb-pod.p2 { --h: 84px; }
+    .lb-pod.p3 { --h: 64px; }
+    .lb-ped span { font-size: 40px; }
+    .p1 .lb-ped span { font-size: 54px; }
+    .lb-row { grid-template-columns: 34px 40px minmax(0, 1fr) 52px; gap: 10px; padding: 10px; border-radius: 20px; }
+    .lb-row .lb-lvl, .lb-row .lb-more { display: none; }
+    .lb-row { cursor: pointer; }
+    .lb-n { width: 32px; height: 32px; border-radius: 11px; }
+    .lb-av { width: 38px; height: 38px; font-size: 16px; }
+    .lb-mini { width: 50px; height: 50px; }
+    .lb-me { padding: 16px; }
+    .lb-md-card { padding: 22px 18px; }
+    .lb-md-head { gap: 14px; }
+    .lb-md-ring { width: 92px; height: 92px; }
+    .lb-md-name { font-size: 20px; }
+  }
+</style>
