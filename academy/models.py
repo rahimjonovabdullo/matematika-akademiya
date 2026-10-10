@@ -154,3 +154,42 @@ class Group(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class PaymentSettings(models.Model):
+    """To'lov ma'lumotlari (bitta yozuv). Boshqaruv panelida tahrirlanadi."""
+
+    card_number = models.CharField("Karta raqami", max_length=30, blank=True)
+    card_owner = models.CharField("Karta egasining ism-familiyasi", max_length=100, blank=True)
+    bank_name = models.CharField("Bank nomi (ixtiyoriy)", max_length=60, blank=True)
+    telegram = models.CharField("Telegram manzili (chek yuboriladigan)", max_length=100, blank=True)
+    instructions = models.TextField("Qo'shimcha izoh (ixtiyoriy)", blank=True)
+
+    class Meta:
+        verbose_name = "To'lov sozlamasi"
+        verbose_name_plural = "To'lov sozlamalari"
+
+    def __str__(self):
+        return "To'lov sozlamalari"
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    @property
+    def is_ready(self):
+        return bool(self.card_number.strip() and self.card_owner.strip())
+
+    @property
+    def telegram_handle(self):
+        t = (self.telegram or "").strip()
+        for p in ("https://t.me/", "http://t.me/", "t.me/", "@"):
+            if t.lower().startswith(p):
+                t = t[len(p):]
+        return t.strip("/ ")
+
+    @property
+    def telegram_url(self):
+        h = self.telegram_handle
+        return f"https://t.me/{h}" if h else ""
