@@ -5,26 +5,23 @@ from django.db.models import Avg, Count, Max
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import EnrollRequestForm, RegisterForm
-from .models import Choice, Course, Enrollment, Group, QuizAttempt
+from .models import Choice, Course, Enrollment, Group, PaymentSettings, QuizAttempt
 
 
-def filter_by_section(request, courses):
-    """?bolim=milliy kabi parametr bo'yicha kurslarni toifaga ajratadi."""
-    bolim = request.GET.get("bolim", "")
-    if bolim in dict(Course.CATEGORY_CHOICES):
-        return courses.filter(category=bolim), bolim
-    return courses, ""
+def _open_free_access(user, course):
+    """Bepul kurs/test: kirish darrov ochiladi (to'lov va so'rov kerak emas)."""
+    enrollment, _ = Enrollment.objects.get_or_create(
+        student=user, course=course, defaults={"is_active": True}
+    )
+    if not enrollment.is_active:
+        enrollment.is_active = True
+        enrollment.save(update_fields=["is_active"])
+    return enrollment
 
 
 def home(request):
-    courses, bolim = filter_by_section(
-        request, Course.objects.filter(is_published=True, kind="kurs")
-    )
-    return render(
-        request,
-        "academy/home.html",
-        {"courses": courses, "bolim": bolim, "categories": Course.CATEGORY_CHOICES},
-    )
+    courses = Course.objects.filter(is_published=True)
+    return render(request, "academy/home.html", {"courses": courses})
 
 
 def register(request):
@@ -53,9 +50,13 @@ def dashboard(request):
 
 def course_detail(request, slug):
     course = get_object_or_404(Course, slug=slug, is_published=True)
+    is_free = course.price == 0
     enrollment = None
     if request.user.is_authenticated:
-        enrollment = Enrollment.objects.filter(student=request.user, course=course).first()
+        if is_free:
+            enrollment = _open_free_access(request.user, course)
+        else:
+            enrollment = Enrollment.objects.filter(student=request.user, course=course).first()
     has_access = bool(enrollment and enrollment.is_active)
 
     form = None
@@ -71,11 +72,19 @@ def course_detail(request, slug):
                 )
                 messages.success(
                     request,
-                    "So'rovingiz qabul qilindi. To'lov tasdiqlangach, kursga kirish ochiladi.",
+                    "So'rovingiz qabul qilindi. To'lov chekini Telegramdan yuborganingizdan so'ng, "
+                    "to'lov tasdiqlanib kirish ochiladi.",
                 )
                 return redirect("course_detail", slug=slug)
         else:
             form = EnrollRequestForm()
+
+    pay = None
+    if not is_free and not has_access:
+        try:
+            pay = PaymentSettings.load()
+        except Exception:
+            pay = None
 
     lessons = course.lessons.all()
     if not has_access:
@@ -90,6 +99,8 @@ def course_detail(request, slug):
             "has_access": has_access,
             "enrollment": enrollment,
             "form": form,
+            "is_free": is_free,
+            "pay": pay,
         },
     )
 
@@ -97,6 +108,8 @@ def course_detail(request, slug):
 @login_required
 def take_quiz(request, slug):
     course = get_object_or_404(Course, slug=slug, is_published=True)
+    if course.price == 0:
+        _open_free_access(request.user, course)
     enrollment = Enrollment.objects.filter(student=request.user, course=course, is_active=True).first()
     if not enrollment:
         messages.error(request, "Bu kurs testiga kirish uchun avval kursga yozilib, to'lovni tasdiqlating.")
@@ -130,15 +143,8 @@ def quiz_result(request, attempt_id):
 
 
 def tests_list(request):
-    courses = (
-        Course.objects.filter(is_published=True, kind="test")
-        .annotate(
-            questions_count=Count("questions", distinct=True),
-            participants=Count("attempts__student", distinct=True),
-        )
-    )
-    courses, bolim = filter_by_section(request, courses)
-    return render(request, "academy/tests_list.html", {"courses": courses, "bolim": bolim})
+    courses = Course.objects.filter(is_published=True).prefetch_related("questions")
+    return render(request, "academy/tests_list.html", {"courses": courses})
 
 
 @login_required
