@@ -3,11 +3,30 @@
 {% block crumb %}Liderlar{% endblock %}
 {% block content %}
 {% include "academy/_lb_style.html" %}
+{% include "academy/_lb_style2.html" %}
 
 <div class="lb">
-  <span class="lb-chip"><i></i>REYTING</span>
-  <h1 class="lb-h">Liderlar</h1>
-  <p class="lb-sub">Barcha o'quvchilar bir reytingda. Eng yaxshi test natijangiz bilan yuqoriga ko'tariling.</p>
+  <div class="lb-hero">
+    <svg class="lb-trophy" viewBox="0 0 120 120" fill="none">
+      <defs>
+        <linearGradient id="lbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe680"/><stop offset="1" stop-color="#e8a912"/></linearGradient>
+      </defs>
+      <path d="M36 14h48v30c0 17-11 28-24 28S36 61 36 44V14z" fill="url(#lbg)"/>
+      <path d="M36 22H18c0 18 7 30 20 33M84 22h18c0 18-7 30-20 33" stroke="#f2b92a" stroke-width="7" stroke-linecap="round"/>
+      <rect x="54" y="72" width="12" height="16" fill="#e8a912"/>
+      <rect x="38" y="88" width="44" height="12" rx="5" fill="url(#lbg)"/>
+      <rect x="30" y="100" width="60" height="9" rx="4.5" fill="#cf9410"/>
+      <path d="M52 28l4 9 10 1-7.5 6.5L61 54l-9-5-9 5 2.5-9.5L38 38l10-1z" fill="#fff6c9" opacity=".9"/>
+    </svg>
+    <span class="lb-chip"><i></i>REYTING</span>
+    <h1 class="lb-h">Liderlar <span>jadvali</span></h1>
+    <p class="lb-sub">Barcha o'quvchilar bir reytingda raqobatlashadi. Eng yaxshi test natijangiz bilan yuqoriga ko'tariling.</p>
+    <div class="lb-stats">
+      <div class="lb-stat"><b>{{ total_students }}</b><small>O'QUVCHI</small></div>
+      <div class="lb-stat"><b>{{ top_score }}</b><small>ENG YUQORI BALL</small></div>
+      <div class="lb-stat"><b>{{ total_attempts }}</b><small>JAMI URINISH</small></div>
+    </div>
+  </div>
 
   {% if user.is_authenticated and not user.is_staff %}
   <div class="lb-me">
@@ -17,7 +36,7 @@
       <div>
         <h3>Sizning o'rningiz</h3>
         <p>
-          Eng yaxshi natija: <b>{{ me.best }} ball</b>.
+          Eng yaxshi natija: <b>{{ me.best }} ball</b>
           {% if me.rank == 1 %}
             Siz hozir birinchisiz! Uni saqlab qoling.
           {% elif me_gap > 0 %}
@@ -46,27 +65,28 @@
   <div class="lb-podium">
     {% for r in podium %}
     <div class="lb-pod p{{ r.rank }}{% if r.me %} me{% endif %}">
-      <div class="lb-pod-av">
-        {% if r.rank == 1 %}
-        <svg class="lb-crown" viewBox="0 0 46 34" fill="#f7cf4a" stroke="#d9a915" stroke-width="2" stroke-linejoin="round"><path d="M3 28 6 8l11 11L23 4l6 15L40 8l3 20z"/><rect x="3" y="28" width="40" height="5" rx="2" fill="#f7cf4a"/></svg>
-        {% endif %}
-        {{ r.initial }}
-      </div>
-      <div class="lb-pod-box">
-        <span class="lb-medal">{{ r.rank }}-O'RIN</span>
-        <p class="lb-pod-name">{{ r.name }}</p>
+      <div class="lb-pod-top">
+        <div class="lb-pod-av">
+          {% if r.rank == 1 %}
+          <svg class="lb-crown" viewBox="0 0 46 34" fill="#f7cf4a" stroke="#d9a915" stroke-width="2" stroke-linejoin="round"><path d="M3 28 6 8l11 11L23 4l6 15L40 8l3 20z"/><rect x="3" y="28" width="40" height="5" rx="2" fill="#f7cf4a"/></svg>
+          {% endif %}
+          {{ r.initial }}
+        </div>
+        <p class="lb-pod-name">{{ r.name }}{% if r.me %}<em>SIZ</em>{% endif %}</p>
         <div class="lb-pod-ball"><span data-cu="{{ r.best }}">{{ r.best }}</span><small>ball</small></div>
         <div class="lb-pod-try">{{ r.attempts }} ta urinish</div>
       </div>
+      <div class="lb-ped">{{ r.rank }}</div>
     </div>
     {% endfor %}
   </div>
   {% endif %}
 
   {% if rest %}
+  <div class="lb-listhead"><b>Boshqa ishtirokchilar</b><span>Eng yaxshi natija bo'yicha</span></div>
   <div class="lb-list">
     {% for r in rest %}
-    <div class="lb-row{% if r.me %} me{% endif %}" style="animation-delay: {{ forloop.counter0|add:2 }}0ms">
+    <div class="lb-row{% if r.rank <= 10 %} top{% endif %}{% if r.me %} me{% endif %}" style="animation-delay: {{ forloop.counter0|add:3 }}0ms">
       <div class="lb-n">{{ r.rank }}</div>
       <div class="lb-av">{{ r.initial }}</div>
       <div class="lb-name">{{ r.name }}{% if r.me %}<em>SIZ</em>{% endif %}</div>
@@ -76,7 +96,10 @@
     {% endfor %}
   </div>
   {% elif not podium %}
-  <div class="lb-empty">Hali hech kim test topshirmagan. Birinchi bo'lib reytingga kiring!</div>
+  <div class="lb-empty">
+    <svg viewBox="0 0 120 120" fill="none"><path d="M36 14h48v30c0 17-11 28-24 28S36 61 36 44V14z" fill="#e6e9df"/><rect x="38" y="88" width="44" height="12" rx="5" fill="#e6e9df"/><rect x="54" y="72" width="12" height="16" fill="#e6e9df"/></svg>
+    <div>Hali hech kim test topshirmagan. Birinchi bo'lib reytingga kiring!</div>
+  </div>
   {% endif %}
 </div>
 
@@ -87,7 +110,7 @@
   els.forEach(function (el) {
     var to = parseInt(el.getAttribute('data-cu'), 10);
     if (isNaN(to) || to <= 0) return;
-    var start = null, dur = 900;
+    var start = null, dur = 1000;
     el.textContent = '0';
     function step(t) {
       if (start === null) start = t;
