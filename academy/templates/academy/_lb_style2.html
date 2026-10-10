@@ -1,0 +1,70 @@
+<style>
+  /* ---------- Ro'yxat ---------- */
+  .lb-listhead { display: flex; align-items: center; justify-content: space-between; margin: 0 4px 12px; }
+  .lb-listhead b { font-size: 20px; font-weight: 800; }
+  .lb-listhead span { color: var(--mute); font-size: 13px; font-weight: 700; }
+  .lb-list { display: flex; flex-direction: column; gap: 10px; }
+  .lb-row {
+    display: grid; grid-template-columns: 52px 50px minmax(0, 1.2fr) minmax(0, 1.6fr) auto;
+    align-items: center; gap: 14px; padding: 14px 20px 14px 14px; border-radius: 24px; background: #fff; border: 1px solid var(--line);
+    box-shadow: 0 2px 8px rgba(22, 40, 29, .04); animation: lbFade .5s ease both; transition: transform .18s, box-shadow .18s, border-color .18s;
+  }
+  .lb-row:hover { transform: translateY(-3px) scale(1.005); box-shadow: 0 14px 30px rgba(22, 40, 29, .1); border-color: #d6dccb; }
+  .lb-row.me { background: linear-gradient(90deg, #f4fbd3, #fff 70%); border-color: var(--lime); box-shadow: 0 8px 24px rgba(180, 220, 40, .22); }
+  .lb-n {
+    width: 40px; height: 40px; margin: 0 auto; border-radius: 14px; background: #f1f2ef; color: #6b7580;
+    display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800;
+  }
+  .lb-row.top .lb-n { background: var(--g); color: var(--lime); }
+  .lb-av {
+    width: 46px; height: 46px; border-radius: 50%; background: #eef0ea; color: var(--g);
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px;
+  }
+  .lb-row.me .lb-av { background: var(--lime); }
+  .lb-name { font-weight: 800; font-size: 16px; line-height: 1.7; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-name em { font-style: normal; font-size: 11px; font-weight: 800; letter-spacing: .08em; background: var(--g); color: var(--lime); padding: 3px 8px; border-radius: 999px; margin-left: 8px; vertical-align: middle; }
+  .lb-bar { height: 12px; background: #eef0ea; border-radius: 999px; overflow: hidden; }
+  .lb-bar span { display: block; height: 100%; background: linear-gradient(90deg, #a9d92a, #d3f24a); border-radius: 999px; transform-origin: left; animation: lbGrow 1s cubic-bezier(.2, .9, .3, 1) both; box-shadow: 0 0 12px rgba(180, 225, 40, .7); }
+  .lb-meta { text-align: right; white-space: nowrap; }
+  .lb-meta b { font-size: 19px; font-weight: 800; }
+  .lb-meta small { display: block; color: var(--mute); font-size: 12px; margin-top: 2px; }
+
+  .lb-empty { background: #fff; border: 1px dashed #cfd4c6; border-radius: 24px; padding: 56px 20px; text-align: center; color: var(--mute); }
+  .lb-empty svg { width: 64px; height: 64px; margin-bottom: 10px; }
+
+  @keyframes lbRise { from { opacity: 0; transform: translateY(34px); } to { opacity: 1; transform: none; } }
+  @keyframes lbFade { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @keyframes lbGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes lbFloat { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-10px) rotate(3deg); } }
+  @keyframes lbBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+  @keyframes lbGlow { 0%, 100% { box-shadow: 0 0 0 6px rgba(247, 207, 74, .3), 0 14px 34px rgba(217, 169, 21, .4); } 50% { box-shadow: 0 0 0 12px rgba(247, 207, 74, .16), 0 14px 44px rgba(217, 169, 21, .6); } }
+  @keyframes lbTwinkle { 0%, 100% { opacity: .15; transform: scale(.6) rotate(0); } 50% { opacity: 1; transform: scale(1.15) rotate(25deg); } }
+  @media (prefers-reduced-motion: reduce) { .lb-pod, .lb-row, .lb-bar span, .lb-trophy, .lb-crown, .lb-spark, .lb-pod-av { animation: none !important; } }
+
+  @media (max-width: 760px) {
+    .lb-hero { padding: 24px 20px; border-radius: 26px; }
+    .lb-h { font-size: 36px; }
+    .lb-trophy { width: 84px; height: 84px; right: 16px; top: 16px; }
+    .lb-stats { gap: 8px; }
+    .lb-stat { padding: 10px 12px; border-radius: 16px; }
+    .lb-stat b { font-size: 22px; }
+    .lb-podium { gap: 6px; padding-top: 34px; }
+    .lb-pod-top { padding: 0 2px 10px; }
+    .lb-pod-av { width: 60px; height: 60px; font-size: 24px; border-width: 4px; }
+    .p1 .lb-pod-av { width: 78px; height: 78px; font-size: 32px; }
+    .lb-crown { width: 40px; height: 30px; margin-left: -20px; top: -30px; }
+    .lb-pod-name { font-size: 13px; }
+    .p1 .lb-pod-name { font-size: 15px; }
+    .lb-pod-ball { font-size: 22px; }
+    .p1 .lb-pod-ball { font-size: 30px; }
+    .lb-ped { font-size: 40px; border-radius: 18px 18px 0 0; }
+    .p1 .lb-ped { height: 110px; font-size: 52px; }
+    .p2 .lb-ped { height: 84px; }
+    .p3 .lb-ped { height: 64px; }
+    .lb-row { grid-template-columns: 38px 42px minmax(0, 1fr) auto; gap: 10px; padding: 12px; border-radius: 20px; }
+    .lb-bar { display: none; }
+    .lb-n { width: 34px; height: 34px; border-radius: 12px; }
+    .lb-av { width: 40px; height: 40px; font-size: 16px; }
+    .lb-me { padding: 16px; }
+  }
+</style>
