@@ -7,6 +7,7 @@
   <p>Darslar, testlar va natijalar nazorati — bitta joyda.</p>
   {% if not user.is_authenticated %}<a class="btn" href="{% url 'register' %}">Boshlash</a>{% endif %}
 </div>
+{% if courses %}
 <h2>Kurslar</h2>
 <div class="grid">
   {% for c in courses %}
@@ -14,11 +15,12 @@
     <span class="pill">{{ c.lessons.count }} ta dars</span>
     <h3>{{ c.title }}</h3>
     <p style="color:var(--mute)">{{ c.description|truncatewords:20 }}</p>
-    <p><b>{{ c.price }} so'm</b></p>
+    <p><b>{% if c.price == 0 %}Bepul{% else %}{{ c.price }} so'm{% endif %}</b></p>
     <a class="btn" href="{% url 'course_detail' c.slug %}">Batafsil</a>
   </div>
-  {% empty %}
-  <div class="card"><p>Hozircha kurslar qo'shilmagan.</p></div>
   {% endfor %}
 </div>
+{% elif bolim %}
+<div class="card" style="margin-top:16px"><p>Bu yo'nalishda hozircha kurs qo'shilmagan.</p></div>
+{% endif %}
 {% endblock %}
