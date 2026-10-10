@@ -230,22 +230,24 @@ def _build_leaderboard(attempts, me_id):
 
     ordered = sorted(
         people.values(),
-        key=lambda p: (-p["best"], -(p["sum"] / p["attempts"]), p["attempts"], p["id"]),
+        key=lambda p: (-(p["sum"] / p["attempts"]), -p["best"], p["attempts"], p["id"]),
     )
 
     rows = []
     for i, p in enumerate(ordered, start=1):
-        best = int(p["best"] + 0.5)
-        avg = int(p["sum"] / p["attempts"] + 0.5)
-        level, color = _level(best)
+        top = int(p["best"] + 0.5)
+        avg_exact = p["sum"] / p["attempts"]
+        avg = int(avg_exact + 0.5)
+        level, color = _level(avg)
         tests = sorted(p["courses"].values(), key=lambda c: -c["pct"])
         rows.append(
             {
                 "rank": i,
                 "name": p["name"],
                 "initial": p["name"][:1].upper(),
-                "best": best,
-                "best_exact": p["best"],
+                "best": avg,
+                "best_exact": avg_exact,
+                "top": top,
                 "avg": avg,
                 "attempts": p["attempts"],
                 "tests": len(tests),
@@ -253,7 +255,7 @@ def _build_leaderboard(attempts, me_id):
                 "bn": p["bn"],
                 "level": level,
                 "color": color,
-                "off": round(276.46 * (1 - best / 100.0), 2),
+                "off": round(276.46 * (1 - avg / 100.0), 2),
                 "me": p["id"] == me_id,
                 "list": [{"t": c["t"], "p": int(c["pct"] + 0.5), "s": c["s"], "n": c["n"]} for c in tests[:8]],
             }
@@ -262,7 +264,7 @@ def _build_leaderboard(attempts, me_id):
 
 
 def leaderboard(request):
-    # Reyting o'zlashtirish foizi bo'yicha. Admin va xodimlar chiqarib tashlangan.
+    # Reyting O'RTACHA o'zlashtirish foizi bo'yicha (best = o'rtacha, top = eng yaxshi urinish). Admin va xodimlar chiqarib tashlangan.
     attempts = QuizAttempt.objects.filter(
         student__is_staff=False, student__is_superuser=False, total__gt=0
     ).values(
@@ -293,6 +295,7 @@ def leaderboard(request):
             "rank": r["rank"],
             "name": r["name"],
             "best": r["best"],
+            "top": r["top"],
             "avg": r["avg"],
             "attempts": r["attempts"],
             "tests": r["tests"],
