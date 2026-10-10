@@ -21,7 +21,12 @@ def _open_free_access(user, course):
 
 def home(request):
     courses = Course.objects.filter(is_published=True)
-    return render(request, "academy/home.html", {"courses": courses})
+    bolim = request.GET.get("bolim", "")
+    if bolim in ("milliy", "attestatsiya", "sat"):
+        courses = courses.filter(category=bolim)
+    else:
+        bolim = ""
+    return render(request, "academy/home.html", {"courses": courses, "bolim": bolim})
 
 
 def register(request):
