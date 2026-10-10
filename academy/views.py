@@ -184,12 +184,50 @@ def my_groups(request):
 
 
 def leaderboard(request):
-    rows = (
-        QuizAttempt.objects.values("student__username", "student__first_name")
-        .annotate(best=Max("score"), attempts_count=Count("id"), avg_total=Avg("total"))
-        .order_by("-best")[:50]
+    # Reytingda faqat o'quvchilar ko'rinadi (admin va xodimlar chiqarib tashlangan).
+    qs = (
+        QuizAttempt.objects.filter(student__is_staff=False, student__is_superuser=False)
+        .values("student_id", "student__username", "student__first_name", "student__last_name")
+        .annotate(best=Max("score"), attempts_count=Count("id"))
+        .order_by("-best", "attempts_count", "student_id")[:100]
     )
-    return render(request, "academy/leaderboard.html", {"rows": rows})
+    me_id = request.user.id if request.user.is_authenticated else None
+    rows = []
+    for i, r in enumerate(qs, start=1):
+        name = ("%s %s" % (r["student__first_name"], r["student__last_name"])).strip() or r["student__username"]
+        rows.append(
+            {
+                "rank": i,
+                "name": name,
+                "initial": name[:1].upper(),
+                "best": r["best"],
+                "attempts": r["attempts_count"],
+                "me": r["student_id"] == me_id,
+            }
+        )
+    top = rows[0]["best"] if rows else 0
+    for r in rows:
+        r["pct"] = int(round(r["best"] * 100.0 / top)) if top else 0
+
+    me = next((r for r in rows if r["me"]), None)
+    me_gap = 0
+    me_prev_rank = 0
+    if me and me["rank"] > 1:
+        prev = rows[me["rank"] - 2]
+        me_gap = prev["best"] - me["best"]
+        me_prev_rank = prev["rank"]
+
+    return render(
+        request,
+        "academy/leaderboard.html",
+        {
+            "podium": rows[:3],
+            "rest": rows[3:],
+            "me": me,
+            "me_gap": me_gap,
+            "me_prev_rank": me_prev_rank,
+        },
+    )
 
 
 def help_page(request):
