@@ -22,9 +22,9 @@
     <h1 class="lb-h">Liderlar <span>jadvali</span></h1>
     <p class="lb-sub">Reyting o'zlashtirish foizi bo'yicha tuziladi. Eng yaxshi natijangiz qanchalik yuqori bo'lsa, o'rningiz shunchalik baland.</p>
     <div class="lb-stats">
-      <div class="lb-stat"><b>{{ total_students }}</b><small>O'QUVCHI</small></div>
-      <div class="lb-stat"><b>{{ top_pct }}%</b><small>ENG YUQORI NATIJA</small></div>
-      <div class="lb-stat"><b>{{ total_attempts }}</b><small>JAMI URINISH</small></div>
+      <div class="lb-stat"><b><span data-cu="{{ total_students }}">{{ total_students }}</span></b><small>O'QUVCHI</small></div>
+      <div class="lb-stat"><b><span data-cu="{{ top_pct }}">{{ top_pct }}</span>%</b><small>ENG YUQORI NATIJA</small></div>
+      <div class="lb-stat"><b><span data-cu="{{ total_attempts }}">{{ total_attempts }}</span></b><small>JAMI URINISH</small></div>
     </div>
   </div>
 
@@ -36,11 +36,11 @@
       <div>
         <h3>Sizning o'rningiz</h3>
         <p>
-          Eng yaxshi natija: <b>{{ me.best }}%</b>
+          Eng yaxshi natija: <b><span data-cu="{{ me.best }}">{{ me.best }}</span>%</b>
           {% if me.rank == 1 %}
             Siz hozir birinchisiz! Uni saqlab qoling.
           {% elif me_gap > 0 %}
-            {{ me_prev_rank }}-o'ringa chiqish uchun yana <b>{{ me_gap }}%</b> kerak.
+            {{ me_prev_rank }}-o'ringa chiqish uchun yana <b><span data-cu="{{ me_gap }}">{{ me_gap }}</span>%</b> kerak.
           {% else %}
             {{ me_prev_rank }}-o'rin bilan natijangiz teng. Yana bir urinish ko'proq natija beradi.
           {% endif %}
@@ -67,7 +67,7 @@
     <div class="lb-pod p{{ r.rank }}{% if r.me %} me{% endif %}" style="--c: {{ r.color }}" data-rank="{{ r.rank }}">
       <div class="lb-pod-top">
         <div class="lb-av-wrap">
-          {% if r.rank == 1 %}<svg class="lb-crown" viewBox="0 0 46 34" fill="#f7cf4a" stroke="#d9a915" stroke-width="2" stroke-linejoin="round"><path d="M3 28 6 8l11 11L23 4l6 15L40 8l3 20z"/><rect x="3" y="28" width="40" height="5" rx="2" fill="#f7cf4a"/></svg>{% endif %}
+          {% if r.rank == 1 %}<svg class="lb-crown" viewBox="0 0 64 48" fill="none"><defs><linearGradient id="lbcr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0a6"/><stop offset=".55" stop-color="#f6c335"/><stop offset="1" stop-color="#d68f0c"/></linearGradient></defs><path d="M6 40 3 14l15 12L32 6l14 20 15-12-3 26z" fill="url(#lbcr)" stroke="#c98a0a" stroke-width="2" stroke-linejoin="round"/><rect x="6" y="38" width="52" height="7" rx="3.5" fill="url(#lbcr)" stroke="#c98a0a" stroke-width="2"/><circle cx="3" cy="13" r="3.4" fill="#fff6c9" stroke="#c98a0a" stroke-width="1.5"/><circle cx="32" cy="5" r="3.8" fill="#fff6c9" stroke="#c98a0a" stroke-width="1.5"/><circle cx="61" cy="13" r="3.4" fill="#fff6c9" stroke="#c98a0a" stroke-width="1.5"/><circle cx="32" cy="30" r="3.6" fill="#e5393f"/><circle cx="18" cy="35" r="2.4" fill="#2fa84f"/><circle cx="46" cy="35" r="2.4" fill="#3d8bfd"/><path d="M12 38h6M26 38h4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".7"/></svg>{% endif %}
           <svg class="lb-ring" viewBox="0 0 100 100"><circle class="trk" cx="50" cy="50" r="44"/><circle class="arc" cx="50" cy="50" r="44" style="stroke-dashoffset: {{ r.off }}"/></svg>
           <div class="lb-pod-av">{{ r.initial }}</div>
           <span class="lb-medal-b">{{ r.rank }}</span>
@@ -100,7 +100,7 @@
         <div class="lb-sub2">{{ r.attempts }} ta urinish · {{ r.tests }} ta test</div>
       </div>
       <span class="lb-lvl">{{ r.level }}</span>
-      <div class="lb-mini"><svg class="lb-ring" viewBox="0 0 100 100"><circle class="trk" cx="50" cy="50" r="44"/><circle class="arc" cx="50" cy="50" r="44" style="stroke-dashoffset: {{ r.off }}"/></svg><b>{{ r.best }}%</b></div>
+      <div class="lb-mini"><svg class="lb-ring" viewBox="0 0 100 100"><circle class="trk" cx="50" cy="50" r="44"/><circle class="arc" cx="50" cy="50" r="44" style="stroke-dashoffset: {{ r.off }}"/></svg><b><span data-cu="{{ r.best }}">{{ r.best }}</span>%</b></div>
       <button type="button" class="lb-more">Batafsil <span>→</span></button>
     </div>
     {% endfor %}
@@ -113,32 +113,7 @@
   {% endif %}
 </div>
 
-<div class="lb-modal" id="lbModal">
-  <div class="lb-md-bg" data-close></div>
-  <div class="lb-md-card" role="dialog" aria-modal="true">
-    <button type="button" class="lb-md-x" data-close aria-label="Yopish">&times;</button>
-    <div class="lb-md-head">
-      <div class="lb-md-ring">
-        <svg class="lb-ring" viewBox="0 0 100 100"><circle class="trk" cx="50" cy="50" r="44"/><circle class="arc" id="lbMdArc" cx="50" cy="50" r="44"/></svg>
-        <b id="lbMdPct">0%</b>
-      </div>
-      <div>
-        <div class="lb-md-rk" id="lbMdRank"></div>
-        <div class="lb-md-name" id="lbMdName"></div>
-        <span class="lb-lvl" id="lbMdLvl"></span>
-      </div>
-    </div>
-    <div class="lb-md-grid">
-      <div class="lb-md-t"><small>ENG YAXSHI NATIJA</small><b id="lbMdBest"></b><small id="lbMdBestS"></small></div>
-      <div class="lb-md-t"><small>O'RTACHA NATIJA</small><b id="lbMdAvg"></b></div>
-      <div class="lb-md-t"><small>URINISHLAR</small><b id="lbMdTry"></b></div>
-      <div class="lb-md-t"><small>YECHILGAN TESTLAR</small><b id="lbMdTests"></b></div>
-    </div>
-    <p class="lb-md-h">TESTLAR BO'YICHA</p>
-    <div id="lbMdList"></div>
-  </div>
-</div>
-
+{% include "academy/_lb_modal.html" %}
 {{ lb_data|json_script:"lb-data" }}
 {% include "academy/_lb_js.html" %}
 {% endblock %}
