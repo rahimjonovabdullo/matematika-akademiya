@@ -1,10 +1,7 @@
-import traceback
-
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Count, Max
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import EnrollRequestForm, RegisterForm
@@ -186,13 +183,13 @@ def my_groups(request):
     return render(request, "academy/groups.html", {"groups": groups})
 
 
-def _leaderboard_page(request):
+def leaderboard(request):
     # Reytingda faqat o'quvchilar ko'rinadi (admin va xodimlar chiqarib tashlangan).
     qs = (
         QuizAttempt.objects.filter(student__is_staff=False, student__is_superuser=False)
         .values("student_id", "student__username", "student__first_name", "student__last_name")
         .annotate(best=Max("score"), attempts_count=Count("id"))
-        .order_by("-best", "attempts_count", "student_id")[:100]
+        .order_by("-best", "attempts_count", "student_id")
     )
     me_id = request.user.id if request.user.is_authenticated else None
     rows = []
@@ -225,22 +222,15 @@ def _leaderboard_page(request):
         "academy/leaderboard.html",
         {
             "podium": rows[:3],
-            "rest": rows[3:],
+            "rest": rows[3:100],
             "me": me,
             "me_gap": me_gap,
             "me_prev_rank": me_prev_rank,
+            "total_students": len(rows),
+            "top_score": top,
+            "total_attempts": sum(r["attempts"] for r in rows),
         },
     )
-
-
-def leaderboard(request):
-    # VAQTINCHALIK: xato bo'lsa, faqat admin ekranda xato matnini ko'radi.
-    try:
-        return _leaderboard_page(request)
-    except Exception:
-        if request.user.is_authenticated and request.user.is_staff:
-            return HttpResponse(traceback.format_exc(), content_type="text/plain; charset=utf-8", status=500)
-        raise
 
 
 def help_page(request):
