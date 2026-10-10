@@ -154,8 +154,21 @@ def quiz_result(request, attempt_id):
 
 
 def tests_list(request):
-    courses = Course.objects.filter(is_published=True).prefetch_related("questions")
-    return render(request, "academy/tests_list.html", {"courses": courses})
+    courses = Course.objects.filter(is_published=True)
+    bolim = request.GET.get("bolim", "")
+    if bolim in ("milliy", "attestatsiya", "sat"):
+        courses = courses.filter(category=bolim)
+    else:
+        bolim = ""
+    courses = list(courses.annotate(questions_count=Count("questions", distinct=True)))
+
+    # Ishtirokchi = testni kamida bir marta yechgan o'quvchilar soni
+    part_rows = QuizAttempt.objects.values_list("course_id").annotate(n=Count("student", distinct=True))
+    participants = {course_id: n for course_id, n in part_rows}
+    for c in courses:
+        c.participants = participants.get(c.id, 0)
+
+    return render(request, "academy/tests_list.html", {"courses": courses, "bolim": bolim})
 
 
 @login_required
