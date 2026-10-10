@@ -35,7 +35,7 @@
     <div class="grp">Tizim</div>
     <a class="nav {% if request.resolver_match.url_name == 'payment_page' %}on{% endif %}" href="{% url 'payment_page' %}">To'lov</a>
     <a class="nav {% if request.resolver_match.url_name == 'settings_page' %}on{% endif %}" href="{% url 'settings_page' %}">Sozlamalar</a>
-    <a class="nav out" href="{% url 'logout' %}">Chiqish</a>
+    <form method="post" action="{% url 'logout' %}" style="margin:0">{% csrf_token %}<button type="submit" class="nav out" style="background:none;border:0;font:inherit;cursor:pointer;text-align:left;width:100%">Chiqish</button></form>
     {% else %}
     <a class="nav {% if request.resolver_match.url_name == 'leaderboard' %}on{% endif %}" href="{% url 'leaderboard' %}">Liderlar</a>
     <a class="nav {% if request.resolver_match.url_name == 'help_page' %}on{% endif %}" href="{% url 'help_page' %}">Yordam</a>
