@@ -3,22 +3,34 @@
   var data = {};
   try { data = JSON.parse(document.getElementById('lb-data').textContent); } catch (e) {}
 
-  /* Foiz sanog'i */
+  /* Raqam sanog'i (foizlar, statistika) */
+  function countUp(el, to, suffix, delay, dur) {
+    suffix = suffix || '';
+    if (isNaN(to) || to <= 0 || !window.requestAnimationFrame) { el.textContent = to + suffix; return; }
+    el.textContent = '0' + suffix;
+    var start = null; dur = dur || 1400;
+    function step(t) {
+      if (start === null) start = t;
+      var p = Math.min((t - start) / dur, 1);
+      el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))) + suffix;
+      if (p < 1) requestAnimationFrame(step);
+    }
+    setTimeout(function () { requestAnimationFrame(step); }, delay || 0);
+  }
   var els = document.querySelectorAll('[data-cu]');
+  function runEl(el, delay) { countUp(el, parseInt(el.getAttribute('data-cu'), 10), '', delay); }
+  var io = null;
+  if ('IntersectionObserver' in window) {
+    io = new IntersectionObserver(function (list) {
+      list.forEach(function (en) {
+        if (en.isIntersecting) { io.unobserve(en.target); runEl(en.target, 150); }
+      });
+    }, { threshold: 0.3 });
+  }
   for (var i = 0; i < els.length; i++) {
-    (function (el) {
-      var to = parseInt(el.getAttribute('data-cu'), 10);
-      if (isNaN(to) || to <= 0 || !window.requestAnimationFrame) return;
-      var start = null, dur = 1500;
-      el.textContent = '0';
-      function step(t) {
-        if (start === null) start = t;
-        var p = Math.min((t - start) / dur, 1);
-        el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3)));
-        if (p < 1) requestAnimationFrame(step);
-      }
-      setTimeout(function () { requestAnimationFrame(step); }, 600);
-    })(els[i]);
+    var el = els[i];
+    var inPod = el.closest && el.closest('.lb-podium');
+    if (inPod || !io) { runEl(el, 600); } else { io.observe(el); }
   }
 
   /* Batafsil oynasi */
@@ -36,7 +48,7 @@
     $('lbMdName').textContent = d.name;
     $('lbMdLvl').textContent = d.level;
     $('lbMdLvl').style.setProperty('--c', d.color);
-    $('lbMdPct').textContent = d.best + '%';
+    countUp($('lbMdPct'), d.best, '%', 150, 1200);
     var arc = $('lbMdArc');
     arc.style.animation = 'none';
     arc.style.stroke = d.color;
@@ -44,11 +56,11 @@
     void arc.getBoundingClientRect();
     arc.style.animation = '';
     arc.style.animationDelay = '.15s';
-    $('lbMdBest').textContent = d.best + '%';
+    countUp($('lbMdBest'), d.best, '%', 100, 1000);
     $('lbMdBestS').textContent = d.bs + '/' + d.bn + ' to\'g\'ri';
-    $('lbMdAvg').textContent = d.avg + '%';
-    $('lbMdTry').textContent = d.attempts;
-    $('lbMdTests').textContent = d.tests;
+    countUp($('lbMdAvg'), Math.round(d.avg), '%', 100, 1000);
+    countUp($('lbMdTry'), d.attempts, '', 100, 800);
+    countUp($('lbMdTests'), d.tests, '', 100, 800);
     var box = $('lbMdList');
     while (box.firstChild) box.removeChild(box.firstChild);
     (d.list || []).forEach(function (t) {
@@ -56,7 +68,7 @@
       var a = document.createElement('span'); a.textContent = t.t; a.title = t.t;
       var bar = document.createElement('i'); var fill = document.createElement('s');
       fill.style.width = t.p + '%'; fill.style.setProperty('--c', pctColor(t.p)); bar.appendChild(fill);
-      var e = document.createElement('em'); e.textContent = t.p + '%';
+      var e = document.createElement('em'); e.textContent = '0%'; countUp(e, t.p, '%', 250, 1000);
       row.appendChild(a); row.appendChild(bar); row.appendChild(e);
       box.appendChild(row);
     });
