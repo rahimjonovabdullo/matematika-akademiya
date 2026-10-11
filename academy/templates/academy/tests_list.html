@@ -77,9 +77,9 @@
   <div class="tl-tabsbox">
     <nav class="tl-tabs">
       <a class="tl-tab {% if not bolim %}on{% endif %}" href="{% url 'tests_list' %}">Hammasi</a>
+      <a class="tl-tab {% if bolim == 'milliy' %}on{% endif %}" href="{% url 'tests_list' %}?bolim=milliy">Milliy sertifikat</a>
       <a class="tl-tab {% if bolim == 'attestatsiya' %}on{% endif %}" href="{% url 'tests_list' %}?bolim=attestatsiya">Attestatsiya</a>
       <a class="tl-tab {% if bolim == 'sat' %}on{% endif %}" href="{% url 'tests_list' %}?bolim=sat">SAT</a>
-      <a class="tl-tab {% if bolim == 'milliy' %}on{% endif %}" href="{% url 'tests_list' %}?bolim=milliy">Milliy sertifikat</a>
     </nav>
   </div>
 
