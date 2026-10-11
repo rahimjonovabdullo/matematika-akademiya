@@ -1,26 +1,73 @@
 {% extends "base.html" %}
-{% block crumb %}Bosh sahifa{% endblock %}
+{% block title %}Matematika Akademiya — Online matematika darslari{% endblock %}
 {% block content %}
-<div class="hero">
-  <div class="chips"><span class="chip l">Matematika Akademiya</span></div>
-  <h1>Online matematika darslari</h1>
-  <p>Darslar, testlar va natijalar nazorati — bitta joyda.</p>
-  {% if not user.is_authenticated %}<a class="btn" href="{% url 'register' %}">Boshlash</a>{% endif %}
-</div>
-{% if courses %}
-<h2>Kurslar</h2>
-<div class="grid">
-  {% for c in courses %}
-  <div class="card">
-    <span class="pill">{{ c.lessons.count }} ta dars</span>
-    <h3>{{ c.title }}</h3>
-    <p style="color:var(--mute)">{{ c.description|truncatewords:20 }}</p>
-    <p><b>{% if c.price == 0 %}Bepul{% else %}{{ c.price }} so'm{% endif %}</b></p>
-    <a class="btn" href="{% url 'course_detail' c.slug %}">Batafsil</a>
+{% include "academy/_home_style.html" %}
+{% include "academy/_home_style2.html" %}
+
+<div class="hm">
+  <section class="hm-hero">
+    <span class="hm-sym s1">∑</span><span class="hm-sym s2">π</span><span class="hm-sym s3">√</span><span class="hm-sym s4">∫</span>
+    <div>
+      <span class="hm-chip"><i></i>MATEMATIKA AKADEMIYA</span>
+      <h1 class="hm-h">Matematikani <span>oson va natijali</span> o'rganing</h1>
+      <p class="hm-p">Video darslar, online testlar va natijalaringiz nazorati bitta joyda. Milliy sertifikat, attestatsiya va SAT imtihonlariga tayyorlaning.</p>
+      <div class="hm-cta">
+        {% if user.is_authenticated %}
+        <a class="hm-b1" href="{% url 'dashboard' %}">Kabinetga o'tish →</a>
+        {% else %}
+        <a class="hm-b1" href="{% url 'register' %}">Boshlash →</a>
+        <a class="hm-b2" href="{% url 'login' %}">Kirish</a>
+        {% endif %}
+        <a class="hm-b2" href="{% url 'tests_list' %}">Testlarni ko'rish</a>
+      </div>
+      <div class="hm-feats"><span>Video darslar</span><span>Online testlar</span><span>Liderlar reytingi</span></div>
+    </div>
+    <div class="hm-demo">
+      <small>SIZNING NATIJANGIZ</small>
+      <div class="rg"><svg viewBox="0 0 100 100"><circle class="t" cx="50" cy="50" r="44"/><circle class="a" cx="50" cy="50" r="44"/></svg><b>92%</b></div>
+      <span class="lv">A'lo</span>
+    </div>
+  </section>
+
+  {% if not bolim %}
+  <div class="hm-sec"><h2>Yo'nalishni tanlang</h2></div>
+  <div class="hm-cats">
+    <a class="hm-cat" style="--i: 0" href="{% url 'home' %}?bolim=milliy"><div class="ic">MS</div><b>Milliy Sertifikat</b><p>Milliy sertifikat imtihoniga tayyorgarlik darslari.</p></a>
+    <a class="hm-cat" style="--i: 1" href="{% url 'home' %}?bolim=attestatsiya"><div class="ic">AT</div><b>Attestatsiya</b><p>Attestatsiya uchun darslar va mashqlar.</p></a>
+    <a class="hm-cat" style="--i: 2" href="{% url 'home' %}?bolim=sat"><div class="ic">SAT</div><b>SAT</b><p>SAT matematika darslari va mashq testlari.</p></a>
+    <a class="hm-cat" style="--i: 3" href="{% url 'tests_list' %}"><div class="ic">T</div><b>Testlar</b><p>Barcha testlar bir joyda, natijangiz darrov chiqadi.</p></a>
   </div>
-  {% endfor %}
+  {% endif %}
+
+  {% if courses %}
+  <div class="hm-sec"><h2>Kurslar</h2>{% if bolim %}<a href="{% url 'home' %}">← Barcha yo'nalishlar</a>{% endif %}</div>
+  <div class="hm-courses">
+    {% for c in courses %}
+    <a class="hm-course" style="--i: {{ forloop.counter0 }}" href="{% url 'course_detail' c.slug %}">
+      <span class="pr">{% if c.price == 0 %}Bepul{% else %}{{ c.price }} so'm{% endif %}</span>
+      <b>{{ c.title }}</b>
+      <p>{{ c.description|truncatechars:90 }}</p>
+      <span class="go">Batafsil <span>→</span></span>
+    </a>
+    {% endfor %}
+  </div>
+  {% elif bolim %}
+  <div class="hm-sec"><h2>Kurslar</h2><a href="{% url 'home' %}">← Barcha yo'nalishlar</a></div>
+  <div class="hm-empty">
+    <div class="ic">∑</div>
+    <b>Bu yo'nalishda hozircha kurs yo'q</b>
+    <p>Yangi kurslar tez orada qo'shiladi. Hozircha testlarni yechib ko'ring.</p>
+    <a href="{% url 'tests_list' %}">Testlarga o'tish →</a>
+  </div>
+  {% endif %}
+
+  {% if not bolim %}
+  <div class="hm-sec"><h2>Qanday ishlaydi</h2></div>
+  <div class="hm-steps">
+    <div class="hm-step"><em>1</em><b>Ro'yxatdan o'ting</b><p>Bir daqiqada hisob oching, ism va parolingiz yetarli.</p></div>
+    <div class="hm-step"><em>2</em><b>Dars yoki test tanlang</b><p>Video darslarni ko'ring yoki o'zingizni testda sinab ko'ring.</p></div>
+    <div class="hm-step"><em>3</em><b>Reytingda ko'tariling</b><p>O'zlashtirish foizingizni kuzating va liderlar jadvalida yuqoriga chiqing.</p></div>
+  </div>
+  {% endif %}
 </div>
-{% elif bolim %}
-<div class="card" style="margin-top:16px"><p>Bu yo'nalishda hozircha kurs qo'shilmagan.</p></div>
-{% endif %}
 {% endblock %}
