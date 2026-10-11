@@ -72,12 +72,12 @@
 <div class="tl">
   <span class="tl-chip"><i></i>TESTLAR</span>
   <h1 class="tl-h">Testlar to'plami</h1>
-  <p class="tl-sub">Milliy sertifikat, Attestatsiya va SAT testlari — mashq qiling, bilimingizni mustahkamlang va natijangizni kuzatib boring.</p>
+  <p class="tl-sub">Milliy Sertifikat, Attestatsiya va SAT testlari — mashq qiling, bilimingizni mustahkamlang va natijangizni kuzatib boring.</p>
 
   <div class="tl-tabsbox">
     <nav class="tl-tabs">
       <a class="tl-tab {% if not bolim %}on{% endif %}" href="{% url 'tests_list' %}">Hammasi</a>
-      <a class="tl-tab {% if bolim == 'milliy' %}on{% endif %}" href="{% url 'tests_list' %}?bolim=milliy">Milliy sertifikat</a>
+      <a class="tl-tab {% if bolim == 'milliy' %}on{% endif %}" href="{% url 'tests_list' %}?bolim=milliy">Milliy Sertifikat</a>
       <a class="tl-tab {% if bolim == 'attestatsiya' %}on{% endif %}" href="{% url 'tests_list' %}?bolim=attestatsiya">Attestatsiya</a>
       <a class="tl-tab {% if bolim == 'sat' %}on{% endif %}" href="{% url 'tests_list' %}?bolim=sat">SAT</a>
     </nav>
@@ -100,7 +100,7 @@
               {% endif %}
             </svg>
           </div>
-          <div class="tl-cat"><b>{{ c.get_category_display }}</b><small>Test</small></div>
+          <div class="tl-cat"><b>{% if c.category == 'milliy' %}Milliy Sertifikat{% elif c.category == 'attestatsiya' %}Attestatsiya{% elif c.category == 'sat' %}SAT{% else %}{{ c.get_category_display }}{% endif %}</b><small>Test</small></div>
         </div>
         <span class="tl-price">{% if c.price %}{{ c.price }} so'm{% else %}Bepul{% endif %}</span>
       </div>
