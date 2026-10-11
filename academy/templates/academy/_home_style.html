@@ -1,0 +1,58 @@
+<style>
+  .hm { --g: #16281d; --lime: #d3f24a; --line: #e8eae4; --mute: #6b7580; }
+  .hm a { text-decoration: none; }
+
+  .hm-hero {
+    position: relative; overflow: hidden; border-radius: 32px; padding: 44px 44px 40px; color: #fff; margin-bottom: 26px;
+    display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 30px; align-items: center;
+    background: radial-gradient(640px 320px at 90% -10%, rgba(211, 242, 74, .36), transparent 60%),
+                radial-gradient(420px 240px at 0% 110%, rgba(211, 242, 74, .13), transparent 60%),
+                linear-gradient(135deg, #12251a 0%, #1d3d29 100%);
+  }
+  .hm-hero::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+    background-image: radial-gradient(rgba(255, 255, 255, .12) 1px, transparent 1.5px); background-size: 22px 22px;
+    -webkit-mask-image: linear-gradient(90deg, transparent 30%, #000 100%); mask-image: linear-gradient(90deg, transparent 30%, #000 100%);
+  }
+  .hm-hero > * { position: relative; z-index: 1; }
+  .hm-sym { position: absolute !important; font-weight: 800; color: rgba(211, 242, 74, .22); pointer-events: none; animation: hmFloat 6s ease-in-out infinite; z-index: 0 !important; }
+  .hm-sym.s1 { right: 34%; top: 14%; font-size: 54px; }
+  .hm-sym.s2 { right: 8%; bottom: 10%; font-size: 64px; animation-delay: 1.2s; }
+  .hm-sym.s3 { right: 46%; bottom: 8%; font-size: 40px; animation-delay: 2.4s; }
+  .hm-sym.s4 { right: 24%; top: 8%; font-size: 36px; animation-delay: 3.4s; }
+
+  .hm-chip {
+    display: inline-flex; align-items: center; gap: 8px; padding: 5px 14px 5px 6px; border-radius: 999px;
+    background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .18); font-size: 12px; font-weight: 800; letter-spacing: .06em; color: #e3ecde;
+  }
+  .hm-chip i { width: 20px; height: 20px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 12px rgba(211, 242, 74, .8); }
+  .hm-h { font-size: 46px; line-height: 1.08; letter-spacing: -.03em; font-weight: 800; margin: 18px 0 14px; color: #fff; max-width: 640px; }
+  .hm-h span { color: var(--lime); }
+  .hm-p { color: #b9c8be; line-height: 1.6; max-width: 540px; margin: 0 0 24px; font-size: 16px; }
+  .hm-cta { display: flex; flex-wrap: wrap; gap: 12px; }
+  .hm-b1, .hm-b2 { display: inline-block; padding: 14px 26px; border-radius: 999px; font-weight: 800; font-size: 15px; transition: transform .18s, box-shadow .18s, background .18s; }
+  .hm-b1 { background: var(--lime); color: var(--g); box-shadow: 0 10px 26px rgba(211, 242, 74, .3); }
+  .hm-b1:hover { transform: translateY(-3px); box-shadow: 0 14px 32px rgba(211, 242, 74, .45); }
+  .hm-b2 { background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .22); color: #fff; }
+  .hm-b2:hover { background: rgba(255, 255, 255, .2); transform: translateY(-3px); }
+  .hm-feats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+  .hm-feats span { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #cfdcd3; }
+  .hm-feats span::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--lime); }
+
+  .hm-demo {
+    background: rgba(255, 255, 255, .96); color: var(--g); border-radius: 26px; padding: 22px; text-align: center;
+    box-shadow: 0 24px 50px rgba(0, 0, 0, .3); animation: hmFloat 5s ease-in-out infinite;
+  }
+  .hm-demo small { display: block; font-size: 11px; font-weight: 800; letter-spacing: .14em; color: var(--mute); }
+  .hm-demo .rg { position: relative; width: 120px; height: 120px; margin: 12px auto 10px; }
+  .hm-demo .rg svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+  .hm-demo .rg circle { fill: none; stroke-width: 9; stroke-linecap: round; }
+  .hm-demo .rg .t { stroke: #eceee8; }
+  .hm-demo .rg .a { stroke: #2fa84f; stroke-dasharray: 276.46; stroke-dashoffset: 22; animation: hmRing 1.6s cubic-bezier(.2, .9, .3, 1) both .4s; }
+  .hm-demo .rg b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; }
+  .hm-demo .lv { display: inline-block; padding: 4px 14px; border-radius: 999px; border: 2px solid #2fa84f; font-size: 12px; font-weight: 800; }
+
+  @keyframes hmFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  @keyframes hmUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+  @keyframes hmRing { from { stroke-dashoffset: 276.46; } }
+</style>
