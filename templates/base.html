@@ -43,6 +43,7 @@
     <a class="nav {% if request.resolver_match.url_name == 'login' %}on{% endif %}" href="{% url 'login' %}">Kirish</a>
     <a class="nav" href="{% url 'register' %}">Ro'yxatdan o'tish</a>
     {% endif %}
+    {% include "academy/_side_tg.html" %}
   </aside>
   <div class="main">
     <div class="tb">
