@@ -137,6 +137,10 @@ def take_quiz(request, slug):
         score = 0
         for q in questions:
             selected = request.POST.get(f"q{q.id}")
+            if q.is_open:
+                if selected and q.check_open_answer(selected):
+                    score += 1
+                continue
             correct_choice = next((c for c in q.choices.all() if c.is_correct), None)
             if selected and correct_choice and str(correct_choice.id) == selected:
                 score += 1
