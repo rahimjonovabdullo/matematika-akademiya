@@ -36,6 +36,19 @@
     document.addEventListener('mouseup', function () { on = false; });
   })();
 
+  /* Ikki ustun orasidagi chiziqni surish */
+  (function split() {
+    var main = $('stMain'), h = $('dvh'), on = false;
+    function setL(p) { p = Math.max(25, Math.min(75, p)); main.style.setProperty('--l', p + '%'); h.style.left = p + '%'; }
+    setL(50);
+    h.addEventListener('mousedown', function (e) { on = true; e.preventDefault(); });
+    document.addEventListener('mousemove', function (e) {
+      if (!on) return;
+      var r = main.getBoundingClientRect(); setL((e.clientX - r.left) * 100 / r.width);
+    });
+    document.addEventListener('mouseup', function () { on = false; });
+  })();
+
   /* Matn ustida belgilash (Highlight) */
   var ann = false, btn = $('btnAnn');
   btn.onclick = function () {
