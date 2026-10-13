@@ -9,22 +9,42 @@
     <h2>{{ course.title }}: {% if question %}savolni tahrirlash{% else %}yangi savol{% endif %}</h2>
   </div>
 
-  <form method="post" class="mg-form">
+  <form method="post" class="mg-form" id="qForm">
     {% csrf_token %}
     {{ form.non_field_errors }}
     {% for f in form %}
-    <div class="mg-field">
+    <div class="mg-field" data-f="{{ f.name }}">
       <label for="{{ f.id_for_label }}">{{ f.label }}</label>
       {{ f }}
       {% if f.help_text %}<small>{{ f.help_text }}</small>{% endif %}
       {{ f.errors }}
     </div>
     {% endfor %}
-    <small style="display:block;color:#6b7580;margin-bottom:14px">A va B variantlar majburiy. C va D bo'sh qolsa, test ularsiz ko'rinadi.</small>
+    <small id="qNote" style="display:block;color:#6b7580;margin-bottom:14px">A va B variantlar majburiy. C va D bo'sh qolsa, test ularsiz ko'rinadi.</small>
+    <small id="qNoteOpen" style="display:none;color:#6b7580;margin-bottom:14px">O'quvchi javobni o'zi yozadi. Kasr va o'nlik kasr teng hisoblanadi (1/2 = 0.5). Bir nechta to'g'ri yozilish bo'lsa, | bilan ajrating: <b>0.5|1/2</b></small>
     <div class="mg-form-actions">
       <button class="mg-btn" type="submit">Saqlash</button>
       <a class="mg-btn mg-btn-line" href="{% url 'manage_questions' course.pk %}">Bekor qilish</a>
     </div>
   </form>
 </div>
+<script>
+(function () {
+  var form = document.getElementById('qForm');
+  var t = document.getElementById('id_qtype');
+  if (!form || !t) return;
+  function box(name) { return form.querySelector('[data-f="' + name + '"]'); }
+  function sync() {
+    var open = t.value === 'open';
+    ['choice1', 'choice2', 'choice3', 'choice4', 'correct'].forEach(function (n) {
+      var b = box(n); if (b) b.style.display = open ? 'none' : '';
+    });
+    var o = box('open_answer'); if (o) o.style.display = open ? '' : 'none';
+    document.getElementById('qNote').style.display = open ? 'none' : 'block';
+    document.getElementById('qNoteOpen').style.display = open ? 'block' : 'none';
+  }
+  t.addEventListener('change', sync);
+  sync();
+})();
+</script>
 {% endblock %}
