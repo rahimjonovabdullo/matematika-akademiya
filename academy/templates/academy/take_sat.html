@@ -2,48 +2,68 @@
 {% block title %}{{ course.title }} — SAT{% endblock %}
 {% block content %}
 {% include "academy/_sat_style.html" %}
+{% include "academy/_sat_style2.html" %}
 <div class="sat" id="sat">
   <form method="post" id="satForm">{% csrf_token %}<div id="satAns"></div></form>
 
   <div class="sv" id="vIntro">
-    <div class="pg"><div class="cd">
+    <div class="pg"><div class="cd c">
       <h2>{{ course.title }}</h2>
-      <p>Test haqiqiy raqamli SAT tartibida o'tadi. Har bir modulning o'z vaqti bor. Modul yakunlangach, unga qaytib bo'lmaydi.</p>
+      <p>Test haqiqiy raqamli SAT tartibida o'tadi. Har bir modulning o'z vaqti bor, modul yakunlangach unga qaytib bo'lmaydi.</p>
       <ul>
         {% for m in modules %}<li>{{ m.sn }}-bo'lim, {{ m.mn }}-modul: {{ m.title }}<span>{{ m.qs|length }} savol · {{ m.minutes }} daqiqa</span></li>{% endfor %}
       </ul>
       <p>Reading and Writing bilan Math orasida 10 daqiqalik tanaffus bo'ladi.</p>
-      <button type="button" class="bb" id="goBtn">Testni boshlash</button>
+      <button type="button" class="bb lime" id="goBtn">Testni boshlash</button>
+    </div></div>
+  </div>
+
+  <div class="sv" id="vMI" hidden>
+    <div class="pg"><div class="cd">
+      {% for m in modules %}
+      <div class="mi" data-m="{{ m.i }}" hidden>
+        <div class="kk">{{ m.mn }}-MODUL</div>
+        <h2>{{ m.title }}</h2>
+        <div class="sb">{{ m.qs|length }} savol · {{ m.minutes }} daqiqa</div>
+        <h4>Yo'riqnoma</h4>
+        {% if m.sec == 'rw' %}
+        <ol><li>Har bir savolda bitta yoki bir nechta matn bor.</li><li>To'rtta variantdan eng to'g'risini tanlang.</li><li>Qiyin savollarni o'tkazib yuborib, keyin qaytishingiz mumkin.</li><li>Keyin qaytish uchun savolni «Belgilash» tugmasi bilan belgilab qo'ying.</li></ol>
+        {% else %}
+        <ol><li>Barcha savollarda kalkulyatordan foydalanish mumkin.</li><li>Formulalar jadvali istalgan vaqtda ochiq turadi.</li><li>To'g'ri javob variantini tanlang.</li><li>Keyin qaytish uchun savolni «Belgilash» tugmasi bilan belgilab qo'ying.</li></ol>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <div class="go"><button type="button" class="bb" id="miGo">Davom etish</button></div>
     </div></div>
   </div>
 
   <div class="sv" id="vTest" hidden>
+    <div class="bn">MASHQ TESTI</div>
     <header class="st-top">
       <div class="st-ttl"><b id="mTitle"></b><button type="button" class="lnk" id="dirBtn">Yo'riqnoma ▾</button></div>
       <div class="st-time"><b id="tm">00:00</b><button type="button" class="lnk" id="tmHide">Yashirish</button></div>
       <div class="st-tools">
-        <button type="button" class="tl" id="btnAnn">✎ Belgilash</button>
-        <button type="button" class="tl" id="btnCalc">Kalkulyator</button>
-        <button type="button" class="tl" id="btnRef">Formulalar</button>
+        <button type="button" class="tl" id="btnAnn"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg>Belgilash</button>
+        <button type="button" class="tl" id="btnCalc"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M14 12h2M8 16h2M14 16h2"/></svg>Kalkulyator</button>
+        <button type="button" class="tl" id="btnRef"><svg viewBox="0 0 24 24"><path d="M3 5c3-1 6-1 9 1 3-2 6-2 9-1v14c-3-1-6-1-9 1-3-2-6-2-9-1z"/><path d="M12 6v14"/></svg>Formulalar</button>
       </div>
     </header>
     <main class="st-main" id="stMain">
       {% for m in modules %}
       <div class="mod" data-m="{{ m.i }}" data-t="{{ m.sn }}-bo'lim, {{ m.mn }}-modul: {{ m.title }}" hidden>
         {% for q in m.qs %}
-        <div class="qq{% if m.sec == 'rw' and not q.passage and not q.img %} single{% endif %}" data-q="{{ q.id }}" hidden>
-          {% if m.sec == 'math' %}
-          <section class="pn pl">{% if q.passage %}<p>{{ q.passage }}</p>{% endif %}<p>{{ q.stem }}</p>{% if q.img %}<img src="{% url 'question_image' q.id %}" alt="Savol rasmi">{% endif %}</section>
-          {% elif q.passage or q.img %}
-          <section class="pn pl">{% if q.passage %}<p>{{ q.passage }}</p>{% endif %}{% if q.img %}<img src="{% url 'question_image' q.id %}" alt="Savol rasmi">{% endif %}</section>
+        <div class="qq{% if not q.passage and not q.img or m.sec == 'math' and not q.passage %} single{% endif %}" data-q="{{ q.id }}" hidden>
+          {% if q.passage or m.sec == 'rw' and q.img %}
+          <section class="pn pl">{% if q.passage %}<p>{{ q.passage }}</p>{% endif %}{% if m.sec == 'rw' and q.img %}<img src="{% url 'question_image' q.id %}" alt="Savol rasmi">{% endif %}</section>
           {% endif %}
           <section class="pn pr">
             <div class="qhd">
               <span class="qn">{{ q.n }}</span>
-              <button type="button" class="mk" data-act="mark"><svg width="16" height="18" viewBox="0 0 16 18"><path d="M3 1h10v16l-5-4-5 4z"/></svg>Belgilash</button>
+              <button type="button" class="mk" data-act="mark"><svg width="14" height="16" viewBox="0 0 16 18"><path d="M3 1h10v16l-5-4-5 4z"/></svg>Belgilash</button>
               <button type="button" class="abc" data-act="elim" title="Variantni chizib tashlash">ABC</button>
             </div>
-            {% if m.sec == 'rw' %}<p class="stem">{{ q.stem }}</p>{% endif %}
+            {% if m.sec == 'math' and q.img %}<img src="{% url 'question_image' q.id %}" alt="Savol rasmi">{% endif %}
+            <p class="stem">{{ q.stem }}</p>
             {% for c in q.choices %}
             <div class="ch" data-c="{{ c.id }}"><span class="lt">{{ c.letter }}</span><span class="tx">{{ c.text }}</span><button type="button" class="xx" data-act="x" title="Chizib tashlash">{{ c.letter }}</button></div>
             {% endfor %}
@@ -52,6 +72,7 @@
         {% endfor %}
       </div>
       {% endfor %}
+      <div class="dvh" id="dvh" hidden><i></i></div>
       <div id="calc" hidden><div class="ch2"><span>Desmos kalkulyator</span><button type="button" id="calcX">×</button></div><div id="calcEl"></div></div>
     </main>
     <footer class="st-bot">
@@ -62,21 +83,38 @@
   </div>
 
   <div class="sv" id="vReview" hidden>
-    <div class="pg"><div class="cd" style="width:min(760px,100%)">
+    <div class="bn">MASHQ TESTI</div>
+    <div class="rv">
       <h2>Ishingizni tekshiring</h2>
-      <p id="rvT"></p>
-      <div class="lg"><span><i class="d"></i>Javob berilgan</span><span><i></i>Javobsiz</span><span style="color:#b91c1c">⚑ Belgilangan</span></div>
-      <div class="gr" id="rvGrid" style="text-align:center"></div>
-      <div style="display:flex;gap:10px;justify-content:center"><button type="button" class="bb ghost" id="rvBack">Savollarga qaytish</button><button type="button" class="bb" id="rvDone">Modulni yakunlash</button></div>
+      <p>Haqiqiy imtihonda vaqt tugamaguncha keyingi modulga o'ta olmaysiz.</p>
+      <p>Mashq savollarida tayyor bo'lsangiz, <b>Keyingi</b> tugmasini bosing.</p>
+      <div class="box">
+        <div class="bh"><b id="rvT"></b><div class="lg"><span><i></i>Javobsiz</span><span style="color:#dc2626">⚑ Belgilangan</span></div></div>
+        <div class="gr" id="rvGrid"></div>
+      </div>
+    </div>
+    <div class="fbar"><button type="button" class="bb ghost" id="rvBack">Orqaga</button><button type="button" class="bb" id="rvDone">Keyingi</button></div>
+  </div>
+
+  <div class="sv" id="vReady" hidden>
+    <div class="pg"><div class="cd c" style="width:min(520px,100%)">
+      <h2 id="rdT"></h2>
+      <p id="rdP"></p>
+      <button type="button" class="bb lime" id="rdGo" style="margin-top:12px">Davom etish</button>
     </div></div>
   </div>
 
-  <div class="sv" id="vBreak" hidden>
-    <div class="pg"><div class="cd">
-      <h2 id="brT">Tanaffus</h2><p id="brP"></p>
-      <div class="big" id="brTm">10:00</div>
-      <button type="button" class="bb" id="brGo">Davom etish</button>
-    </div></div>
+  <div class="sv dk" id="vBreak" hidden>
+    <div class="l"><div class="tm"><small>Tanaffusning qolgan vaqti:</small><b id="brTm">10:00</b></div><button type="button" class="bb lime" id="brGo">Testni davom ettirish</button></div>
+    <div class="r">
+      <h2>Mashq testi tanaffusi</h2>
+      <p>Tayyor bo'lsangiz, testni darhol davom ettirishingiz mumkin. Haqiqiy imtihon kunida soat tugashini kutasiz.</p>
+      <hr>
+      <h3>Tanaffus: qurilmani yopmang</h3>
+      <p>Tayyor bo'lgach <b>Testni davom ettirish</b> tugmasini bosing, keyingi bo'lim boshlanadi.</p>
+      <p><b>Tanaffus paytida qoidalar:</b></p>
+      <ol><li>Hali test ishlayotganlarga xalaqit bermang.</li><li>Ilovadan chiqmang va noutbukni yopmang.</li><li>Telefon, kitob, yozuvlar va internetdan foydalanmang.</li><li>Test qurilmasi yonida ovqatlanmang va ichmang.</li><li>Xonada gaplashmang, tashqarida imtihon haqida muhokama qilmang.</li></ol>
+    </div>
   </div>
 {% include "academy/_sat_modals.html" %}
 </div>
