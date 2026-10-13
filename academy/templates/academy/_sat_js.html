@@ -2,21 +2,23 @@
 (function () {
   var $ = function (i) { return document.getElementById(i); };
   var M = SAT.mods, KEY = SAT.key;
-  var S = { ph: 'intro', m: 0, q: 0, a: {}, mk: {}, cut: {}, end: {}, bEnd: 0, bm: 0 };
+  var S = { ph: 'intro', m: 0, q: 0, a: {}, mk: {}, cut: {}, end: {}, used: {}, bEnd: 0, bm: 0 };
   try {
     var raw = localStorage.getItem(KEY);
     if (raw) { var o = JSON.parse(raw); if (o && o.ph && o.m < M.length) S = o; }
   } catch (e) {}
+  if (!S.used) S.used = {};
   var eo = false, sending = false;
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
-  var mods = document.querySelectorAll('.mod');
+  var mods = document.querySelectorAll('.mod'), mis = document.querySelectorAll('.mi');
   function qEl(m, i) { return mods[m].querySelectorAll('.qq')[i]; }
   function qid(m, i) { return M[m].ids[i]; }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function fmt(ms) { var s = Math.max(0, Math.ceil(ms / 1000)); return pad(Math.floor(s / 60)) + ':' + pad(s % 60); }
-  var views = ['vIntro', 'vTest', 'vReview', 'vBreak'];
+  var views = ['vIntro', 'vMI', 'vTest', 'vReview', 'vReady', 'vBreak'];
   function showView(id) { views.forEach(function (v) { $(v).hidden = v !== id; }); }
   function closeAll() { ['mNav', 'mConf', 'mDir', 'mRef'].forEach(function (i) { $(i).hidden = true; }); }
+  function label(m) { return mods[m].getAttribute('data-t'); }
 
   function paintQ() {
     var el = qEl(S.m, S.q), id = qid(S.m, S.q);
@@ -28,13 +30,14 @@
     el.querySelector('.mk').classList.toggle('on', !!S.mk[id]);
     el.querySelector('.abc').classList.toggle('on', eo);
     el.querySelector('.pr').classList.toggle('elim', eo);
+    $('dvh').hidden = el.classList.contains('single');
   }
   function grid(box, onPick) {
     box.innerHTML = '';
     M[S.m].ids.forEach(function (id, i) {
       var b = document.createElement('button');
       b.type = 'button'; b.textContent = i + 1;
-      b.className = 'gb' + (S.a[id] ? ' done' : '') + (S.mk[id] ? ' fl' : '') + (S.ph === 'test' && i === S.q ? ' cur' : '');
+      b.className = 'gb' + (S.a[id] ? ' done' : '') + (S.mk[id] ? ' fl' : '') + (i === S.q ? ' cur' : '');
       b.onclick = function () { onPick(i); };
       box.appendChild(b);
     });
@@ -42,25 +45,29 @@
   function render() {
     closeAll();
     if (S.ph === 'intro') { showView('vIntro'); return; }
+    if (S.ph === 'mi') {
+      showView('vMI');
+      mis.forEach(function (d, i) { d.hidden = i !== S.m; });
+      return;
+    }
     if (S.ph === 'review') {
       showView('vReview');
-      $('rvT').textContent = mods[S.m].getAttribute('data-t') + '. Javobsiz yoki belgilangan savollarni shu yerdan ochib ko\'ring.';
+      $('rvT').textContent = label(S.m) + ': savollar';
       grid($('rvGrid'), function (i) { S.q = i; S.ph = 'test'; save(); render(); });
       return;
     }
-    if (S.ph === 'break') {
-      showView('vBreak');
-      var nx = M[S.bm + 1], timed = S.bEnd > 0;
-      $('brT').textContent = timed ? 'Tanaffus' : 'Modul yakunlandi';
-      $('brP').textContent = (timed ? '1-bo\'lim yakunlandi. ' : '') + 'Keyingi: ' + mods[S.bm + 1].getAttribute('data-t') + (timed ? '. Tanaffus tugagach test o\'zi davom etadi.' : '.');
-      $('brTm').hidden = !timed;
+    if (S.ph === 'ready') {
+      showView('vReady');
+      $('rdT').textContent = (S.bm + 2) + '-modul tayyor';
+      $('rdP').textContent = (S.bm + 1) + '-modul yakunlandi. ' + M[S.bm + 1].ids.length + ' ta savol sizni kutmoqda.';
       return;
     }
+    if (S.ph === 'break') { showView('vBreak'); tick(); return; }
     showView('vTest');
     mods.forEach(function (d, i) { d.hidden = i !== S.m; });
     mods[S.m].querySelectorAll('.qq').forEach(function (d, i) { d.hidden = i !== S.q; });
     var math = M[S.m].sec === 'math';
-    $('mTitle').textContent = mods[S.m].getAttribute('data-t');
+    $('mTitle').textContent = label(S.m);
     $('btnAnn').hidden = math; $('btnCalc').hidden = !math; $('btnRef').hidden = !math;
     if (!math) { $('calc').hidden = true; }
     $('cur').textContent = S.q + 1; $('cnt').textContent = M[S.m].ids.length;
@@ -75,19 +82,23 @@
     if (!S.end[m]) S.end[m] = Date.now() + M[m].minutes * 60000;
     save(); render();
   }
+  function toMI(m) { S.m = m; S.ph = 'mi'; save(); render(); }
   function finish() {
+    var total = M[S.m].minutes * 60, left = Math.max(0, (S.end[S.m] - Date.now()) / 1000);
+    S.used[S.m] = Math.round(Math.min(total, total - left));
     if (S.m + 1 >= M.length) { submit(); return; }
-    S.ph = 'break'; S.bm = S.m;
-    S.bEnd = M[S.m + 1].sec !== M[S.m].sec ? Date.now() + 600000 : 0;
+    S.bm = S.m;
+    if (M[S.m + 1].sec !== M[S.m].sec) { S.ph = 'break'; S.bEnd = Date.now() + 600000; }
+    else { S.ph = 'ready'; S.bEnd = 0; }
     save(); render();
   }
   function submit() {
     if (sending) return; sending = true;
     var box = $('satAns'); box.innerHTML = '';
-    Object.keys(S.a).forEach(function (id) {
-      var i = document.createElement('input');
-      i.type = 'hidden'; i.name = 'q' + id; i.value = S.a[id]; box.appendChild(i);
-    });
+    function add(n, v) { var i = document.createElement('input'); i.type = 'hidden'; i.name = n; i.value = v; box.appendChild(i); }
+    Object.keys(S.a).forEach(function (id) { add('q' + id, S.a[id]); });
+    var secs = 0; Object.keys(S.used).forEach(function (k) { secs += S.used[k]; });
+    add('secs', secs);
     try { localStorage.removeItem(KEY); } catch (e) {}
     $('satForm').submit();
   }
@@ -96,30 +107,32 @@
       var left = S.end[S.m] - Date.now();
       $('tm').textContent = fmt(left); $('tm').className = left < 60000 ? 'warn' : '';
       if (left <= 0) finish();
-    } else if (S.ph === 'break' && S.bEnd) {
+    } else if (S.ph === 'break') {
       var l2 = S.bEnd - Date.now();
       $('brTm').textContent = fmt(l2);
-      if (l2 <= 0) startModule(S.bm + 1);
+      if (l2 <= 0) toMI(S.bm + 1);
     }
   }
   setInterval(tick, 500);
 
-  $('goBtn').onclick = function () { startModule(0); };
-  $('brGo').onclick = function () { startModule(S.bm + 1); };
+  $('goBtn').onclick = function () { toMI(0); };
+  $('miGo').onclick = function () { startModule(S.m); };
+  $('rdGo').onclick = function () { toMI(S.bm + 1); };
+  $('brGo').onclick = function () { toMI(S.bm + 1); };
   $('backBtn').onclick = function () { if (S.q > 0) go(S.q - 1); };
   $('nextBtn').onclick = function () {
     if (S.q < M[S.m].ids.length - 1) go(S.q + 1);
     else { S.ph = 'review'; save(); render(); }
   };
-  $('rvBack').onclick = function () { S.ph = 'test'; S.q = 0; save(); render(); };
+  $('rvBack').onclick = function () { S.ph = 'test'; save(); render(); };
   $('rvDone').onclick = function () {
     var left = M[S.m].ids.filter(function (id) { return !S.a[id]; }).length;
-    $('cfP').textContent = (left ? left + ' ta savolga javob berilmagan. ' : '') + 'Yakunlangach bu modulga qaytib bo\'lmaydi.';
+    var w = $('cfW'); w.hidden = !left; w.textContent = 'Sizda ' + left + ' ta javobsiz savol bor.';
     $('mConf').hidden = false;
   };
   $('cfYes').onclick = function () { $('mConf').hidden = true; finish(); };
   $('navBtn').onclick = function () {
-    $('nvT').textContent = mods[S.m].getAttribute('data-t');
+    $('nvT').textContent = label(S.m);
     grid($('nvGrid'), function (i) { $('mNav').hidden = true; go(i); });
     $('mNav').hidden = false;
   };
