@@ -30,10 +30,10 @@
     el.querySelector('.mk').classList.toggle('on', !!S.mk[id]);
     el.querySelector('.abc').classList.toggle('on', eo);
     el.querySelector('.pr').classList.toggle('elim', eo);
-    var inp = el.querySelector('.oi');
+    var inp = el.querySelector('.sxi');
     if (inp) {
       if (document.activeElement !== inp) inp.value = S.a[id] || '';
-      el.querySelector('.ov').textContent = S.a[id] || '—';
+      el.querySelector('.sxa').textContent = S.a[id] || '—';
     }
     $('dvh').hidden = el.classList.contains('single');
   }
@@ -158,10 +158,10 @@
   });
   $('stMain').addEventListener('input', function (e) {
     var t = e.target;
-    if (!t.classList || !t.classList.contains('oi')) return;
+    if (!t.classList || !t.classList.contains('sxi')) return;
     var id = qid(S.m, S.q), v = t.value.trim();
     if (v) S.a[id] = v; else delete S.a[id];
-    t.closest('.op').querySelector('.ov').textContent = v || '—';
+    t.closest('.sxo').querySelector('.sxa').textContent = v || '—';
     save();
   });
   window.addEventListener('beforeunload', function (e) {
