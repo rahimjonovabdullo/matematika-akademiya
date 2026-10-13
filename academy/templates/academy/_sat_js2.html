@@ -1,0 +1,63 @@
+<script>
+(function () {
+  var $ = function (i) { return document.getElementById(i); };
+  var DESMOS_KEY = 'b67f1130e02f405d84fb5f2605b53e97';
+  document.querySelectorAll('[data-close]').forEach(function (b) {
+    b.onclick = function () { $(b.getAttribute('data-close')).hidden = true; };
+  });
+  $('dirBtn').onclick = function () { $('mDir').hidden = false; };
+  $('btnRef').onclick = function () { $('mRef').hidden = false; };
+
+  /* Desmos kalkulyator */
+  var calc = null, loading = false;
+  function openCalc() {
+    var box = $('calc'); box.hidden = !box.hidden;
+    if (box.hidden || calc) return;
+    if (window.Desmos) { calc = Desmos.GraphingCalculator($('calcEl'), { keypad: true, expressions: true }); return; }
+    if (loading) return; loading = true;
+    $('calcEl').innerHTML = '<p style="padding:16px;color:#475569">Kalkulyator yuklanmoqda…</p>';
+    var s = document.createElement('script');
+    s.src = 'https://www.desmos.com/api/v1.12/calculator.js?apiKey=' + DESMOS_KEY;
+    s.onload = function () { $('calcEl').innerHTML = ''; calc = Desmos.GraphingCalculator($('calcEl'), { keypad: true, expressions: true }); };
+    s.onerror = function () { loading = false; $('calcEl').innerHTML = '<p style="padding:16px;color:#b91c1c">Kalkulyator yuklanmadi. Internetni tekshirib, qayta bosing.</p>'; };
+    document.head.appendChild(s);
+  }
+  $('btnCalc').onclick = openCalc;
+  $('calcX').onclick = function () { $('calc').hidden = true; };
+  (function drag() {
+    var box = $('calc'), head = box.querySelector('.ch2'), sx, sy, ox, oy, on = false;
+    head.addEventListener('mousedown', function (e) {
+      on = true; sx = e.clientX; sy = e.clientY; ox = box.offsetLeft; oy = box.offsetTop; e.preventDefault();
+    });
+    document.addEventListener('mousemove', function (e) {
+      if (!on) return;
+      box.style.left = (ox + e.clientX - sx) + 'px'; box.style.top = (oy + e.clientY - sy) + 'px'; box.style.right = 'auto';
+    });
+    document.addEventListener('mouseup', function () { on = false; });
+  })();
+
+  /* Matn ustida belgilash (Highlight) */
+  var ann = false, btn = $('btnAnn');
+  btn.onclick = function () {
+    ann = !ann; btn.classList.toggle('on', ann);
+    document.querySelectorAll('.pl').forEach(function (p) { p.classList.toggle('ann', ann); });
+  };
+  document.addEventListener('mouseup', function (e) {
+    var pl = e.target.closest && e.target.closest('.pl');
+    if (!pl) return;
+    if (e.target.tagName === 'MARK') {
+      var m = e.target, par = m.parentNode;
+      while (m.firstChild) par.insertBefore(m.firstChild, m);
+      par.removeChild(m); par.normalize(); return;
+    }
+    if (!ann) return;
+    var sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+    var r = sel.getRangeAt(0);
+    if (!pl.contains(r.commonAncestorContainer)) return;
+    var mk = document.createElement('mark');
+    try { r.surroundContents(mk); } catch (err) { try { mk.appendChild(r.extractContents()); r.insertNode(mk); } catch (e2) {} }
+    sel.removeAllRanges();
+  });
+})();
+</script>
