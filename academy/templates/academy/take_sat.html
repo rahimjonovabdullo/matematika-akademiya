@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}{{ course.title }} — SAT{% endblock %}
+{% block content %}
+{% include "academy/_sat_style.html" %}
+<div class="sat" id="sat">
+  <form method="post" id="satForm">{% csrf_token %}<div id="satAns"></div></form>
+
+  <div class="sv" id="vIntro">
+    <div class="pg"><div class="cd">
+      <h2>{{ course.title }}</h2>
+      <p>Test haqiqiy raqamli SAT tartibida o'tadi. Har bir modulning o'z vaqti bor. Modul yakunlangach, unga qaytib bo'lmaydi.</p>
+      <ul>
+        {% for m in modules %}<li>{{ m.sn }}-bo'lim, {{ m.mn }}-modul: {{ m.title }}<span>{{ m.qs|length }} savol · {{ m.minutes }} daqiqa</span></li>{% endfor %}
+      </ul>
+      <p>Reading and Writing bilan Math orasida 10 daqiqalik tanaffus bo'ladi.</p>
+      <button type="button" class="bb" id="goBtn">Testni boshlash</button>
+    </div></div>
+  </div>
+
+  <div class="sv" id="vTest" hidden>
+    <header class="st-top">
+      <div class="st-ttl"><b id="mTitle"></b><button type="button" class="lnk" id="dirBtn">Yo'riqnoma ▾</button></div>
+      <div class="st-time"><b id="tm">00:00</b><button type="button" class="lnk" id="tmHide">Yashirish</button></div>
+      <div class="st-tools">
+        <button type="button" class="tl" id="btnAnn">✎ Belgilash</button>
+        <button type="button" class="tl" id="btnCalc">Kalkulyator</button>
+        <button type="button" class="tl" id="btnRef">Formulalar</button>
+      </div>
+    </header>
+    <main class="st-main" id="stMain">
+      {% for m in modules %}
+      <div class="mod" data-m="{{ m.i }}" data-t="{{ m.sn }}-bo'lim, {{ m.mn }}-modul: {{ m.title }}" hidden>
+        {% for q in m.qs %}
+        <div class="qq{% if m.sec == 'rw' and not q.passage and not q.img %} single{% endif %}" data-q="{{ q.id }}" hidden>
+          {% if m.sec == 'math' %}
+          <section class="pn pl">{% if q.passage %}<p>{{ q.passage }}</p>{% endif %}<p>{{ q.stem }}</p>{% if q.img %}<img src="{% url 'question_image' q.id %}" alt="Savol rasmi">{% endif %}</section>
+          {% elif q.passage or q.img %}
+          <section class="pn pl">{% if q.passage %}<p>{{ q.passage }}</p>{% endif %}{% if q.img %}<img src="{% url 'question_image' q.id %}" alt="Savol rasmi">{% endif %}</section>
+          {% endif %}
+          <section class="pn pr">
+            <div class="qhd">
+              <span class="qn">{{ q.n }}</span>
+              <button type="button" class="mk" data-act="mark"><svg width="16" height="18" viewBox="0 0 16 18"><path d="M3 1h10v16l-5-4-5 4z"/></svg>Belgilash</button>
+              <button type="button" class="abc" data-act="elim" title="Variantni chizib tashlash">ABC</button>
+            </div>
+            {% if m.sec == 'rw' %}<p class="stem">{{ q.stem }}</p>{% endif %}
+            {% for c in q.choices %}
+            <div class="ch" data-c="{{ c.id }}"><span class="lt">{{ c.letter }}</span><span class="tx">{{ c.text }}</span><button type="button" class="xx" data-act="x" title="Chizib tashlash">{{ c.letter }}</button></div>
+            {% endfor %}
+          </section>
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+      <div id="calc" hidden><div class="ch2"><span>Desmos kalkulyator</span><button type="button" id="calcX">×</button></div><div id="calcEl"></div></div>
+    </main>
+    <footer class="st-bot">
+      <div class="st-who">{{ who }}</div>
+      <button type="button" class="nv" id="navBtn">Savol <span id="cur">1</span> / <span id="cnt">1</span> ▴</button>
+      <div class="st-btns"><button type="button" class="bb ghost" id="backBtn">Orqaga</button><button type="button" class="bb" id="nextBtn">Keyingi</button></div>
+    </footer>
+  </div>
+
+  <div class="sv" id="vReview" hidden>
+    <div class="pg"><div class="cd" style="width:min(760px,100%)">
+      <h2>Ishingizni tekshiring</h2>
+      <p id="rvT"></p>
+      <div class="lg"><span><i class="d"></i>Javob berilgan</span><span><i></i>Javobsiz</span><span style="color:#b91c1c">⚑ Belgilangan</span></div>
+      <div class="gr" id="rvGrid" style="text-align:center"></div>
+      <div style="display:flex;gap:10px;justify-content:center"><button type="button" class="bb ghost" id="rvBack">Savollarga qaytish</button><button type="button" class="bb" id="rvDone">Modulni yakunlash</button></div>
+    </div></div>
+  </div>
+
+  <div class="sv" id="vBreak" hidden>
+    <div class="pg"><div class="cd">
+      <h2 id="brT">Tanaffus</h2><p id="brP"></p>
+      <div class="big" id="brTm">10:00</div>
+      <button type="button" class="bb" id="brGo">Davom etish</button>
+    </div></div>
+  </div>
+{% include "academy/_sat_modals.html" %}
+</div>
+<script>var SAT = {{ meta_json|safe }};</script>
+{% include "academy/_sat_js.html" %}
+{% include "academy/_sat_js2.html" %}
+{% endblock %}
