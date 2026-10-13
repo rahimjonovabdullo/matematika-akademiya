@@ -30,6 +30,11 @@
     el.querySelector('.mk').classList.toggle('on', !!S.mk[id]);
     el.querySelector('.abc').classList.toggle('on', eo);
     el.querySelector('.pr').classList.toggle('elim', eo);
+    var inp = el.querySelector('.oi');
+    if (inp) {
+      if (document.activeElement !== inp) inp.value = S.a[id] || '';
+      el.querySelector('.ov').textContent = S.a[id] || '—';
+    }
     $('dvh').hidden = el.classList.contains('single');
   }
   function grid(box, onPick) {
@@ -150,6 +155,14 @@
     else if (ch) { var c = ch.getAttribute('data-c'); if (S.a[id] == c) delete S.a[id]; else S.a[id] = c; }
     else return;
     save(); paintQ();
+  });
+  $('stMain').addEventListener('input', function (e) {
+    var t = e.target;
+    if (!t.classList || !t.classList.contains('oi')) return;
+    var id = qid(S.m, S.q), v = t.value.trim();
+    if (v) S.a[id] = v; else delete S.a[id];
+    t.closest('.op').querySelector('.ov').textContent = v || '—';
+    save();
   });
   window.addEventListener('beforeunload', function (e) {
     if (S.ph !== 'intro' && !sending) { e.preventDefault(); e.returnValue = ''; }
