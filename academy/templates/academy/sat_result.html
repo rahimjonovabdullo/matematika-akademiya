@@ -41,39 +41,54 @@
 @media (max-width:700px){.sr-g{grid-template-columns:1fr}.sr-m{grid-template-columns:1fr 1fr}.sr-big{font-size:68px}}
 
 #rep{display:none}
-#rep{font-family:Arial,Helvetica,sans-serif;color:#111;width:100%;max-width:190mm;margin:0 auto}
-#rep .h{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
-#rep .lg{display:flex;align-items:center;gap:10px;border:2px solid #111;padding:8px 14px;font-weight:800;font-size:18px}
-#rep .lg i{font-style:normal;background:#111;color:#fff;padding:4px 8px;font-size:16px}
-#rep .nm{text-align:right;font-size:12px;line-height:1.5;max-width:300px}
-#rep .nm b{font-size:13px}
-#rep h1{font-size:34px;line-height:1.1;margin:22px 0 14px}
-#rep .bx{border:1.5px solid #cfd3d8;border-radius:12px;overflow:hidden}
-#rep .bt{display:flex;justify-content:space-between;align-items:flex-start;padding:14px 18px;border-bottom:1.5px solid #cfd3d8}
-#rep .bt b{font-size:17px}#rep .bt span{font-size:12px;color:#444;text-align:right;line-height:1.5}
+#rep{font-family:Roboto,Arial,Helvetica,sans-serif;color:#111;width:100%;box-sizing:border-box;padding:14mm 13mm;background:#fff}
+#rep *{box-sizing:border-box}
+#rep .h{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}
+#rep .lg{display:flex;align-items:center;gap:10px;border:2px solid #111;padding:9px 16px;font-weight:800;font-size:20px;white-space:nowrap}
+#rep .lg i{font-style:normal;background:#111;color:#fff;padding:5px 9px;font-size:17px}
+#rep .nm{text-align:right;font-size:11.5px;line-height:1.45;max-width:320px;color:#333}
+#rep .nm b{font-size:13px;color:#111}
+#rep h1{font-size:50px;line-height:1.05;margin:30px 0 22px;font-weight:900;letter-spacing:-.01em}
+#rep .bx{border:1.5px solid #cfd3d8;border-radius:14px;overflow:hidden}
+#rep .bt{display:flex;justify-content:space-between;align-items:flex-start;padding:18px 22px;border-bottom:1.5px solid #cfd3d8}
+#rep .bt b{font-size:24px;font-weight:800}
+#rep .bt span{font-size:12px;color:#333;text-align:right;line-height:1.55}
+#rep .bt span b{font-size:15px;font-weight:700;color:#111}
 #rep .cl{display:grid;grid-template-columns:1fr 1fr 1fr}
-#rep .cl>div{padding:14px 18px;border-right:1.5px solid #cfd3d8}
+#rep .cl>div{padding:18px 22px;border-right:1.5px solid #cfd3d8}
 #rep .cl>div:last-child{border-right:0}
-#rep h4{margin:0 0 10px;font-size:12px;letter-spacing:.04em}
-#rep .big{font-size:58px;font-weight:800;line-height:1;margin:6px 0}
-#rep .mt{font-size:11px;color:#444;line-height:1.5}
-#rep .sc{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px}
-#rep .sc b{font-size:12px;display:block}#rep .sc span{font-size:11px;color:#444}
-#rep .sc em{font-style:normal;font-size:34px;font-weight:800}
-#rep .dt{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
-#rep .dt div{font-size:11px;color:#444}#rep .dt b{display:block;font-size:22px;color:#111}
-#rep .bar{height:9px;border:1px solid #111;border-radius:2px;margin:6px 0}
-#rep .bar i{display:block;height:100%;background:#111}
-#rep .md{padding:14px 18px;border-top:1.5px solid #cfd3d8}
-#rep .mg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-#rep .mg>div{border:1px solid #cfd3d8;border-radius:8px;padding:10px}
-#rep .mg small{font-size:9px;font-weight:800;letter-spacing:.05em;color:#444;text-transform:uppercase}
-#rep .mg b{display:block;margin:2px 0;font-size:13px}
-#rep .mg p{display:flex;justify-content:space-between;margin:6px 0;font-size:13px;font-weight:800}
-#rep .ft{margin-top:16px;border:1.5px solid #cfd3d8;border-radius:12px;padding:12px 18px;font-size:11px;color:#444;line-height:1.5}
+#rep h4{margin:0 0 12px;font-size:14px;font-weight:800;letter-spacing:.01em}
+#rep h5{margin:0 0 8px;font-size:12px;font-weight:800}
+#rep .big{font-size:84px;font-weight:900;line-height:1;margin:4px 0 10px}
+#rep .mt{font-size:11px;color:#333;line-height:1.5}
+#rep .mt b{color:#111}
+#rep .dash{border-top:1.5px dashed #bbb;margin:14px 0}
+#rep .sc{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:26px}
+#rep .sc b{font-size:15px;display:block;font-weight:800}
+#rep .sc span{font-size:11px;color:#333}
+#rep .sc em{font-style:normal;font-size:46px;font-weight:900;line-height:1}
+#rep .qo{display:flex;gap:26px;margin:2px 0 16px}
+#rep .qo div{font-size:11px;color:#333;line-height:1.35}
+#rep .qo b{display:block;font-size:34px;font-weight:900;color:#111;line-height:1.1}
+#rep .sp{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+#rep .sp b{display:block;font-size:12px;margin-bottom:6px}
+#rep .sp div{font-size:11px;color:#333;line-height:1.5}
+#rep .sp em{font-style:normal;display:block;font-size:28px;font-weight:900;color:#111;line-height:1.1}
+#rep .kn{padding:18px 22px;border-top:1.5px solid #cfd3d8}
+#rep .kn .two{display:grid;grid-template-columns:1fr 1fr;gap:34px}
+#rep .kn h5{font-size:15px}
+#rep .kr{margin-bottom:16px}
+#rep .kr b{display:block;font-size:13px;font-weight:800}
+#rep .kr small{display:block;font-size:10.5px;color:#444;margin:1px 0 6px}
+#rep .seg{height:15px;border:1.5px solid #111;border-radius:2px;position:relative;background:#fff;overflow:hidden}
+#rep .seg i{display:block;height:100%;background:#111}
+#rep .seg::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(12.5% - 2px),#9aa0a6 calc(12.5% - 2px),#9aa0a6 12.5%)}
+#rep .ft{margin-top:20px;border:1.5px solid #cfd3d8;border-radius:14px;padding:16px 22px;display:flex;align-items:center;gap:18px;font-size:11.5px;color:#333;line-height:1.5}
+#rep .ft .ci{width:52px;height:52px;border-radius:50%;border:2px solid #111;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;flex:none}
+#rep .ft b{color:#111;font-size:13px}
 @media print{
-  @page{size:A4;margin:12mm}
-  html,body{background:#fff!important}
+  @page{size:A4;margin:0}
+  html,body{background:#fff!important;margin:0!important;padding:0!important}
   #rep,#rep *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
@@ -118,33 +133,41 @@
   </div>
   <h1>Your Practice<br>Score Report</h1>
   <div class="bx">
-    <div class="bt"><b>{{ attempt.course.title }}</b><span>{{ attempt.created_at|date:"d.m.Y, H:i" }}<br>Test code: {{ code }}{% if mins %} &middot; {{ mins }} min{% endif %}</span></div>
+    <div class="bt"><b>{{ attempt.course.title }}</b><span><b>{{ attempt.created_at|date:"d.m.Y" }}</b><br>Finished: {{ attempt.created_at|date:"d.m.Y, H:i" }}{% if mins %}<br>Duration: {{ mins }} min{% endif %}</span></div>
     <div class="cl">
       <div>
         <h4>TOTAL SCORE</h4>
         <div class="big">{{ total }}</div>
         {% if lo %}<div class="mt"><b>Score Range: {{ lo }}&ndash;{{ hi }}</b></div>{% endif %}
-        <div class="mt" style="margin-top:10px">Scale: 400&ndash;1600. Estimated score based on the share of correct answers in each section.</div>
+        <div class="dash"></div>
+        <div class="mt"><b>Score Range:</b><br>This range reflects the minimum and maximum total score you can get with this assessment. Scale: 400&ndash;1600.</div>
       </div>
       <div>
         <h4>SECTION SCORES</h4>
-        {% if rw_n %}<div class="sc"><div><b>Reading and Writing</b><span>Score Range: 200&ndash;800</span></div><em>{{ rw }}</em></div>{% endif %}
-        {% if m_n %}<div class="sc"><div><b>Math</b><span>Score Range: 200&ndash;800</span></div><em>{{ mt }}</em></div>{% endif %}
+        {% if rw_n %}<div class="sc"><div><b>Reading and Writing</b><span>Score Range:<br>200&ndash;800</span></div><em>{{ rw }}</em></div>{% endif %}
+        {% if m_n %}<div class="sc"><div><b>Math</b><span>Score Range:<br>200&ndash;800</span></div><em>{{ mt }}</em></div>{% endif %}
       </div>
       <div>
         <h4>SCORE DETAILS</h4>
-        <div class="dt"><div><b>{{ attempt.score }}</b>Correct</div><div><b id="rp-w"></b>Incorrect</div><div><b>{{ attempt.total }}</b>Total</div></div>
-        {% if rw_n %}<div class="mt"><b>Reading and Writing</b>: {{ rw_c }} correct of {{ rw_n }}</div>{% endif %}
-        {% if m_n %}<div class="mt" style="margin-top:6px"><b>Math</b>: {{ m_c }} correct of {{ m_n }}</div>{% endif %}
+        <h5>Questions Overview</h5>
+        <div class="qo"><div><b>{{ attempt.score }}</b>Correct<br>Answers</div><div><b id="rp-w"></b>Incorrect<br>Answers</div><div><b>{{ attempt.total }}</b>Total<br>Questions</div></div>
+        <div class="sp">
+          {% if rw_n %}<div><b>Reading and Writing</b><em>{{ rw_c }}</em>Correct Answers<br>Total Questions: {{ rw_n }}</div>{% endif %}
+          {% if m_n %}<div><b>Math</b><em>{{ m_c }}</em>Correct Answers<br>Total Questions: {{ m_n }}</div>{% endif %}
+        </div>
       </div>
     </div>
     {% if modules %}
-    <div class="md"><h4>RESULTS BY MODULE</h4>
-      <div class="mg">{% for s in modules %}<div><small>{% if s.sec == 'rw' %}Reading and Writing{% else %}Math{% endif %}</small><b>Module {{ s.mn }}</b><p>{{ s.c }} / {{ s.n }}<span>{{ s.pct }}%</span></p><div class="bar"><i style="width:{{ s.pct }}%"></i></div></div>{% endfor %}</div>
+    <div class="kn">
+      <h4>RESULTS BY MODULE</h4>
+      <div class="two">
+        <div><h5>Reading and Writing</h5>{% for s in modules %}{% if s.sec == 'rw' %}<div class="kr"><b>Module {{ s.mn }}</b><small>({{ s.pct }}% correct &middot; {{ s.c }} of {{ s.n }} questions)</small><div class="seg"><i style="width:{{ s.pct }}%"></i></div></div>{% endif %}{% endfor %}</div>
+        <div><h5>Math</h5>{% for s in modules %}{% if s.sec != 'rw' %}<div class="kr"><b>Module {{ s.mn }}</b><small>({{ s.pct }}% correct &middot; {{ s.c }} of {{ s.n }} questions)</small><div class="seg"><i style="width:{{ s.pct }}%"></i></div></div>{% endif %}{% endfor %}</div>
+      </div>
     </div>
     {% endif %}
   </div>
-  <div class="ft">Matematika Akademiya &middot; Test code: {{ code }}<br>&copy; Matematika Akademiya. This is an estimated practice score; the official SAT scale may differ.</div>
+  <div class="ft"><div class="ci">MA</div><div><b>Issued by Matematika Akademiya</b><br>This is an estimated practice score based on the share of correct answers in each section; the official SAT scale may differ.<br>Test ID: <b>{{ code }}</b></div></div>
 </div>
 <script>
 (function(){
