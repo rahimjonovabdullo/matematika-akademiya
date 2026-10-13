@@ -29,6 +29,8 @@
   .bq-n { font-weight: 800; }
   .bq-ans { display: inline-flex; width: 28px; height: 28px; border-radius: 50%; background: #e3f6ea; color: #1b8a4b; font-weight: 800; align-items: center; justify-content: center; }
   .bq-ans.no { background: #ffe9ed; color: #a3102b; }
+  .bq-ans.open { width: auto; min-width: 28px; padding: 0 12px; border-radius: 14px; background: #e8f0fe; color: #1d4ed8; }
+  .bq-open { color: #1d4ed8; font-weight: 700; font-size: 13px; }
   .bq-th { width: 54px; height: 40px; object-fit: cover; border-radius: 8px; border: 1px solid #e8eae4; display: block; }
   .bq-warn { color: #a3102b; font-weight: 700; font-size: 13px; }
   .bq-okimg { color: #6b7580; font-size: 13px; }
@@ -72,8 +74,8 @@
 
     <div class="bq-card">
       <h2 class="bq-step"><i>2</i> Javoblar kaliti</h2>
-      <p class="bq-help">Bitta qatorda: <code>1C 2A 3B 4D ...</code> Agar kalitni savollar oxiriga <code>Kalit: 1C 2A ...</code> deb yozgan bo'lsangiz, bu qutini bo'sh qoldirishingiz mumkin.</p>
-      <textarea name="key" id="bqK" rows="3" placeholder="1C 2A 3B 4D 5A">{{ key }}</textarea>
+      <p class="bq-help">Bitta qatorda: <code>1C 2A 3B 4D ...</code> Agar kalitni savollar oxiriga <code>Kalit: 1C 2A ...</code> deb yozgan bo'lsangiz, bu qutini bo'sh qoldirishingiz mumkin.<br><b>Javobi yoziladigan savol</b> (variantsiz, o'quvchi javobni o'zi yozadi): <code>3=15</code>, kasr <code>5=3/4</code>. Bir nechta to'g'ri yozilish bo'lsa <code>7=0.5|1/2</code>. Masalan: <code>1A 2B 3=15 4B</code>.</p>
+      <textarea name="key" id="bqK" rows="3" placeholder="1C 2A 3=15 4D 5A">{{ key }}</textarea>
       <div class="bq-meta" id="bqKMeta">0 ta javob topildi</div>
     </div>
 
@@ -106,7 +108,7 @@
 (function () {
   var Q_RE = /^\s*(\d+)\s*[.)]\s*(.*\S)\s*$/;
   var O_RE = /^\s*([A-Fa-f])\s*[.)]\s*(.*\S)\s*$/;
-  var KEY_RE = /(\d+)\s*[-:.)]?\s*([A-Fa-f])(?![A-Za-z])/g;
+  var KEY_RE = /(\d+)\s*(?:=\s*(\S+)|[-:.)]?\s*([A-Fa-f])(?![A-Za-z]))/g;
   var KEYLINE_RE = /^\s*(kalit|javoblar)\b/i;
   var LETTERS = 'ABCDEF';
   var MAX = 2 * 1024 * 1024;
@@ -147,7 +149,15 @@
   function parseKey(t) {
     var map = {}, m;
     KEY_RE.lastIndex = 0;
-    while ((m = KEY_RE.exec(t)) !== null) map[parseInt(m[1], 10)] = m[2].toUpperCase();
+    while ((m = KEY_RE.exec(t)) !== null) {
+      var n = parseInt(m[1], 10);
+      if (m[2]) {
+        var v = m[2].replace(/;/g, '|');
+        map[n] = { k: 'open', v: v };
+      } else if (m[3]) {
+        map[n] = { k: 'choice', v: m[3].toUpperCase() };
+      }
+    }
     return map;
   }
 
@@ -167,15 +177,24 @@
 
     p.items.forEach(function (it) {
       var warns = [];
-      var ans = key[it.num];
-      if (it.options.length < 2) warns.push('kamida 2 ta variant kerak');
+      var kk = key[it.num];
+      var kind = kk ? kk.k : null, ans = kk ? kk.v : null;
+      if (kind === 'open') {
+        if (it.options.length) warns.push('variantlar bor, lekin kalitda yoziladigan javob berilgan');
+        else if (ans.length > 200) warns.push('javob juda uzun');
+      } else if (it.options.length < 2) {
+        warns.push(it.options.length ? 'kamida 2 ta variant kerak' : 'variant yo\'q (javobi yoziladigan bo\'lsa, kalitga ' + it.num + '=javob yozing)');
+      }
       else if (!ans) warns.push('kalitda javob yo\'q');
       else if (LETTERS.indexOf(ans) >= it.options.length) warns.push(ans + ' varianti yo\'q');
       if (warns.length) problems++;
       var img = urls[it.num] ? '<img class="bq-th" src="' + urls[it.num] + '" alt="">' : '<span class="bq-okimg">—</span>';
-      var a = ans ? '<span class="bq-ans' + (warns.length ? ' no' : '') + '">' + ans + '</span>' : '<span class="bq-ans no">?</span>';
+      var a;
+      if (kind === 'open') a = '<span class="bq-ans open' + (warns.length ? ' no' : '') + '">✎ ' + esc(ans) + '</span>';
+      else a = ans ? '<span class="bq-ans' + (warns.length ? ' no' : '') + '">' + esc(ans) + '</span>' : '<span class="bq-ans no">?</span>';
+      var vc = kind === 'open' ? '<span class="bq-open">yoziladi</span>' : it.options.length;
       rows += '<tr><td class="bq-n">' + it.num + '</td><td class="t">' + esc(it.text.length > 110 ? it.text.slice(0, 110) + '…' : it.text) +
-        '</td><td>' + it.options.length + '</td><td>' + a + '</td><td>' + img + '</td><td class="bq-warn">' + esc(warns.join(', ')) + '</td></tr>';
+        '</td><td>' + vc + '</td><td>' + a + '</td><td>' + img + '</td><td class="bq-warn">' + esc(warns.join(', ')) + '</td></tr>';
     });
 
     // rasm xatolari
