@@ -39,6 +39,43 @@
 #dn .ck{width:84px;height:84px;border-radius:50%;background:#d3f24a;display:flex;align-items:center;justify-content:center;margin-bottom:18px}
 #dn h2{font-size:34px;margin:0 0 8px}#dn p{color:#64748b;margin:4px 0}
 @media (max-width:700px){.sr-g{grid-template-columns:1fr}.sr-m{grid-template-columns:1fr 1fr}.sr-big{font-size:68px}}
+
+#rep{display:none}
+#rep{font-family:Arial,Helvetica,sans-serif;color:#111;width:100%;max-width:190mm;margin:0 auto}
+#rep .h{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+#rep .lg{display:flex;align-items:center;gap:10px;border:2px solid #111;padding:8px 14px;font-weight:800;font-size:18px}
+#rep .lg i{font-style:normal;background:#111;color:#fff;padding:4px 8px;font-size:16px}
+#rep .nm{text-align:right;font-size:12px;line-height:1.5;max-width:300px}
+#rep .nm b{font-size:13px}
+#rep h1{font-size:34px;line-height:1.1;margin:22px 0 14px}
+#rep .bx{border:1.5px solid #cfd3d8;border-radius:12px;overflow:hidden}
+#rep .bt{display:flex;justify-content:space-between;align-items:flex-start;padding:14px 18px;border-bottom:1.5px solid #cfd3d8}
+#rep .bt b{font-size:17px}#rep .bt span{font-size:12px;color:#444;text-align:right;line-height:1.5}
+#rep .cl{display:grid;grid-template-columns:1fr 1fr 1fr}
+#rep .cl>div{padding:14px 18px;border-right:1.5px solid #cfd3d8}
+#rep .cl>div:last-child{border-right:0}
+#rep h4{margin:0 0 10px;font-size:12px;letter-spacing:.04em}
+#rep .big{font-size:58px;font-weight:800;line-height:1;margin:6px 0}
+#rep .mt{font-size:11px;color:#444;line-height:1.5}
+#rep .sc{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px}
+#rep .sc b{font-size:12px;display:block}#rep .sc span{font-size:11px;color:#444}
+#rep .sc em{font-style:normal;font-size:34px;font-weight:800}
+#rep .dt{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+#rep .dt div{font-size:11px;color:#444}#rep .dt b{display:block;font-size:22px;color:#111}
+#rep .bar{height:9px;border:1px solid #111;border-radius:2px;margin:6px 0}
+#rep .bar i{display:block;height:100%;background:#111}
+#rep .md{padding:14px 18px;border-top:1.5px solid #cfd3d8}
+#rep .mg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+#rep .mg>div{border:1px solid #cfd3d8;border-radius:8px;padding:10px}
+#rep .mg small{font-size:9px;font-weight:800;letter-spacing:.05em;color:#444;text-transform:uppercase}
+#rep .mg b{display:block;margin:2px 0;font-size:13px}
+#rep .mg p{display:flex;justify-content:space-between;margin:6px 0;font-size:13px;font-weight:800}
+#rep .ft{margin-top:16px;border:1.5px solid #cfd3d8;border-radius:12px;padding:12px 18px;font-size:11px;color:#444;line-height:1.5}
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  #rep,#rep *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style>
 {% if done %}
 <div id="dn"><div class="ck"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16281d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></div>
@@ -50,7 +87,7 @@
     <span class="sr-chip">SAT NATIJASI</span>
     <h1>SAT natijangiz</h1>
     <div class="sr-meta"><span>{{ code }}</span><span>{{ attempt.created_at|date:"d.m.Y, H:i" }}</span>{% if mins %}<span>{{ mins }} daq</span>{% endif %}<span>{{ attempt.course.title }}</span></div>
-    <a class="sr-btn" href="{% url 'results_list' %}">← Natijalarim</a>
+    <div class="sr-act"><a class="sr-btn" href="{% url 'results_list' %}">← Natijalarim</a><button type="button" class="sr-btn p" style="border:0;cursor:pointer;font-family:inherit" onclick="satPdf()">⬇ PDF yuklab olish</button></div>
   </div>
   <div class="sr-c sr-tot">
     <small>UMUMIY BALL</small>
@@ -73,4 +110,63 @@
   {% endif %}
   <div class="sr-act"><a class="sr-btn p" href="{% url 'tests_list' %}?bolim=sat">Boshqa SAT testlar</a><a class="sr-btn" href="{% url 'leaderboard' %}">Liderlar</a></div>
 </div>
+
+<div id="rep">
+  <div class="h">
+    <div class="lg"><i>MA</i>Matematika Akademiya</div>
+    <div class="nm"><b>Name: {{ attempt.student.get_full_name|default:attempt.student.username }}</b><br>This practice score report is provided by Matematika Akademiya for your personal use to help you prepare for test day. These scores are non-college reportable and cannot be sent to colleges or scholarship programs.</div>
+  </div>
+  <h1>Your Practice<br>Score Report</h1>
+  <div class="bx">
+    <div class="bt"><b>{{ attempt.course.title }}</b><span>{{ attempt.created_at|date:"d.m.Y, H:i" }}<br>Test code: {{ code }}{% if mins %} &middot; {{ mins }} min{% endif %}</span></div>
+    <div class="cl">
+      <div>
+        <h4>TOTAL SCORE</h4>
+        <div class="big">{{ total }}</div>
+        {% if lo %}<div class="mt"><b>Score Range: {{ lo }}&ndash;{{ hi }}</b></div>{% endif %}
+        <div class="mt" style="margin-top:10px">Scale: 400&ndash;1600. Estimated score based on the share of correct answers in each section.</div>
+      </div>
+      <div>
+        <h4>SECTION SCORES</h4>
+        {% if rw_n %}<div class="sc"><div><b>Reading and Writing</b><span>Score Range: 200&ndash;800</span></div><em>{{ rw }}</em></div>{% endif %}
+        {% if m_n %}<div class="sc"><div><b>Math</b><span>Score Range: 200&ndash;800</span></div><em>{{ mt }}</em></div>{% endif %}
+      </div>
+      <div>
+        <h4>SCORE DETAILS</h4>
+        <div class="dt"><div><b>{{ attempt.score }}</b>Correct</div><div><b id="rp-w"></b>Incorrect</div><div><b>{{ attempt.total }}</b>Total</div></div>
+        {% if rw_n %}<div class="mt"><b>Reading and Writing</b>: {{ rw_c }} correct of {{ rw_n }}</div>{% endif %}
+        {% if m_n %}<div class="mt" style="margin-top:6px"><b>Math</b>: {{ m_c }} correct of {{ m_n }}</div>{% endif %}
+      </div>
+    </div>
+    {% if modules %}
+    <div class="md"><h4>RESULTS BY MODULE</h4>
+      <div class="mg">{% for s in modules %}<div><small>{% if s.sec == 'rw' %}Reading and Writing{% else %}Math{% endif %}</small><b>Module {{ s.mn }}</b><p>{{ s.c }} / {{ s.n }}<span>{{ s.pct }}%</span></p><div class="bar"><i style="width:{{ s.pct }}%"></i></div></div>{% endfor %}</div>
+    </div>
+    {% endif %}
+  </div>
+  <div class="ft">Matematika Akademiya &middot; Test code: {{ code }}<br>&copy; Matematika Akademiya. This is an estimated practice score; the official SAT scale may differ.</div>
+</div>
+<script>
+(function(){
+  var w=document.getElementById('rp-w'); if(w) w.textContent={{ attempt.total|default:0 }}-{{ attempt.score|default:0 }};
+  window.satPdf=function(){
+    var rep=document.getElementById('rep');
+    document.body.appendChild(rep);
+    var hid=[];
+    Array.prototype.forEach.call(document.body.children,function(el){
+      if(el!==rep){hid.push([el,el.style.display]);el.style.display='none';}
+    });
+    rep.style.display='block';
+    var t=document.title; document.title='SAT-natija-{{ code }}';
+    function back(){
+      rep.style.display='none';
+      hid.forEach(function(h){h[0].style.display=h[1];});
+      document.title=t;
+      window.removeEventListener('afterprint',back);
+    }
+    window.addEventListener('afterprint',back);
+    window.print();
+  };
+})();
+</script>
 {% endblock %}
