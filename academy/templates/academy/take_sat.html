@@ -3,6 +3,16 @@
 {% block content %}
 {% include "academy/_sat_style.html" %}
 {% include "academy/_sat_style2.html" %}
+<style>
+.qq[data-open] .abc{display:none}
+.op{margin:18px 0 6px;max-width:360px}
+.op label{display:block;font-weight:700;font-size:15px;margin-bottom:8px;color:#1f2937}
+.op .oi{width:100%;box-sizing:border-box;font-size:20px;font-weight:600;padding:12px 14px;border:2px solid #6b7280;border-radius:8px;background:#fff;color:#111;outline:none;letter-spacing:.02em}
+.op .oi:focus{border-color:#1d4ed8;box-shadow:0 0 0 3px rgba(29,78,216,.15)}
+.op .opv{margin-top:12px;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:15px;color:#4b5563}
+.op .opv b{font-size:20px;color:#111;margin-left:6px}
+.op .oh{margin-top:10px;font-size:13px;color:#6b7280;line-height:1.5}
+</style>
 <div class="sat" id="sat">
   <form method="post" id="satForm">{% csrf_token %}<div id="satAns"></div></form>
 
@@ -29,7 +39,7 @@
         {% if m.sec == 'rw' %}
         <ol><li>Har bir savolda bitta yoki bir nechta matn bor.</li><li>To'rtta variantdan eng to'g'risini tanlang.</li><li>Qiyin savollarni o'tkazib yuborib, keyin qaytishingiz mumkin.</li><li>Keyin qaytish uchun savolni «Belgilash» tugmasi bilan belgilab qo'ying.</li></ol>
         {% else %}
-        <ol><li>Barcha savollarda kalkulyatordan foydalanish mumkin.</li><li>Formulalar jadvali istalgan vaqtda ochiq turadi.</li><li>To'g'ri javob variantini tanlang.</li><li>Keyin qaytish uchun savolni «Belgilash» tugmasi bilan belgilab qo'ying.</li></ol>
+        <ol><li>Barcha savollarda kalkulyatordan foydalanish mumkin.</li><li>Formulalar jadvali istalgan vaqtda ochiq turadi.</li><li>Variantli savollarda to'g'ri variantni tanlang. Javobi yoziladigan savollarda javobni o'zingiz yozing.</li><li>Keyin qaytish uchun savolni «Belgilash» tugmasi bilan belgilab qo'ying.</li></ol>
         {% endif %}
       </div>
       {% endfor %}
@@ -52,7 +62,7 @@
       {% for m in modules %}
       <div class="mod" data-m="{{ m.i }}" data-t="{{ m.sn }}-bo'lim, {{ m.mn }}-modul: {{ m.title }}" hidden>
         {% for q in m.qs %}
-        <div class="qq{% if not q.passage and not q.img or m.sec == 'math' and not q.passage %} single{% endif %}" data-q="{{ q.id }}" hidden>
+        <div class="qq{% if not q.passage and not q.img or m.sec == 'math' and not q.passage %} single{% endif %}" data-q="{{ q.id }}"{% if q.open %} data-open="1"{% endif %} hidden>
           {% if q.passage or m.sec == 'rw' and q.img %}
           <section class="pn pl">{% if q.passage %}<p>{{ q.passage }}</p>{% endif %}{% if m.sec == 'rw' and q.img %}<img src="{% url 'question_image' q.id %}" alt="Savol rasmi">{% endif %}</section>
           {% endif %}
@@ -64,9 +74,18 @@
             </div>
             {% if m.sec == 'math' and q.img %}<img src="{% url 'question_image' q.id %}" alt="Savol rasmi">{% endif %}
             <p class="stem">{{ q.stem }}</p>
+            {% if q.open %}
+            <div class="op">
+              <label for="o{{ q.id }}">Javobingizni yozing</label>
+              <input type="text" class="oi" id="o{{ q.id }}" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Javob">
+              <div class="opv">Javobingiz: <b class="ov">—</b></div>
+              <div class="oh">Faqat son yozing. Kasr uchun 3/4, o'nli kasr uchun 0.75 ko'rinishida yozish mumkin.</div>
+            </div>
+            {% else %}
             {% for c in q.choices %}
             <div class="ch" data-c="{{ c.id }}"><span class="lt">{{ c.letter }}</span><span class="tx">{{ c.text }}</span><button type="button" class="xx" data-act="x" title="Chizib tashlash">{{ c.letter }}</button></div>
             {% endfor %}
+            {% endif %}
           </section>
         </div>
         {% endfor %}
