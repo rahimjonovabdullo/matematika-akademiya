@@ -2,45 +2,75 @@
 {% block title %}SAT natijasi — {{ attempt.course.title }}{% endblock %}
 {% block content %}
 <style>
-.sr{max-width:880px;margin:0 auto;padding:6px 0 40px}
-.sr-hero{background:#16281d;color:#fff;border-radius:28px;padding:34px 34px 30px;text-align:center}
-.sr-hero small{display:block;color:#b9c9bd;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
-.sr-hero h1{margin:8px 0 4px;font-size:22px}
-.sr-tot{font-size:84px;line-height:1;font-weight:800;color:#d3f24a;margin:12px 0 4px;font-variant-numeric:tabular-nums}
-.sr-tot i{font-style:normal;font-size:22px;color:#b9c9bd;font-weight:700}
-.sr-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
-.sr-box{background:#fff;border:1px solid #e8eae4;border-radius:22px;padding:22px 24px}
-.sr-box small{color:#6b7a70;font-weight:700;font-size:13px}
-.sr-box b{display:block;font-size:46px;font-weight:800;margin:4px 0;font-variant-numeric:tabular-nums}
-.sr-box span{color:#6b7a70;font-size:14px}
-.sr-bar{height:8px;border-radius:99px;background:#eef0ea;margin-top:12px;overflow:hidden}
-.sr-bar div{height:100%;background:#2fa84f;border-radius:99px}
-.sr-mod{margin-top:18px;background:#fff;border:1px solid #e8eae4;border-radius:22px;padding:8px 22px}
-.sr-mod div{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #f0f2ec;font-weight:700}
-.sr-mod div:last-child{border:0}.sr-mod span{color:#6b7a70}
-.sr-note{margin:16px 4px;color:#6b7a70;font-size:13px;line-height:1.6}
-.sr-act{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
-.sr-act a{padding:13px 24px;border-radius:999px;font-weight:800;text-decoration:none;background:#d3f24a;color:#16281d}
-.sr-act a.g{background:#fff;border:1px solid #e8eae4}
-@media (max-width:640px){.sr-grid{grid-template-columns:1fr}.sr-tot{font-size:64px}}
+.sr{max-width:860px;margin:0 auto;padding:6px 0 40px;display:grid;gap:16px;align-content:start}
+.sr-c{background:#fff;border:1px solid #e8eae4;border-radius:26px;padding:26px 28px;box-shadow:0 6px 24px rgba(22,40,29,.05)}
+.sr-chip{display:inline-block;background:#f4f8e6;border:1px solid #e1ecb8;border-radius:999px;padding:6px 14px;font-size:12px;font-weight:800;letter-spacing:.08em;color:#16281d}
+.sr h1{margin:14px 0 12px;font-size:32px}
+.sr-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.sr-meta span{background:#f3f4f0;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700;color:#475569}
+.sr-btn{display:inline-block;padding:11px 20px;border-radius:999px;font-weight:800;text-decoration:none;font-size:14px;background:#fff;border:1px solid #e8eae4;color:#16281d}
+.sr-btn.p{background:#d3f24a;border-color:#d3f24a}
+.sr-tot{text-align:center}
+.sr-tot small{letter-spacing:.14em;font-weight:800;color:#64748b;font-size:12px}
+.sr-big{font-size:92px;line-height:1.05;font-weight:800;margin:10px 0 4px;font-variant-numeric:tabular-nums}
+.sr-sub{color:#64748b;font-size:14px}
+.sr-pill{display:inline-block;margin-top:16px;background:#e8f7ec;color:#15803d;border-radius:999px;padding:10px 18px;font-weight:700;font-size:14px}
+.sr-rng{max-width:440px;margin:26px auto 0;text-align:left}
+.sr-rng div.t{display:flex;justify-content:space-between;font-weight:800;font-size:13px;color:#475569}
+.sr-bar{height:8px;border-radius:99px;background:#eef0ea;margin-top:10px;position:relative}
+.sr-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:#a3c91a}
+.sr-bar b{position:absolute;top:-4px;width:16px;height:16px;border-radius:50%;background:#a3c91a;margin-left:-8px}
+.sr-ax{display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;margin-top:6px}
+.sr-note{font-size:12px;color:#94a3b8;margin-top:12px;line-height:1.5}
+.sr-g{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.sr-sec h3{margin:0;font-size:17px}.sr-sec small{color:#64748b}
+.sr-sec .n{font-size:58px;font-weight:800;margin:16px 0 8px;line-height:1}
+.sr-st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.sr-st div{background:#f8f9f5;border:1px solid #eef0ea;border-radius:12px;padding:10px 12px}
+.sr-st b{display:block;font-size:20px}.sr-st span{font-size:11px;color:#64748b}
+.sr-m{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+.sr-m>div{background:#f8f9f5;border:1px solid #eef0ea;border-radius:14px;padding:12px}
+.sr-m small{font-size:10px;font-weight:800;letter-spacing:.06em;color:#64748b;text-transform:uppercase}
+.sr-m b{display:block;margin-top:2px;font-size:14px}
+.sr-m p{display:flex;justify-content:space-between;margin:8px 0 6px;font-weight:800}
+.sr-m p span{color:#64748b;font-weight:600}
+.sr-act{display:flex;gap:10px;flex-wrap:wrap}
+#dn{position:fixed;inset:0;z-index:90;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+#dn .ck{width:84px;height:84px;border-radius:50%;background:#d3f24a;display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+#dn h2{font-size:34px;margin:0 0 8px}#dn p{color:#64748b;margin:4px 0}
+@media (max-width:700px){.sr-g{grid-template-columns:1fr}.sr-m{grid-template-columns:1fr 1fr}.sr-big{font-size:68px}}
 </style>
+{% if done %}
+<div id="dn"><div class="ck"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16281d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></div>
+<h2>Tabriklaymiz!</h2><p>Javoblaringiz muvaffaqiyatli yuborildi.</p><p><b>Test kodi: {{ code }}</b></p>
+<button type="button" class="sr-btn p" style="margin-top:20px;border:0;cursor:pointer" onclick="document.getElementById('dn').remove()">Natijani ko'rish</button></div>
+{% endif %}
 <div class="sr">
-  <div class="sr-hero">
-    <small>SAT mashq testi</small>
-    <h1>{{ attempt.course.title }}</h1>
-    {% if total %}<div class="sr-tot">{{ total }} <i>/ 1600</i></div>{% endif %}
-    <div style="color:#b9c9bd">To'g'ri javoblar: {{ attempt.score }} / {{ attempt.total }} ({{ attempt.percent }}%)</div>
+  <div class="sr-c">
+    <span class="sr-chip">SAT NATIJASI</span>
+    <h1>SAT natijangiz</h1>
+    <div class="sr-meta"><span>{{ code }}</span><span>{{ attempt.created_at|date:"d.m.Y, H:i" }}</span>{% if mins %}<span>{{ mins }} daq</span>{% endif %}<span>{{ attempt.course.title }}</span></div>
+    <a class="sr-btn" href="{% url 'results_list' %}">← Natijalarim</a>
   </div>
-  <div class="sr-grid">
-    {% if rw_n %}<div class="sr-box"><small>Reading and Writing</small><b>{{ rw }}</b><span>{{ rw_c }} / {{ rw_n }} to'g'ri</span><div class="sr-bar"><div style="width:{{ rw_pct }}%"></div></div></div>{% endif %}
-    {% if m_n %}<div class="sr-box"><small>Math</small><b>{{ mt }}</b><span>{{ m_c }} / {{ m_n }} to'g'ri</span><div class="sr-bar"><div style="width:{{ m_pct }}%"></div></div></div>{% endif %}
+  <div class="sr-c sr-tot">
+    <small>UMUMIY BALL</small>
+    <div class="sr-big">{{ total }}</div>
+    <div class="sr-sub">400–1600 shkalasida · to'g'ri javoblar: {{ attempt.score }} / {{ attempt.total }}</div>
+    {% if better is not None %}<div class="sr-pill">Siz test topshiruvchilarning {{ better }}% idan yuqori natija ko'rsatdingiz</div>{% endif %}
+    {% if lo %}<div class="sr-rng"><div class="t"><span>Ball oralig'i</span><span>{{ lo }} – {{ hi }}</span></div><div class="sr-bar"><i style="width:{{ pos }}%"></i><b style="left:{{ pos }}%"></b></div><div class="sr-ax"><span>400</span><span>1600</span></div></div>
+    <p class="sr-note">Ball oralig'i testni qayta topshirganingizda kutilishi mumkin bo'lgan natijalar diapazoni. Ball taxminiy: har bir bo'lim to'g'ri javoblar ulushiga qarab 200–800 shkalasida hisoblanadi, rasmiy SAT shkalasi bundan farq qilishi mumkin.</p>{% endif %}
+  </div>
+  <div class="sr-g">
+    {% if rw_n %}<div class="sr-c sr-sec"><h3>Reading and Writing</h3><small>200–800 shkala</small><div class="n">{{ rw }}</div><div class="sr-bar"><i style="width:{{ rw_pct }}%"></i></div>
+      <div class="sr-st"><div><b>{{ rw_c }}</b><span>To'g'ri</span></div>{% if exact %}<div><b>{{ rw_w }}</b><span>Noto'g'ri</span></div><div><b>{{ rw_s }}</b><span>Tashlab ketilgan</span></div>{% else %}<div><b>{{ rw_n }}</b><span>Jami</span></div>{% endif %}</div></div>{% endif %}
+    {% if m_n %}<div class="sr-c sr-sec"><h3>Math</h3><small>200–800 shkala</small><div class="n">{{ mt }}</div><div class="sr-bar"><i style="width:{{ m_pct }}%"></i></div>
+      <div class="sr-st"><div><b>{{ m_c }}</b><span>To'g'ri</span></div>{% if exact %}<div><b>{{ m_w }}</b><span>Noto'g'ri</span></div><div><b>{{ m_s }}</b><span>Tashlab ketilgan</span></div>{% else %}<div><b>{{ m_n }}</b><span>Jami</span></div>{% endif %}</div></div>{% endif %}
   </div>
   {% if modules %}
-  <div class="sr-mod">
-    {% for s in modules %}<div>{% if s.sec == 'rw' %}Reading and Writing{% else %}Math{% endif %}, {{ s.mn }}-modul<span>{{ s.c }} / {{ s.n }}</span></div>{% endfor %}
+  <div class="sr-c"><h3 style="margin:0;text-align:center">Modullar bo'yicha natijalar</h3>
+    <div class="sr-m">{% for s in modules %}<div><small>{% if s.sec == 'rw' %}Reading and Writing{% else %}Math{% endif %}</small><b>{{ s.mn }}-modul</b><p>{{ s.c }}<span>/{{ s.n }}</span><span>{{ s.pct }}%</span></p><div class="sr-bar"><i style="width:{{ s.pct }}%"></i></div></div>{% endfor %}</div>
   </div>
   {% endif %}
-  <p class="sr-note">Ball taxminiy: har bir bo'lim 200–800 shkalasida to'g'ri javoblar ulushiga qarab hisoblanadi. Rasmiy SAT shkalasi savollar qiyinligiga qarab o'zgaradi, shuning uchun haqiqiy natijangiz bundan farq qilishi mumkin.{% if not exact %} Bo'limlar bo'yicha aniq hisob faqat testni topshirgan zahoti ko'rinadi, bu natija umumiy foizdan chiqarilgan.{% endif %}</p>
-  <div class="sr-act"><a href="{% url 'tests_list' %}?bolim=sat">Boshqa SAT testlar</a><a class="g" href="{% url 'leaderboard' %}">Liderlar</a><a class="g" href="{% url 'results_list' %}">Natijalarim</a></div>
+  <div class="sr-act"><a class="sr-btn p" href="{% url 'tests_list' %}?bolim=sat">Boshqa SAT testlar</a><a class="sr-btn" href="{% url 'leaderboard' %}">Liderlar</a></div>
 </div>
 {% endblock %}
