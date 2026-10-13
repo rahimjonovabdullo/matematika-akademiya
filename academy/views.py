@@ -1,3 +1,4 @@
+import json
 import math
 
 from django.contrib import messages
@@ -7,6 +8,7 @@ from django.db.models import Avg, Count, Max
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import EnrollRequestForm, RegisterForm
+from .sat import _sat_modules, _sat_scores, _sat_stats
 from .models import Choice, Course, Enrollment, Group, PaymentSettings, QuizAttempt
 
 
@@ -140,11 +142,25 @@ def take_quiz(request, slug):
         attempt = QuizAttempt.objects.create(
             student=request.user, course=course, score=score, total=len(questions)
         )
+        if course.category == "sat":
+            request.session["sat_%d" % attempt.id] = _sat_stats(questions, request.POST)
         return redirect("quiz_result", attempt_id=attempt.id)
 
     if not questions:
         messages.info(request, "Bu kurs uchun hali savollar qo'shilmagan.")
         return redirect("course_detail", slug=slug)
+
+    if course.category == "sat":
+        modules = _sat_modules(questions)
+        meta = [{"minutes": m["minutes"], "ids": [q["id"] for q in m["qs"]], "sec": m["sec"]} for m in modules]
+        meta_json = json.dumps(
+            {"key": "sat_%d_%d" % (course.id, request.user.id), "mods": meta}
+        ).replace("<", "\\u003c")
+        who = (request.user.get_full_name() or request.user.username).strip()
+        return render(request, "academy/take_sat.html", {
+            "course": course, "modules": modules, "meta_json": meta_json,
+            "who": who, "total_q": len(questions),
+        })
 
     return render(request, "academy/take_quiz.html", {"course": course, "questions": questions})
 
@@ -152,6 +168,11 @@ def take_quiz(request, slug):
 @login_required
 def quiz_result(request, attempt_id):
     attempt = get_object_or_404(QuizAttempt, id=attempt_id, student=request.user)
+    if attempt.course.category == "sat":
+        stats = request.session.get("sat_%d" % attempt.id)
+        ctx = {"attempt": attempt}
+        ctx.update(_sat_scores(attempt, stats))
+        return render(request, "academy/sat_result.html", ctx)
     return render(request, "academy/quiz_result.html", {"attempt": attempt})
 
 
