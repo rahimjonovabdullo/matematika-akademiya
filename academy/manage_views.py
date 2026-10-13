@@ -74,20 +74,44 @@ class QuestionForm(forms.Form):
     text = forms.CharField(label="Savol matni", widget=forms.Textarea(attrs={"rows": 3}))
     order = forms.IntegerField(label="Tartib raqami", min_value=0, initial=1,
                                help_text="Savol nechanchi bo'lib chiqishi.")
-    choice1 = forms.CharField(label="A variant", max_length=300)
-    choice2 = forms.CharField(label="B variant", max_length=300)
+    qtype = forms.ChoiceField(
+        label="Savol turi",
+        choices=[("choice", "Variantli (A, B, C, D)"), ("open", "Javobi yoziladi (o'quvchi o'zi yozadi)")],
+        initial="choice",
+    )
+    choice1 = forms.CharField(label="A variant", max_length=300, required=False)
+    choice2 = forms.CharField(label="B variant", max_length=300, required=False)
     choice3 = forms.CharField(label="C variant", max_length=300, required=False)
     choice4 = forms.CharField(label="D variant", max_length=300, required=False)
     correct = forms.ChoiceField(
         label="To'g'ri javob",
         choices=[("1", "A"), ("2", "B"), ("3", "C"), ("4", "D")],
+        required=False,
+    )
+    open_answer = forms.CharField(
+        label="To'g'ri javob (o'quvchi yozadigan)", max_length=200, required=False,
+        help_text="Masalan: 15 yoki 3/4 yoki 0.75. Bir nechta to'g'ri yozilish bo'lsa | bilan ajrating: 0.5|1/2. "
+                  "Kasr va o'nli yozuv bir xil hisoblanadi.",
     )
 
     def clean(self):
         data = super().clean()
-        correct = data.get("correct")
-        if correct and not data.get(f"choice{correct}"):
-            self.add_error("correct", "To'g'ri javob sifatida tanlangan variant bo'sh. Uni to'ldiring.")
+        qtype = data.get("qtype") or "choice"
+        if qtype == "open":
+            ans = (data.get("open_answer") or "").strip()
+            if not ans:
+                self.add_error("open_answer", "To'g'ri javobni yozing.")
+            data["open_answer"] = ans
+        else:
+            if not data.get("choice1"):
+                self.add_error("choice1", "Bu maydonni to'ldiring.")
+            if not data.get("choice2"):
+                self.add_error("choice2", "Bu maydonni to'ldiring.")
+            correct = data.get("correct")
+            if not correct:
+                self.add_error("correct", "To'g'ri javobni tanlang.")
+            elif not data.get(f"choice{correct}"):
+                self.add_error("correct", "To'g'ri javob sifatida tanlangan variant bo'sh. Uni to'ldiring.")
         return data
 
 
@@ -244,6 +268,8 @@ def manage_questions(request, course_id):
             {"letter": LETTERS[i], "text": c.text, "is_correct": c.is_correct}
             for i, c in enumerate(q.choices.all()[:4])
         ]
+        q.is_open_q = q.is_open
+        q.open_answer = q.answer_text
     return render(
         request,
         "academy/manage/questions.html",
@@ -266,27 +292,32 @@ def manage_question_form(request, course_id, pk=None):
                     question = Question(course=course)
                 question.text = cd["text"]
                 question.order = cd["order"]
+                is_open = cd.get("qtype") == "open"
+                question.answer_text = cd["open_answer"] if is_open else ""
                 question.save()
                 question.choices.all().delete()
-                for i in range(1, 5):
-                    text = cd.get(f"choice{i}")
-                    if text:
-                        Choice.objects.create(
-                            question=question,
-                            text=text,
-                            is_correct=(cd["correct"] == str(i)),
-                        )
+                if not is_open:
+                    for i in range(1, 5):
+                        text = cd.get(f"choice{i}")
+                        if text:
+                            Choice.objects.create(
+                                question=question,
+                                text=text,
+                                is_correct=(cd["correct"] == str(i)),
+                            )
             messages.success(request, "Savol saqlandi.")
             return redirect("manage_questions", course_id=course.pk)
     else:
         if question:
-            initial = {"text": question.text, "order": question.order, "correct": "1"}
+            initial = {"text": question.text, "order": question.order, "correct": "1",
+                       "qtype": "open" if question.is_open else "choice",
+                       "open_answer": question.answer_text}
             for i, c in enumerate(question.choices.all()[:4], start=1):
                 initial[f"choice{i}"] = c.text
                 if c.is_correct:
                     initial["correct"] = str(i)
         else:
-            initial = {"order": course.questions.count() + 1, "correct": "1"}
+            initial = {"order": course.questions.count() + 1, "correct": "1", "qtype": "choice"}
         form = QuestionForm(initial=initial)
 
     return render(
