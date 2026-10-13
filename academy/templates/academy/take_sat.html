@@ -5,13 +5,13 @@
 {% include "academy/_sat_style2.html" %}
 <style>
 .qq[data-open] .abc{display:none}
-.op{margin:18px 0 6px;max-width:360px}
-.op label{display:block;font-weight:700;font-size:15px;margin-bottom:8px;color:#1f2937}
-.op .oi{width:100%;box-sizing:border-box;font-size:20px;font-weight:600;padding:12px 14px;border:2px solid #6b7280;border-radius:8px;background:#fff;color:#111;outline:none;letter-spacing:.02em}
-.op .oi:focus{border-color:#1d4ed8;box-shadow:0 0 0 3px rgba(29,78,216,.15)}
-.op .opv{margin-top:12px;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:15px;color:#4b5563}
-.op .opv b{font-size:20px;color:#111;margin-left:6px}
-.op .oh{margin-top:10px;font-size:13px;color:#6b7280;line-height:1.5}
+.sxo{margin:18px 0 6px;max-width:360px}
+.sxo label{display:block;font-weight:700;font-size:15px;margin-bottom:8px;color:#1f2937}
+.sxo .sxi{width:100%;box-sizing:border-box;font-size:20px;font-weight:600;padding:12px 14px;border:2px solid #6b7280;border-radius:8px;background:#fff;color:#111;outline:none;letter-spacing:.02em}
+.sxo .sxi:focus{border-color:#1d4ed8;box-shadow:0 0 0 3px rgba(29,78,216,.15)}
+.sxo .sxv{margin-top:12px;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:15px;color:#4b5563}
+.sxo .sxv b{font-size:20px;color:#111;margin-left:6px}
+.sxo .sxh{margin-top:10px;font-size:13px;color:#6b7280;line-height:1.5}
 </style>
 <div class="sat" id="sat">
   <form method="post" id="satForm">{% csrf_token %}<div id="satAns"></div></form>
@@ -75,11 +75,11 @@
             {% if m.sec == 'math' and q.img %}<img src="{% url 'question_image' q.id %}" alt="Savol rasmi">{% endif %}
             <p class="stem">{{ q.stem }}</p>
             {% if q.open %}
-            <div class="op">
+            <div class="sxo">
               <label for="o{{ q.id }}">Javobingizni yozing</label>
-              <input type="text" class="oi" id="o{{ q.id }}" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Javob">
-              <div class="opv">Javobingiz: <b class="ov">—</b></div>
-              <div class="oh">Faqat son yozing. Kasr uchun 3/4, o'nli kasr uchun 0.75 ko'rinishida yozish mumkin.</div>
+              <input type="text" class="sxi" id="o{{ q.id }}" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Javob">
+              <div class="sxv">Javobingiz: <b class="sxa">—</b></div>
+              <div class="sxh">Faqat son yozing. Kasr uchun 3/4, o'nli kasr uchun 0.75 ko'rinishida yozish mumkin.</div>
             </div>
             {% else %}
             {% for c in q.choices %}
