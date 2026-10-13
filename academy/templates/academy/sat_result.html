@@ -41,10 +41,13 @@
 @media (max-width:700px){.sr-g{grid-template-columns:1fr}.sr-m{grid-template-columns:1fr 1fr}.sr-big{font-size:68px}}
 
 #repw{display:none}
-#repw.show{display:block;position:fixed;inset:0;z-index:300;background:#d9dce1;overflow:auto}
-#repw .rtb{position:sticky;top:0;z-index:2;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:12px 16px;background:#fff;border-bottom:1px solid #e8eae4}
-#repw .rtb button{border:0;cursor:pointer;font-family:inherit}
-#repw #rep{max-width:794px;min-width:700px;margin:18px auto 30px;box-shadow:0 8px 30px rgba(0,0,0,.18)}
+#repw.show{display:flex;flex-direction:column;position:fixed;inset:0;z-index:300;background:#d9dce1;overflow:hidden}
+#repw .rtb{flex:none;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:10px 16px;background:#fff;border-bottom:1px solid #e8eae4}
+#repw .rtb button{border:0;cursor:pointer;font-family:inherit;padding:10px 18px}
+#repw .rtb button:disabled{opacity:.6;cursor:wait}
+#repf{flex:1;position:relative;overflow:hidden}
+#repw #rep{position:absolute;top:10px;left:50%;width:794px;margin-left:-397px;transform-origin:top center;box-shadow:0 8px 30px rgba(0,0,0,.18)}
+#repx{position:fixed;left:-10000px;top:0;width:794px;background:#fff}
 #rep{font-family:Roboto,Arial,Helvetica,sans-serif;color:#111;width:100%;box-sizing:border-box;padding:14mm 13mm;background:#fff}
 #rep *{box-sizing:border-box}
 #rep .h{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}
@@ -93,9 +96,10 @@
 @media print{
   @page{size:A4;margin:0}
   html,body{background:#fff!important;margin:0!important;padding:0!important}
-  #repw{position:static!important;background:#fff!important;overflow:visible!important}
+  #repw{display:block!important;position:static!important;background:#fff!important;overflow:visible!important}
   #repw .rtb{display:none!important}
-  #repw #rep{max-width:none!important;min-width:0!important;margin:0!important;box-shadow:none!important}
+  #repf{position:static!important;overflow:visible!important}
+  #repw #rep{position:static!important;transform:none!important;width:auto!important;margin:0!important;box-shadow:none!important}
   #rep,#rep *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
@@ -134,7 +138,8 @@
 </div>
 
 <div id="repw">
-<div class="rtb"><button type="button" class="sr-btn p" onclick="satPrint()">🖨 Chop etish / PDF saqlash</button><button type="button" class="sr-btn" onclick="satClose()">✕ Yopish</button></div>
+<div class="rtb"><button type="button" class="sr-btn" onclick="satPrint()">🖨 Chop etish</button><button type="button" class="sr-btn p" id="rp-save" onclick="satSave()">⬇ PDF saqlash</button><button type="button" class="sr-btn" onclick="satClose()">✕ Yopish</button></div>
+<div id="repf">
 <div id="rep">
   <div class="h">
     <div class="lg"><i>MA</i>Matematika Akademiya</div>
@@ -179,20 +184,32 @@
   <div class="ft"><div class="ci">MA</div><div><b>Issued by Matematika Akademiya</b><br>This is an estimated practice score based on the share of correct answers in each section; the official SAT scale may differ.<br>Test ID: <b>{{ code }}</b></div></div>
 </div>
 </div>
+</div>
 <script>
 (function(){
   var w=document.getElementById('rp-w'); if(w) w.textContent={{ attempt.total|default:0 }}-{{ attempt.score|default:0 }};
   var box=document.getElementById('repw');
+  var rep=document.getElementById('rep');
+  var frame=document.getElementById('repf');
+  function fit(){
+    if(!box.classList.contains('show')) return;
+    rep.style.transform='none';
+    var h=rep.offsetHeight, aw=frame.clientWidth-16, ah=frame.clientHeight-20;
+    var k=Math.min(1,aw/794,ah/h);
+    rep.style.transform='scale('+k+')';
+  }
   window.satPdf=function(){
     document.body.appendChild(box);
     box.classList.add('show');
-    box.scrollTop=0;
     document.documentElement.style.overflow='hidden';
+    fit();
   };
   window.satClose=function(){
     box.classList.remove('show');
     document.documentElement.style.overflow='';
   };
+  window.addEventListener('resize',fit);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') satClose(); });
   window.satPrint=function(){
     var hid=[];
     Array.prototype.forEach.call(document.body.children,function(el){
@@ -202,10 +219,45 @@
     function back(){
       hid.forEach(function(h){h[0].style.display=h[1];});
       document.title=t;
+      fit();
       window.removeEventListener('afterprint',back);
     }
     window.addEventListener('afterprint',back);
     window.print();
+  };
+  function load(src){
+    return new Promise(function(ok,no){
+      var sc=document.createElement('script');
+      sc.src=src; sc.onload=ok; sc.onerror=function(){no(new Error('load '+src));};
+      document.head.appendChild(sc);
+    });
+  }
+  window.satSave=function(){
+    var btn=document.getElementById('rp-save');
+    var old=btn.textContent;
+    btn.disabled=true; btn.textContent='Tayyorlanmoqda...';
+    var libs=Promise.resolve();
+    if(!window.html2canvas) libs=libs.then(function(){return load(window.H2C_URL||'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');});
+    if(!(window.jspdf&&window.jspdf.jsPDF)) libs=libs.then(function(){return load(window.JSPDF_URL||'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');});
+    var host=document.createElement('div'); host.id='repx';
+    libs.then(function(){
+      var c=rep.cloneNode(true);
+      c.removeAttribute('style');
+      c.style.width='794px';
+      host.appendChild(c); document.body.appendChild(host);
+      return window.html2canvas(c,{scale:2,backgroundColor:'#ffffff',useCORS:true,windowWidth:794});
+    }).then(function(canvas){
+      var pdf=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
+      var w=210, h=canvas.height*w/canvas.width;
+      if(h>297){ w=w*297/h; h=297; }
+      pdf.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG',(210-w)/2,0,w,h);
+      pdf.save('SAT-natija-{{ code }}.pdf');
+    }).catch(function(){
+      alert("PDF tayyorlanmadi. Internetni tekshirib qayta urinib ko'ring yoki «Chop etish» tugmasidan foydalaning.");
+    }).then(function(){
+      if(host.parentNode) host.parentNode.removeChild(host);
+      btn.disabled=false; btn.textContent=old;
+    });
   };
 })();
 </script>
