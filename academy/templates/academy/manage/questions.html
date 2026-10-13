@@ -23,11 +23,15 @@
         {% if q.has_image %}
         <img src="{% url 'question_image' q.pk %}" alt="Rasm" style="max-width:220px;max-height:140px;border:1px solid #e0e4d8;border-radius:12px;margin:6px 0;display:block">
         {% endif %}
+        {% if q.is_open_q %}
+        <small style="color:#1d4ed8;font-weight:800">✎ Javobi yoziladi: {{ q.open_answer }}</small>
+        {% else %}
         {% for r in q.rows %}
         <small{% if r.is_correct %} style="color:#2c4a14;font-weight:800"{% endif %}>{{ r.letter }}) {{ r.text }}{% if r.is_correct %} ✓{% endif %}</small>
         {% empty %}
         <small style="color:#e5173f">Javob variantlari yo'q. Tahrirlab qo'shing.</small>
         {% endfor %}
+        {% endif %}
       </div>
       <div class="mg-actions">
         <a class="mg-btn mg-btn-line mg-btn-sm" href="{% url 'manage_question_image' course.pk q.pk %}">{% if q.has_image %}Rasmni almashtirish{% else %}Rasm{% endif %}</a>
