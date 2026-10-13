@@ -1,6 +1,21 @@
+from fractions import Fraction
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
+
+
+def _norm_answer(value):
+    """Javobni solishtirish uchun bir xil ko'rinishga keltiradi: 1/2, 0.5 va .5 bir xil."""
+    s = str(value or "").strip()
+    for a, b in ((" ", ""), (",", "."), ("\u2212", "-"), ("\u2013", "-")):
+        s = s.replace(a, b)
+    if not s:
+        return ("s", "")
+    try:
+        return ("n", Fraction(s))
+    except (ValueError, ZeroDivisionError):
+        return ("s", s.lower())
 
 
 class Course(models.Model):
@@ -64,6 +79,10 @@ class Question(models.Model):
     order = models.PositiveIntegerField("Tartib raqami", default=0)
     image_data = models.BinaryField(null=True, blank=True, editable=False)
     image_type = models.CharField(max_length=50, blank=True, default="")
+    answer_text = models.CharField(
+        "Yoziladigan javob", max_length=200, blank=True, default="",
+        help_text="Bo'sh bo'lmasa, savol variantsiz: o'quvchi javobni o'zi yozadi. Bir nechta to'g'ri yozilish | bilan ajratiladi.",
+    )
 
     class Meta:
         verbose_name = "Savol"
@@ -76,6 +95,22 @@ class Question(models.Model):
     @property
     def has_image(self):
         return bool(self.image_type)
+
+    @property
+    def is_open(self):
+        """Javobi yoziladigan savolmi (variantsiz)."""
+        return bool((self.answer_text or "").strip())
+
+    def check_open_answer(self, given):
+        """O'quvchi yozgan javob to'g'rimi (1/2 va 0.5 bir xil hisoblanadi)."""
+        g = _norm_answer(given)
+        if g[1] == "":
+            return False
+        for acc in (self.answer_text or "").split("|"):
+            a = _norm_answer(acc)
+            if a[1] != "" and a == g:
+                return True
+        return False
 
 
 class Choice(models.Model):
