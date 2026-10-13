@@ -6,9 +6,10 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Count, Max
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from .forms import EnrollRequestForm, RegisterForm
-from .sat import _sat_modules, _sat_scores, _sat_stats
+from .sat import _sat_modules, _sat_scores, _sat_stats, sat_percentile
 from .models import Choice, Course, Enrollment, Group, PaymentSettings, QuizAttempt
 
 
@@ -144,6 +145,7 @@ def take_quiz(request, slug):
         )
         if course.category == "sat":
             request.session["sat_%d" % attempt.id] = _sat_stats(questions, request.POST)
+            return redirect(reverse("quiz_result", args=[attempt.id]) + "?done=1")
         return redirect("quiz_result", attempt_id=attempt.id)
 
     if not questions:
@@ -169,9 +171,12 @@ def take_quiz(request, slug):
 def quiz_result(request, attempt_id):
     attempt = get_object_or_404(QuizAttempt, id=attempt_id, student=request.user)
     if attempt.course.category == "sat":
-        stats = request.session.get("sat_%d" % attempt.id)
-        ctx = {"attempt": attempt}
-        ctx.update(_sat_scores(attempt, stats))
+        payload = request.session.get("sat_%d" % attempt.id)
+        ctx = {
+            "attempt": attempt, "done": request.GET.get("done") == "1",
+            "better": sat_percentile(attempt), "code": "SAT-%d" % attempt.course_id,
+        }
+        ctx.update(_sat_scores(attempt, payload))
         return render(request, "academy/sat_result.html", ctx)
     return render(request, "academy/quiz_result.html", {"attempt": attempt})
 
