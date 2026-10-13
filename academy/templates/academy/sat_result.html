@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}SAT natijasi — {{ attempt.course.title }}{% endblock %}
+{% block content %}
+<style>
+.sr{max-width:880px;margin:0 auto;padding:6px 0 40px}
+.sr-hero{background:#16281d;color:#fff;border-radius:28px;padding:34px 34px 30px;text-align:center}
+.sr-hero small{display:block;color:#b9c9bd;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+.sr-hero h1{margin:8px 0 4px;font-size:22px}
+.sr-tot{font-size:84px;line-height:1;font-weight:800;color:#d3f24a;margin:12px 0 4px;font-variant-numeric:tabular-nums}
+.sr-tot i{font-style:normal;font-size:22px;color:#b9c9bd;font-weight:700}
+.sr-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+.sr-box{background:#fff;border:1px solid #e8eae4;border-radius:22px;padding:22px 24px}
+.sr-box small{color:#6b7a70;font-weight:700;font-size:13px}
+.sr-box b{display:block;font-size:46px;font-weight:800;margin:4px 0;font-variant-numeric:tabular-nums}
+.sr-box span{color:#6b7a70;font-size:14px}
+.sr-bar{height:8px;border-radius:99px;background:#eef0ea;margin-top:12px;overflow:hidden}
+.sr-bar div{height:100%;background:#2fa84f;border-radius:99px}
+.sr-mod{margin-top:18px;background:#fff;border:1px solid #e8eae4;border-radius:22px;padding:8px 22px}
+.sr-mod div{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #f0f2ec;font-weight:700}
+.sr-mod div:last-child{border:0}.sr-mod span{color:#6b7a70}
+.sr-note{margin:16px 4px;color:#6b7a70;font-size:13px;line-height:1.6}
+.sr-act{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+.sr-act a{padding:13px 24px;border-radius:999px;font-weight:800;text-decoration:none;background:#d3f24a;color:#16281d}
+.sr-act a.g{background:#fff;border:1px solid #e8eae4}
+@media (max-width:640px){.sr-grid{grid-template-columns:1fr}.sr-tot{font-size:64px}}
+</style>
+<div class="sr">
+  <div class="sr-hero">
+    <small>SAT mashq testi</small>
+    <h1>{{ attempt.course.title }}</h1>
+    {% if total %}<div class="sr-tot">{{ total }} <i>/ 1600</i></div>{% endif %}
+    <div style="color:#b9c9bd">To'g'ri javoblar: {{ attempt.score }} / {{ attempt.total }} ({{ attempt.percent }}%)</div>
+  </div>
+  <div class="sr-grid">
+    {% if rw_n %}<div class="sr-box"><small>Reading and Writing</small><b>{{ rw }}</b><span>{{ rw_c }} / {{ rw_n }} to'g'ri</span><div class="sr-bar"><div style="width:{{ rw_pct }}%"></div></div></div>{% endif %}
+    {% if m_n %}<div class="sr-box"><small>Math</small><b>{{ mt }}</b><span>{{ m_c }} / {{ m_n }} to'g'ri</span><div class="sr-bar"><div style="width:{{ m_pct }}%"></div></div></div>{% endif %}
+  </div>
+  {% if modules %}
+  <div class="sr-mod">
+    {% for s in modules %}<div>{% if s.sec == 'rw' %}Reading and Writing{% else %}Math{% endif %}, {{ s.mn }}-modul<span>{{ s.c }} / {{ s.n }}</span></div>{% endfor %}
+  </div>
+  {% endif %}
+  <p class="sr-note">Ball taxminiy: har bir bo'lim 200–800 shkalasida to'g'ri javoblar ulushiga qarab hisoblanadi. Rasmiy SAT shkalasi savollar qiyinligiga qarab o'zgaradi, shuning uchun haqiqiy natijangiz bundan farq qilishi mumkin.{% if not exact %} Bo'limlar bo'yicha aniq hisob faqat testni topshirgan zahoti ko'rinadi, bu natija umumiy foizdan chiqarilgan.{% endif %}</p>
+  <div class="sr-act"><a href="{% url 'tests_list' %}?bolim=sat">Boshqa SAT testlar</a><a class="g" href="{% url 'leaderboard' %}">Liderlar</a><a class="g" href="{% url 'results_list' %}">Natijalarim</a></div>
+</div>
+{% endblock %}
