@@ -1,0 +1,147 @@
+<script>
+(function () {
+  var $ = function (i) { return document.getElementById(i); };
+  var M = SAT.mods, KEY = SAT.key;
+  var S = { ph: 'intro', m: 0, q: 0, a: {}, mk: {}, cut: {}, end: {}, bEnd: 0, bm: 0 };
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (raw) { var o = JSON.parse(raw); if (o && o.ph && o.m < M.length) S = o; }
+  } catch (e) {}
+  var eo = false, sending = false;
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  var mods = document.querySelectorAll('.mod');
+  function qEl(m, i) { return mods[m].querySelectorAll('.qq')[i]; }
+  function qid(m, i) { return M[m].ids[i]; }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function fmt(ms) { var s = Math.max(0, Math.ceil(ms / 1000)); return pad(Math.floor(s / 60)) + ':' + pad(s % 60); }
+  var views = ['vIntro', 'vTest', 'vReview', 'vBreak'];
+  function showView(id) { views.forEach(function (v) { $(v).hidden = v !== id; }); }
+  function closeAll() { ['mNav', 'mConf', 'mDir', 'mRef'].forEach(function (i) { $(i).hidden = true; }); }
+
+  function paintQ() {
+    var el = qEl(S.m, S.q), id = qid(S.m, S.q);
+    el.querySelectorAll('.ch').forEach(function (c) {
+      var cid = c.getAttribute('data-c');
+      c.classList.toggle('sel', S.a[id] == cid);
+      c.classList.toggle('cut', !!S.cut[cid]);
+    });
+    el.querySelector('.mk').classList.toggle('on', !!S.mk[id]);
+    el.querySelector('.abc').classList.toggle('on', eo);
+    el.querySelector('.pr').classList.toggle('elim', eo);
+  }
+  function grid(box, onPick) {
+    box.innerHTML = '';
+    M[S.m].ids.forEach(function (id, i) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = i + 1;
+      b.className = 'gb' + (S.a[id] ? ' done' : '') + (S.mk[id] ? ' fl' : '') + (S.ph === 'test' && i === S.q ? ' cur' : '');
+      b.onclick = function () { onPick(i); };
+      box.appendChild(b);
+    });
+  }
+  function render() {
+    closeAll();
+    if (S.ph === 'intro') { showView('vIntro'); return; }
+    if (S.ph === 'review') {
+      showView('vReview');
+      $('rvT').textContent = mods[S.m].getAttribute('data-t') + '. Javobsiz yoki belgilangan savollarni shu yerdan ochib ko\'ring.';
+      grid($('rvGrid'), function (i) { S.q = i; S.ph = 'test'; save(); render(); });
+      return;
+    }
+    if (S.ph === 'break') {
+      showView('vBreak');
+      var nx = M[S.bm + 1], timed = S.bEnd > 0;
+      $('brT').textContent = timed ? 'Tanaffus' : 'Modul yakunlandi';
+      $('brP').textContent = (timed ? '1-bo\'lim yakunlandi. ' : '') + 'Keyingi: ' + mods[S.bm + 1].getAttribute('data-t') + (timed ? '. Tanaffus tugagach test o\'zi davom etadi.' : '.');
+      $('brTm').hidden = !timed;
+      return;
+    }
+    showView('vTest');
+    mods.forEach(function (d, i) { d.hidden = i !== S.m; });
+    mods[S.m].querySelectorAll('.qq').forEach(function (d, i) { d.hidden = i !== S.q; });
+    var math = M[S.m].sec === 'math';
+    $('mTitle').textContent = mods[S.m].getAttribute('data-t');
+    $('btnAnn').hidden = math; $('btnCalc').hidden = !math; $('btnRef').hidden = !math;
+    if (!math) { $('calc').hidden = true; }
+    $('cur').textContent = S.q + 1; $('cnt').textContent = M[S.m].ids.length;
+    $('backBtn').style.visibility = S.q === 0 ? 'hidden' : 'visible';
+    $('nextBtn').textContent = S.q === M[S.m].ids.length - 1 ? 'Tekshirish' : 'Keyingi';
+    paintQ();
+    tick();
+  }
+  function go(i) { S.q = i; eo = false; save(); render(); }
+  function startModule(m) {
+    S.m = m; S.q = 0; S.ph = 'test'; eo = false;
+    if (!S.end[m]) S.end[m] = Date.now() + M[m].minutes * 60000;
+    save(); render();
+  }
+  function finish() {
+    if (S.m + 1 >= M.length) { submit(); return; }
+    S.ph = 'break'; S.bm = S.m;
+    S.bEnd = M[S.m + 1].sec !== M[S.m].sec ? Date.now() + 600000 : 0;
+    save(); render();
+  }
+  function submit() {
+    if (sending) return; sending = true;
+    var box = $('satAns'); box.innerHTML = '';
+    Object.keys(S.a).forEach(function (id) {
+      var i = document.createElement('input');
+      i.type = 'hidden'; i.name = 'q' + id; i.value = S.a[id]; box.appendChild(i);
+    });
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    $('satForm').submit();
+  }
+  function tick() {
+    if (S.ph === 'test') {
+      var left = S.end[S.m] - Date.now();
+      $('tm').textContent = fmt(left); $('tm').className = left < 60000 ? 'warn' : '';
+      if (left <= 0) finish();
+    } else if (S.ph === 'break' && S.bEnd) {
+      var l2 = S.bEnd - Date.now();
+      $('brTm').textContent = fmt(l2);
+      if (l2 <= 0) startModule(S.bm + 1);
+    }
+  }
+  setInterval(tick, 500);
+
+  $('goBtn').onclick = function () { startModule(0); };
+  $('brGo').onclick = function () { startModule(S.bm + 1); };
+  $('backBtn').onclick = function () { if (S.q > 0) go(S.q - 1); };
+  $('nextBtn').onclick = function () {
+    if (S.q < M[S.m].ids.length - 1) go(S.q + 1);
+    else { S.ph = 'review'; save(); render(); }
+  };
+  $('rvBack').onclick = function () { S.ph = 'test'; S.q = 0; save(); render(); };
+  $('rvDone').onclick = function () {
+    var left = M[S.m].ids.filter(function (id) { return !S.a[id]; }).length;
+    $('cfP').textContent = (left ? left + ' ta savolga javob berilmagan. ' : '') + 'Yakunlangach bu modulga qaytib bo\'lmaydi.';
+    $('mConf').hidden = false;
+  };
+  $('cfYes').onclick = function () { $('mConf').hidden = true; finish(); };
+  $('navBtn').onclick = function () {
+    $('nvT').textContent = mods[S.m].getAttribute('data-t');
+    grid($('nvGrid'), function (i) { $('mNav').hidden = true; go(i); });
+    $('mNav').hidden = false;
+  };
+  $('nvRev').onclick = function () { S.ph = 'review'; save(); render(); };
+  $('tmHide').onclick = function () {
+    var h = $('tm').style.display === 'none';
+    $('tm').style.display = h ? '' : 'none'; this.textContent = h ? 'Yashirish' : 'Ko\'rsatish';
+  };
+  $('stMain').addEventListener('click', function (e) {
+    var id = qid(S.m, S.q), t = e.target;
+    var act = t.closest('[data-act]'), ch = t.closest('.ch');
+    if (act && act.getAttribute('data-act') === 'mark') { S.mk[id] = !S.mk[id]; }
+    else if (act && act.getAttribute('data-act') === 'elim') { eo = !eo; }
+    else if (act && act.getAttribute('data-act') === 'x') { var cid = ch.getAttribute('data-c'); S.cut[cid] = !S.cut[cid]; }
+    else if (ch) { var c = ch.getAttribute('data-c'); if (S.a[id] == c) delete S.a[id]; else S.a[id] = c; }
+    else return;
+    save(); paintQ();
+  });
+  window.addEventListener('beforeunload', function (e) {
+    if (S.ph !== 'intro' && !sending) { e.preventDefault(); e.returnValue = ''; }
+  });
+  window.SATX = { S: function () { return S; } };
+  render();
+})();
+</script>
