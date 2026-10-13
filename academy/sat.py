@@ -35,6 +35,7 @@ def _sat_modules(questions):
             choices = sorted(q.choices.all(), key=lambda c: c.id)
             items.append({
                 "id": q.id, "n": k, "passage": passage, "stem": stem, "img": q.has_image,
+                "open": q.is_open,
                 "choices": [{"id": c.id, "letter": "ABCDEF"[j], "text": c.text} for j, c in enumerate(choices[:6])],
             })
         out.append({
@@ -52,6 +53,10 @@ def _sat_stats(questions, post):
             sel = post.get("q%d" % q.id)
             if sel:
                 a += 1
+            if q.is_open:
+                if sel and q.check_open_answer(sel):
+                    c += 1
+                continue
             ok = next((x for x in q.choices.all() if x.is_correct), None)
             if sel and ok and str(ok.id) == sel:
                 c += 1
