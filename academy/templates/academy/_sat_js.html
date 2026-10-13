@@ -33,7 +33,6 @@
     var inp = el.querySelector('.sxi');
     if (inp) {
       if (document.activeElement !== inp) inp.value = S.a[id] || '';
-      el.querySelector('.sxa').textContent = S.a[id] || '—';
     }
     $('dvh').hidden = el.classList.contains('single');
   }
@@ -161,7 +160,6 @@
     if (!t.classList || !t.classList.contains('sxi')) return;
     var id = qid(S.m, S.q), v = t.value.trim();
     if (v) S.a[id] = v; else delete S.a[id];
-    t.closest('.sxo').querySelector('.sxa').textContent = v || '—';
     save();
   });
   window.addEventListener('beforeunload', function (e) {
