@@ -47,14 +47,20 @@ def _sat_modules(questions):
 def _sat_stats(questions, post):
     stats = []
     for i, qs in enumerate(_sat_split(questions)):
-        c = 0
+        c = a = 0
         for q in qs:
             sel = post.get("q%d" % q.id)
+            if sel:
+                a += 1
             ok = next((x for x in q.choices.all() if x.is_correct), None)
             if sel and ok and str(ok.id) == sel:
                 c += 1
-        stats.append({"sec": SAT_MODULES[i][0], "mn": SAT_MODULES[i][2], "c": c, "n": len(qs)})
-    return stats
+        stats.append({"sec": SAT_MODULES[i][0], "mn": SAT_MODULES[i][2], "c": c, "a": a, "n": len(qs)})
+    try:
+        secs = max(0, min(int(post.get("secs", "0")), 4 * 3600))
+    except (TypeError, ValueError):
+        secs = 0
+    return {"mods": stats, "secs": secs}
 
 
 def _sat_scale(c, n):
@@ -63,23 +69,55 @@ def _sat_scale(c, n):
     return 200 + int(round(600.0 * c / n / 10.0)) * 10
 
 
-def _sat_scores(attempt, stats):
+def _sat_scores(attempt, payload):
+    secs = 0
+    if isinstance(payload, dict):
+        stats, secs = payload.get("mods") or [], payload.get("secs") or 0
+    else:
+        stats = payload
     if not stats:
         pct = attempt.score / float(attempt.total or 1)
-        stats = [{"sec": "rw", "c": pct * 54, "n": 54}, {"sec": "math", "c": pct * 44, "n": 44}]
+        stats = [
+            {"sec": "rw", "c": pct * 54, "a": 54, "n": 54},
+            {"sec": "math", "c": pct * 44, "a": 44, "n": 44},
+        ]
         exact = False
     else:
         exact = True
-    rw_c = sum(s["c"] for s in stats if s["sec"] == "rw")
-    rw_n = sum(s["n"] for s in stats if s["sec"] == "rw")
-    m_c = sum(s["c"] for s in stats if s["sec"] == "math")
-    m_n = sum(s["n"] for s in stats if s["sec"] == "math")
+
+    def part(sec):
+        c = sum(s["c"] for s in stats if s["sec"] == sec)
+        a = sum(s.get("a", s["n"]) for s in stats if s["sec"] == sec)
+        n = sum(s["n"] for s in stats if s["sec"] == sec)
+        return c, a, n
+
+    rw_c, rw_a, rw_n = part("rw")
+    m_c, m_a, m_n = part("math")
     rw, mt = _sat_scale(rw_c, rw_n), _sat_scale(m_c, m_n)
-    total = (rw or 0) + (mt or 0)
-    return {
-        "rw": rw, "mt": mt, "total": total if (rw or mt) else None,
-        "rw_c": int(round(rw_c)), "rw_n": rw_n, "m_c": int(round(m_c)), "m_n": m_n,
-        "exact": exact, "modules": [x for x in stats if x["n"]] if exact else [],
+    total = (rw or 0) + (mt or 0) if (rw or mt) else None
+    out = {
+        "rw": rw, "mt": mt, "total": total, "exact": exact,
+        "rw_c": int(round(rw_c)), "rw_n": rw_n, "rw_w": int(round(rw_a - rw_c)), "rw_s": rw_n - rw_a,
+        "m_c": int(round(m_c)), "m_n": m_n, "m_w": int(round(m_a - m_c)), "m_s": m_n - m_a,
         "rw_pct": int(round(100.0 * rw_c / rw_n)) if rw_n else 0,
         "m_pct": int(round(100.0 * m_c / m_n)) if m_n else 0,
+        "modules": [dict(x, pct=int(round(100.0 * x["c"] / x["n"]))) for x in stats if x["n"]] if exact else [],
+        "mins": max(1, int(round(secs / 60.0))) if secs else None,
     }
+    if total:
+        out["lo"], out["hi"] = max(400, total - 30), min(1600, total + 30)
+        out["pos"] = int(round((total - 400) / 12.0))
+    return out
+
+
+def sat_percentile(attempt):
+    """Shu testni yechgan boshqalarning necha foizidan yuqori ekani (kamida 2 ta urinish bo'lsa)."""
+    from .models import QuizAttempt
+    rows = list(QuizAttempt.objects.filter(
+        course=attempt.course, student__is_staff=False, student__is_superuser=False, total__gt=0
+    ).values_list("score", "total"))
+    if len(rows) < 2:
+        return None
+    mine = attempt.score / float(attempt.total or 1)
+    lower = sum(1 for sc, t in rows if sc / float(t) < mine - 1e-9)
+    return int(round(100.0 * lower / len(rows)))
