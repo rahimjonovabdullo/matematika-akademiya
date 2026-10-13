@@ -12,7 +12,8 @@ from .models import Choice, Course, Question
 LETTERS = "ABCDEF"
 Q_RE = re.compile(r"^\s*(\d+)\s*[.)]\s*(.*\S)\s*$")
 O_RE = re.compile(r"^\s*([A-Fa-f])\s*[.)]\s*(.*\S)\s*$")
-KEY_RE = re.compile(r"(\d+)\s*[-:.)]?\s*([A-Fa-f])(?![A-Za-z])")
+# Kalit: "1A 2B 3=15 4B 5=3/4" — harf = variantli savol, "=" dan keyingi qism = yoziladigan javob.
+KEY_RE = re.compile(r"(\d+)\s*(?:=\s*(\S+)|[-:.)]?\s*([A-Fa-f])(?![A-Za-z]))")
 KEYLINE_RE = re.compile(r"^\s*(kalit|javoblar)\b", re.I)
 NUM_RE = re.compile(r"\d+")
 
@@ -26,6 +27,19 @@ class _SaveError(Exception):
 
 def _is_staff(user):
     return user.is_authenticated and user.is_staff
+
+
+def parse_key(key_raw):
+    """Kalit matnidan {savol raqami: ("choice", "A") yoki ("open", "15")} ni ajratadi."""
+    key = {}
+    for n, ans, letter in KEY_RE.findall(key_raw):
+        if ans:
+            ans = ans.strip().strip(",;").replace(";", "|")
+            if ans:
+                key[int(n)] = ("open", ans[:200])
+        elif letter:
+            key[int(n)] = ("choice", letter.upper())
+    return key
 
 
 def parse_questions(text):
@@ -67,7 +81,7 @@ def manage_bulk_questions(request, course_id):
         items, inline_key = parse_questions(raw)
         if not key_raw.strip() and inline_key:
             key_raw = inline_key
-        key = {int(n): l.upper() for n, l in KEY_RE.findall(key_raw)}
+        key = parse_key(key_raw)
 
         if not items:
             errors.append("Savollar topilmadi. Har bir savol «1. matn» ko'rinishida boshlansin.")
@@ -76,12 +90,19 @@ def manage_bulk_questions(request, course_id):
             errors.append("Ba'zi savol raqamlari ikki marta yozilgan. Raqamlar takrorlanmasin.")
         for it in items:
             n = it["num"]
-            if len(it["options"]) < 2:
-                errors.append(f"{n}-savolda kamida 2 ta variant (A, B...) bo'lishi kerak.")
-            elif n not in key:
+            kind, val = key.get(n, (None, None))
+            if kind == "open":
+                if it["options"]:
+                    errors.append(f"{n}-savolda variantlar bor, lekin kalitda yoziladigan javob ({n}={val}) berilgan. Bittasini tanlang.")
+            elif len(it["options"]) < 2:
+                if not it["options"] and kind is None:
+                    errors.append(f"{n}-savolda variant yo'q. Javobi yoziladigan savol bo'lsa, kalitda {n}=javob deb yozing (masalan {n}=15).")
+                else:
+                    errors.append(f"{n}-savolda kamida 2 ta variant (A, B...) bo'lishi kerak.")
+            elif kind is None:
                 errors.append(f"{n}-savol uchun kalitda javob yo'q.")
-            elif LETTERS.index(key[n]) >= len(it["options"]):
-                errors.append(f"{n}-savolda {key[n]} varianti yo'q.")
+            elif LETTERS.index(val) >= len(it["options"]):
+                errors.append(f"{n}-savolda {val} varianti yo'q.")
 
         # Rasmlar: fayl nomidagi birinchi raqam = savol raqami (5.png, 5-rasm.jpg ...)
         images = {}
@@ -116,9 +137,11 @@ def manage_bulk_questions(request, course_id):
                 with transaction.atomic():
                     for i, it in enumerate(items, 1):
                         data, ctype = images.get(it["num"], (None, ""))
+                        kind, val = key[it["num"]]
                         q = Question.objects.create(
                             course=course, text=it["text"], order=start + i,
                             image_data=data, image_type=ctype,
+                            answer_text=val if kind == "open" else "",
                         )
                         if data:
                             saved = Question.objects.only("image_data").get(pk=q.pk).image_data
@@ -128,13 +151,17 @@ def manage_bulk_questions(request, course_id):
                                     f"{it['num']}-savol rasmi bazaga to'liq yozilmadi: "
                                     f"yuborilgan {len(data)} bayt, bazada {got} bayt. Hech narsa saqlanmadi."
                                 )
-                        right = LETTERS.index(key[it["num"]])
-                        for idx, opt in enumerate(it["options"]):
-                            Choice.objects.create(question=q, text=opt[:300], is_correct=(idx == right))
+                        if kind == "choice":
+                            right = LETTERS.index(val)
+                            for idx, opt in enumerate(it["options"]):
+                                Choice.objects.create(question=q, text=opt[:300], is_correct=(idx == right))
             except _SaveError as e:
                 errors.append(str(e))
             else:
                 msg = f"{len(items)} ta savol qo'shildi"
+                n_open = sum(1 for it in items if key[it["num"]][0] == "open")
+                if n_open:
+                    msg += f" (shundan {n_open} tasi javobi yoziladigan)"
                 if images:
                     total = sum(len(v[0]) for v in images.values())
                     msg += f", {len(images)} tasiga rasm biriktirildi ({total // 1024} KB)"
