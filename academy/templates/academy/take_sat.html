@@ -16,12 +16,12 @@
   <div class="sv" id="vIntro">
     <div class="pg"><div class="cd c">
       <h2>{{ course.title }}</h2>
-      <p>Test haqiqiy raqamli SAT tartibida o'tadi. Har bir modulning o'z vaqti bor, modul yakunlangach unga qaytib bo'lmaydi.</p>
+      <p>This practice test follows the digital SAT format. Each module has its own timer, and you can't return to a module once it ends.</p>
       <ul>
-        {% for m in modules %}<li>{{ m.sn }}-bo'lim, {{ m.mn }}-modul: {{ m.title }}<span>{{ m.qs|length }} savol · {{ m.minutes }} daqiqa</span></li>{% endfor %}
+        {% for m in modules %}<li>Section {{ m.sn }}, Module {{ m.mn }}: {{ m.title }}<span>{{ m.qs|length }} questions · {{ m.minutes }} minutes</span></li>{% endfor %}
       </ul>
-      <p>Reading and Writing bilan Math orasida 10 daqiqalik tanaffus bo'ladi.</p>
-      <button type="button" class="bb lime" id="goBtn">Testni boshlash</button>
+      <p>A 10-minute break follows the Reading and Writing section.</p>
+      <button type="button" class="bb lime" id="goBtn">Start Test</button>
     </div></div>
   </div>
 
@@ -29,56 +29,56 @@
     <div class="pg"><div class="cd">
       {% for m in modules %}
       <div class="mi" data-m="{{ m.i }}" hidden>
-        <div class="kk">{{ m.mn }}-MODUL</div>
+        <div class="kk">MODULE {{ m.mn }}</div>
         <h2>{{ m.title }}</h2>
-        <div class="sb">{{ m.qs|length }} savol · {{ m.minutes }} daqiqa</div>
-        <h4>Yo'riqnoma</h4>
+        <div class="sb">{{ m.qs|length }} questions · {{ m.minutes }} minutes</div>
+        <h4>Directions</h4>
         {% if m.sec == 'rw' %}
-        <ol><li>Har bir savolda bitta yoki bir nechta matn bor.</li><li>To'rtta variantdan eng to'g'risini tanlang.</li><li>Qiyin savollarni o'tkazib yuborib, keyin qaytishingiz mumkin.</li><li>Keyin qaytish uchun savolni «Belgilash» tugmasi bilan belgilab qo'ying.</li></ol>
+        <ol><li>Each question has one or more passages.</li><li>Choose the best of the four answer choices.</li><li>You may skip hard questions and come back to them later.</li><li>To return later, flag the question with Mark for Review.</li></ol>
         {% else %}
-        <ol><li>Barcha savollarda kalkulyatordan foydalanish mumkin.</li><li>Formulalar jadvali istalgan vaqtda ochiq turadi.</li><li>Variantli savollarda to'g'ri variantni tanlang. Javobi yoziladigan savollarda javobni o'zingiz yozing.</li><li>Keyin qaytish uchun savolni «Belgilash» tugmasi bilan belgilab qo'ying.</li></ol>
+        <ol><li>A calculator is allowed on all questions.</li><li>The reference sheet is available at any time.</li><li>For multiple-choice questions, select the best answer. For student-produced response questions, type your answer.</li><li>To return later, flag the question with Mark for Review.</li></ol>
         {% endif %}
       </div>
       {% endfor %}
-      <div class="go"><button type="button" class="bb" id="miGo">Davom etish</button></div>
+      <div class="go"><button type="button" class="bb" id="miGo">Next</button></div>
     </div></div>
   </div>
 
   <div class="sv" id="vTest" hidden>
-    <div class="bn">MASHQ TESTI</div>
+    <div class="bn">PRACTICE TEST</div>
     <header class="st-top">
-      <div class="st-ttl"><b id="mTitle"></b><button type="button" class="lnk" id="dirBtn">Yo'riqnoma ▾</button></div>
-      <div class="st-time"><b id="tm">00:00</b><button type="button" class="lnk" id="tmHide">Yashirish</button></div>
+      <div class="st-ttl"><b id="mTitle"></b><button type="button" class="lnk" id="dirBtn">Directions ▾</button></div>
+      <div class="st-time"><b id="tm">00:00</b><button type="button" class="lnk" id="tmHide">Hide</button></div>
       <div class="st-tools">
-        <button type="button" class="tl" id="btnAnn"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg>Belgilash</button>
-        <button type="button" class="tl" id="btnCalc"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M14 12h2M8 16h2M14 16h2"/></svg>Kalkulyator</button>
-        <button type="button" class="tl" id="btnRef"><svg viewBox="0 0 24 24"><path d="M3 5c3-1 6-1 9 1 3-2 6-2 9-1v14c-3-1-6-1-9 1-3-2-6-2-9-1z"/><path d="M12 6v14"/></svg>Formulalar</button>
+        <button type="button" class="tl" id="btnAnn"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg>Annotate</button>
+        <button type="button" class="tl" id="btnCalc"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M14 12h2M8 16h2M14 16h2"/></svg>Calculator</button>
+        <button type="button" class="tl" id="btnRef"><svg viewBox="0 0 24 24"><path d="M3 5c3-1 6-1 9 1 3-2 6-2 9-1v14c-3-1-6-1-9 1-3-2-6-2-9-1z"/><path d="M12 6v14"/></svg>Reference</button>
       </div>
     </header>
     <main class="st-main" id="stMain">
       {% for m in modules %}
-      <div class="mod" data-m="{{ m.i }}" data-t="{{ m.sn }}-bo'lim, {{ m.mn }}-modul: {{ m.title }}" hidden>
+      <div class="mod" data-m="{{ m.i }}" data-t="Section {{ m.sn }}, Module {{ m.mn }}: {{ m.title }}" hidden>
         {% for q in m.qs %}
         <div class="qq{% if not q.passage and not q.img or m.sec == 'math' and not q.passage %} single{% endif %}" data-q="{{ q.id }}"{% if q.open %} data-open="1"{% endif %} hidden>
           {% if q.passage or m.sec == 'rw' and q.img %}
-          <section class="pn pl">{% if q.passage %}<p>{{ q.passage }}</p>{% endif %}{% if m.sec == 'rw' and q.img %}<img src="{% url 'question_image' q.id %}" alt="Savol rasmi">{% endif %}</section>
+          <section class="pn pl">{% if q.passage %}<p>{{ q.passage }}</p>{% endif %}{% if m.sec == 'rw' and q.img %}<img src="{% url 'question_image' q.id %}" alt="Question image">{% endif %}</section>
           {% endif %}
           <section class="pn pr">
             <div class="qhd">
               <span class="qn">{{ q.n }}</span>
-              <button type="button" class="mk" data-act="mark"><svg width="14" height="16" viewBox="0 0 16 18"><path d="M3 1h10v16l-5-4-5 4z"/></svg>Belgilash</button>
-              <button type="button" class="abc" data-act="elim" title="Variantni chizib tashlash">ABC</button>
+              <button type="button" class="mk" data-act="mark"><svg width="14" height="16" viewBox="0 0 16 18"><path d="M3 1h10v16l-5-4-5 4z"/></svg>Mark for Review</button>
+              <button type="button" class="abc" data-act="elim" title="Option Eliminator">ABC</button>
             </div>
-            {% if m.sec == 'math' and q.img %}<img src="{% url 'question_image' q.id %}" alt="Savol rasmi">{% endif %}
+            {% if m.sec == 'math' and q.img %}<img src="{% url 'question_image' q.id %}" alt="Question image">{% endif %}
             <p class="stem">{{ q.stem }}</p>
             {% if q.open %}
             <div class="sxo">
-              <label for="o{{ q.id }}">Javobingizni yozing</label>
-              <input type="text" class="sxi" id="o{{ q.id }}" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Javob">
+              <label for="o{{ q.id }}">Enter your answer</label>
+              <input type="text" class="sxi" id="o{{ q.id }}" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Answer">
             </div>
             {% else %}
             {% for c in q.choices %}
-            <div class="ch" data-c="{{ c.id }}"><span class="lt">{{ c.letter }}</span><span class="tx">{{ c.text }}</span><button type="button" class="xx" data-act="x" title="Chizib tashlash">{{ c.letter }}</button></div>
+            <div class="ch" data-c="{{ c.id }}"><span class="lt">{{ c.letter }}</span><span class="tx">{{ c.text }}</span><button type="button" class="xx" data-act="x" title="Cross out">{{ c.letter }}</button></div>
             {% endfor %}
             {% endif %}
           </section>
@@ -87,47 +87,47 @@
       </div>
       {% endfor %}
       <div class="dvh" id="dvh" hidden><i></i></div>
-      <div id="calc" hidden><div class="ch2"><span>Desmos kalkulyator</span><button type="button" id="calcX">×</button></div><div id="calcEl"></div></div>
+      <div id="calc" hidden><div class="ch2"><span>Desmos Calculator</span><button type="button" id="calcX">×</button></div><div id="calcEl"></div></div>
     </main>
     <footer class="st-bot">
       <div class="st-who">{{ who }}</div>
-      <button type="button" class="nv" id="navBtn">Savol <span id="cur">1</span> / <span id="cnt">1</span> ▴</button>
-      <div class="st-btns"><button type="button" class="bb ghost" id="backBtn">Orqaga</button><button type="button" class="bb" id="nextBtn">Keyingi</button></div>
+      <button type="button" class="nv" id="navBtn">Question <span id="cur">1</span> of <span id="cnt">1</span> ▴</button>
+      <div class="st-btns"><button type="button" class="bb ghost" id="backBtn">Back</button><button type="button" class="bb" id="nextBtn">Next</button></div>
     </footer>
   </div>
 
   <div class="sv" id="vReview" hidden>
-    <div class="bn">MASHQ TESTI</div>
+    <div class="bn">PRACTICE TEST</div>
     <div class="rv">
-      <h2>Ishingizni tekshiring</h2>
-      <p>Haqiqiy imtihonda vaqt tugamaguncha keyingi modulga o'ta olmaysiz.</p>
-      <p>Mashq savollarida tayyor bo'lsangiz, <b>Keyingi</b> tugmasini bosing.</p>
+      <h2>Check Your Work</h2>
+      <p>On test day, you won't be able to move on to the next module until time expires.</p>
+      <p>For these practice questions, you can click <b>Next</b> when you're ready to move on.</p>
       <div class="box">
-        <div class="bh"><b id="rvT"></b><div class="lg"><span><i></i>Javobsiz</span><span style="color:#dc2626">⚑ Belgilangan</span></div></div>
+        <div class="bh"><b id="rvT"></b><div class="lg"><span><i></i>Unanswered</span><span style="color:#dc2626">⚑ For Review</span></div></div>
         <div class="gr" id="rvGrid"></div>
       </div>
     </div>
-    <div class="fbar"><button type="button" class="bb ghost" id="rvBack">Orqaga</button><button type="button" class="bb" id="rvDone">Keyingi</button></div>
+    <div class="fbar"><button type="button" class="bb ghost" id="rvBack">Back</button><button type="button" class="bb" id="rvDone">Next</button></div>
   </div>
 
   <div class="sv" id="vReady" hidden>
     <div class="pg"><div class="cd c" style="width:min(520px,100%)">
       <h2 id="rdT"></h2>
       <p id="rdP"></p>
-      <button type="button" class="bb lime" id="rdGo" style="margin-top:12px">Davom etish</button>
+      <button type="button" class="bb lime" id="rdGo" style="margin-top:12px">Continue</button>
     </div></div>
   </div>
 
   <div class="sv dk" id="vBreak" hidden>
-    <div class="l"><div class="tm"><small>Tanaffusning qolgan vaqti:</small><b id="brTm">10:00</b></div><button type="button" class="bb lime" id="brGo">Testni davom ettirish</button></div>
+    <div class="l"><div class="tm"><small>Remaining Break Time:</small><b id="brTm">10:00</b></div><button type="button" class="bb lime" id="brGo">Resume Testing</button></div>
     <div class="r">
-      <h2>Mashq testi tanaffusi</h2>
-      <p>Tayyor bo'lsangiz, testni darhol davom ettirishingiz mumkin. Haqiqiy imtihon kunida soat tugashini kutasiz.</p>
+      <h2>Practice Test Break</h2>
+      <p>You can resume this practice test as soon as you're ready to move on. On test day, you'll wait until the break timer ends.</p>
       <hr>
-      <h3>Tanaffus: qurilmani yopmang</h3>
-      <p>Tayyor bo'lgach <b>Testni davom ettirish</b> tugmasini bosing, keyingi bo'lim boshlanadi.</p>
-      <p><b>Tanaffus paytida qoidalar:</b></p>
-      <ol><li>Hali test ishlayotganlarga xalaqit bermang.</li><li>Ilovadan chiqmang va noutbukni yopmang.</li><li>Telefon, kitob, yozuvlar va internetdan foydalanmang.</li><li>Test qurilmasi yonida ovqatlanmang va ichmang.</li><li>Xonada gaplashmang, tashqarida imtihon haqida muhokama qilmang.</li></ol>
+      <h3>Take a Break: Do Not Close Your Device</h3>
+      <p>When you're ready, click <b>Resume Testing</b> and the next section will begin.</p>
+      <p><b>Break rules:</b></p>
+      <ol><li>Do not disturb students who are still testing.</li><li>Do not exit the app or close your laptop.</li><li>Do not access your phone, notes, textbooks, or the internet.</li><li>Do not eat or drink near the testing device.</li><li>Do not talk in the room, and do not discuss the exam outside.</li></ol>
     </div>
   </div>
 {% include "academy/_sat_modals.html" %}
