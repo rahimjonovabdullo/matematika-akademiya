@@ -56,14 +56,14 @@
     }
     if (S.ph === 'review') {
       showView('vReview');
-      $('rvT').textContent = label(S.m) + ': savollar';
+      $('rvT').textContent = label(S.m) + ' Questions';
       grid($('rvGrid'), function (i) { S.q = i; S.ph = 'test'; save(); render(); });
       return;
     }
     if (S.ph === 'ready') {
       showView('vReady');
-      $('rdT').textContent = (S.bm + 2) + '-modul tayyor';
-      $('rdP').textContent = (S.bm + 1) + '-modul yakunlandi. ' + M[S.bm + 1].ids.length + ' ta savol sizni kutmoqda.';
+      $('rdT').textContent = 'Module ' + M[S.bm + 1].mn + ' is next';
+      $('rdP').textContent = 'Module ' + M[S.bm].mn + ' is complete. ' + M[S.bm + 1].ids.length + ' questions are waiting in the next module.';
       return;
     }
     if (S.ph === 'break') { showView('vBreak'); tick(); return; }
@@ -76,7 +76,7 @@
     if (!math) { $('calc').hidden = true; }
     $('cur').textContent = S.q + 1; $('cnt').textContent = M[S.m].ids.length;
     $('backBtn').style.visibility = S.q === 0 ? 'hidden' : 'visible';
-    $('nextBtn').textContent = S.q === M[S.m].ids.length - 1 ? 'Tekshirish' : 'Keyingi';
+    $('nextBtn').textContent = 'Next';
     paintQ();
     tick();
   }
@@ -131,7 +131,7 @@
   $('rvBack').onclick = function () { S.ph = 'test'; save(); render(); };
   $('rvDone').onclick = function () {
     var left = M[S.m].ids.filter(function (id) { return !S.a[id]; }).length;
-    var w = $('cfW'); w.hidden = !left; w.textContent = 'Sizda ' + left + ' ta javobsiz savol bor.';
+    var w = $('cfW'); w.hidden = !left; w.textContent = 'You have ' + left + (left === 1 ? ' unanswered question.' : ' unanswered questions.');
     $('mConf').hidden = false;
   };
   $('cfYes').onclick = function () { $('mConf').hidden = true; finish(); };
@@ -143,7 +143,7 @@
   $('nvRev').onclick = function () { S.ph = 'review'; save(); render(); };
   $('tmHide').onclick = function () {
     var h = $('tm').style.display === 'none';
-    $('tm').style.display = h ? '' : 'none'; this.textContent = h ? 'Yashirish' : 'Ko\'rsatish';
+    $('tm').style.display = h ? '' : 'none'; this.textContent = h ? 'Hide' : 'Show';
   };
   $('stMain').addEventListener('click', function (e) {
     var id = qid(S.m, S.q), t = e.target;
