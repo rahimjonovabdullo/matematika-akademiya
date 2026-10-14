@@ -1,4 +1,5 @@
 """SAT (Bluebook uslubidagi) testlar uchun yordamchi funksiyalar."""
+import re
 
 # Savollar tartib bo'yicha 4 modulga bo'linadi: R&W 1 (27), R&W 2 (27), Math 1 (22), Math 2 (22)
 SAT_MODULES = [
@@ -21,6 +22,23 @@ def _sat_split(questions):
     return parts
 
 
+_SPLIT_RE = re.compile(r'(?<=[.!?:"\u201d\u2019)])\s+(?=[A-Z])|\n+')
+
+
+def _auto_split(text):
+    """Reading and Writing: if the teacher did not use ||, treat the last
+    sentence (the question) as the stem and everything before it as the passage."""
+    t = text.strip()
+    if not t.endswith("?"):
+        return "", t
+    last = None
+    for last in _SPLIT_RE.finditer(t[:-1]):
+        pass
+    if not last:
+        return "", t
+    return t[:last.start()].strip(), t[last.end():].strip()
+
+
 def _sat_modules(questions):
     out = []
     for i, qs in enumerate(_sat_split(questions)):
@@ -32,6 +50,8 @@ def _sat_modules(questions):
             passage, stem = "", q.text
             if "||" in q.text:
                 passage, stem = [x.strip() for x in q.text.split("||", 1)]
+            elif sec == "rw":
+                passage, stem = _auto_split(q.text)
             choices = sorted(q.choices.all(), key=lambda c: c.id)
             items.append({
                 "id": q.id, "n": k, "passage": passage, "stem": stem, "img": q.has_image,
