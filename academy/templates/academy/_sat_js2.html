@@ -8,18 +8,18 @@
   $('dirBtn').onclick = function () { $('mDir').hidden = false; };
   $('btnRef').onclick = function () { $('mRef').hidden = false; };
 
-  /* Desmos kalkulyator */
+  /* Desmos calculator */
   var calc = null, loading = false;
   function openCalc() {
     var box = $('calc'); box.hidden = !box.hidden;
     if (box.hidden || calc) return;
     if (window.Desmos) { calc = Desmos.GraphingCalculator($('calcEl'), { keypad: true, expressions: true }); return; }
     if (loading) return; loading = true;
-    $('calcEl').innerHTML = '<p style="padding:16px;color:#475569">Kalkulyator yuklanmoqda…</p>';
+    $('calcEl').innerHTML = '<p style="padding:16px;color:#475569">Loading calculator…</p>';
     var s = document.createElement('script');
     s.src = 'https://www.desmos.com/api/v1.12/calculator.js?apiKey=' + DESMOS_KEY;
     s.onload = function () { $('calcEl').innerHTML = ''; calc = Desmos.GraphingCalculator($('calcEl'), { keypad: true, expressions: true }); };
-    s.onerror = function () { loading = false; $('calcEl').innerHTML = '<p style="padding:16px;color:#b91c1c">Kalkulyator yuklanmadi. Internetni tekshirib, qayta bosing.</p>'; };
+    s.onerror = function () { loading = false; $('calcEl').innerHTML = '<p style="padding:16px;color:#b91c1c">The calculator could not be loaded. Check your internet connection and try again.</p>'; };
     document.head.appendChild(s);
   }
   $('btnCalc').onclick = openCalc;
@@ -36,7 +36,7 @@
     document.addEventListener('mouseup', function () { on = false; });
   })();
 
-  /* Ikki ustun orasidagi chiziqni surish */
+  /* Drag the divider between the two columns */
   (function split() {
     var main = $('stMain'), h = $('dvh'), on = false;
     function setL(p) { p = Math.max(25, Math.min(75, p)); main.style.setProperty('--l', p + '%'); h.style.left = p + '%'; }
@@ -49,7 +49,7 @@
     document.addEventListener('mouseup', function () { on = false; });
   })();
 
-  /* Matn ustida belgilash (Highlight) */
+  /* Highlight text in the passage (Annotate) */
   var ann = false, btn = $('btnAnn');
   btn.onclick = function () {
     ann = !ann; btn.classList.toggle('on', ann);
