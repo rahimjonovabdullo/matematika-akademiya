@@ -4,11 +4,33 @@
 {% include "academy/_sat_style.html" %}
 {% include "academy/_sat_style2.html" %}
 <style>
+.sat{--ink:#111827}
+.bn{background:#1f3a93;color:#fff}
+.bb.lime{background:#1d4ed8;color:#fff}
+.tl.on,.abc.on{color:#fff}
+.ch.sel{border-color:#1d4ed8;background:#eff4ff;box-shadow:0 0 0 1px #1d4ed8}
+.ch.sel .lt{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
+.gb.done{background:#fff}
 .qq[data-open] .abc{display:none}
-.sxo{margin:18px 0 6px;max-width:360px}
-.sxo label{display:block;font-weight:700;font-size:15px;margin-bottom:8px;color:#1f2937}
-.sxo .sxi{width:100%;box-sizing:border-box;font-size:20px;font-weight:600;padding:12px 14px;border:2px solid #6b7280;border-radius:8px;background:#fff;color:#111;outline:none;letter-spacing:.02em}
-.sxo .sxi:focus{border-color:#1d4ed8;box-shadow:0 0 0 3px rgba(29,78,216,.15)}
+.sxo{margin:22px 0 0}
+.sxw{width:132px;box-sizing:border-box;border:2px solid #6b7280;border-radius:10px;padding:18px 14px 8px;background:#fff}
+.sxw:focus-within{border-color:#1d4ed8;box-shadow:0 0 0 3px rgba(29,78,216,.15)}
+.sxo .sxi{display:block;width:100%;box-sizing:border-box;font-size:20px;font-weight:600;text-align:center;padding:0 0 3px;border:0;border-bottom:2px solid #111827;border-radius:0;background:transparent;color:#111;outline:none;box-shadow:none}
+.sxp{margin-top:24px}
+.sxp b{display:block;font-size:16px;color:#111827}
+.sxv{display:block;min-height:40px;margin-top:8px;font-size:20px;color:#111827}
+.sxf{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 2px;font-size:20px;line-height:1.2}
+.sxf span{padding:0 5px}
+.sxf span:first-child{border-bottom:2px solid #111827}
+.sxd{font-size:14px;line-height:1.55;color:#111827}
+.sxd h3{margin:0 0 14px;font-size:16px;font-weight:800}
+.sxd ul{margin:0 0 18px;padding-left:20px}
+.sxd li{margin:0 0 10px}
+.sxd h4{margin:18px 0 8px;text-align:center;font-size:14px}
+.sxd table{border-collapse:collapse;margin:0 auto;font-size:12.5px}
+.sxd th,.sxd td{border:1px solid #d1d5db;padding:9px 12px;text-align:center}
+.sxd th{font-weight:600;background:#fff}
+.sxd td code{display:inline-block;margin:2px 3px;padding:2px 6px;background:#f1f5f9;border-radius:3px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
 </style>
 <div class="sat" id="sat">
   <form method="post" id="satForm">{% csrf_token %}<div id="satAns"></div></form>
@@ -59,9 +81,31 @@
       {% for m in modules %}
       <div class="mod" data-m="{{ m.i }}" data-t="Section {{ m.sn }}, Module {{ m.mn }}: {{ m.title }}" hidden>
         {% for q in m.qs %}
-        <div class="qq{% if not q.passage and not q.img or m.sec == 'math' and not q.passage %} single{% endif %}" data-q="{{ q.id }}"{% if q.open %} data-open="1"{% endif %} hidden>
-          {% if q.passage or m.sec == 'rw' and q.img %}
+        <div class="qq{% if m.sec == 'math' and not q.passage and not q.open %} single{% endif %}" data-q="{{ q.id }}"{% if q.open %} data-open="1"{% endif %} hidden>
+          {% if m.sec == 'rw' or q.passage or q.open %}
+          {% if m.sec == 'math' and q.open %}
+          <section class="pn sxd">
+            {% if q.passage %}<p>{{ q.passage }}</p>{% endif %}
+            <h3>Student-produced response directions</h3>
+            <ul>
+              <li>If you find <b>more than one correct answer</b>, enter only one answer.</li>
+              <li>You can enter up to 5 characters for a <b>positive</b> answer and up to 6 characters (including the negative sign) for a <b>negative</b> answer.</li>
+              <li>If your answer is a <b>fraction</b> that doesn't fit in the provided space, enter the decimal equivalent.</li>
+              <li>If your answer is a <b>decimal</b> that doesn't fit in the provided space, enter it by truncating or rounding at the fourth digit.</li>
+              <li>If your answer is a <b>mixed number</b> (such as 3 1/2), enter it as an improper fraction (7/2) or its decimal equivalent (3.5).</li>
+              <li>Don't enter <b>symbols</b> such as a percent sign, comma, or dollar sign.</li>
+            </ul>
+            <h4>Examples</h4>
+            <table>
+              <tr><th>Answer</th><th>Acceptable ways to<br>enter answer</th><th>Unacceptable: will<br>NOT receive credit</th></tr>
+              <tr><td>3.5</td><td><code>3.5</code> <code>3.50</code> <code>7/2</code></td><td><code>31/2</code> <code>3 1/2</code></td></tr>
+              <tr><td>2/3</td><td><code>2/3</code> <code>.6666</code> <code>.6667</code> <code>0.666</code> <code>0.667</code></td><td><code>0.66</code> <code>.66</code> <code>0.67</code> <code>.67</code></td></tr>
+              <tr><td>&minus;1/3</td><td><code>-1/3</code> <code>-.3333</code> <code>-0.333</code></td><td><code>-.33</code> <code>-0.33</code></td></tr>
+            </table>
+          </section>
+          {% else %}
           <section class="pn pl">{% if q.passage %}<p>{{ q.passage }}</p>{% endif %}{% if m.sec == 'rw' and q.img %}<img src="{% url 'question_image' q.id %}" alt="Question image">{% endif %}</section>
+          {% endif %}
           {% endif %}
           <section class="pn pr">
             <div class="qhd">
@@ -73,8 +117,8 @@
             <p class="stem">{{ q.stem }}</p>
             {% if q.open %}
             <div class="sxo">
-              <label for="o{{ q.id }}">Enter your answer</label>
-              <input type="text" class="sxi" id="o{{ q.id }}" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Answer">
+              <div class="sxw"><input type="text" class="sxi" id="o{{ q.id }}" maxlength="6" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Answer"></div>
+              <div class="sxp"><b>Answer Preview:</b><span class="sxv"></span></div>
             </div>
             {% else %}
             {% for c in q.choices %}
