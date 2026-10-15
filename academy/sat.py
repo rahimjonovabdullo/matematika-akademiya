@@ -10,6 +10,20 @@ SAT_MODULES = [
 ]
 
 
+# Mavzular (Bluebook "Knowledge and Skills"): kod, nomi, bo'lim
+SAT_DOMAINS = [
+    ("CS", "Craft and Structure", "rw"),
+    ("II", "Information and Ideas", "rw"),
+    ("SEC", "Standard English Conventions", "rw"),
+    ("EI", "Expression of Ideas", "rw"),
+    ("ALG", "Algebra", "math"),
+    ("ADV", "Advanced Math", "math"),
+    ("PSDA", "Problem-Solving and Data Analysis", "math"),
+    ("GT", "Geometry and Trigonometry", "math"),
+]
+SAT_DOMAIN_NAMES = {c: n for c, n, _ in SAT_DOMAINS}
+
+
 def _sat_split(questions):
     n = len(questions)
     total = sum(m[3] for m in SAT_MODULES)
@@ -67,25 +81,75 @@ def _sat_modules(questions):
 
 def _sat_stats(questions, post):
     stats = []
+    dom = {}
     for i, qs in enumerate(_sat_split(questions)):
         c = a = 0
         for q in qs:
             sel = post.get("q%d" % q.id)
             if sel:
                 a += 1
+            good = False
             if q.is_open:
-                if sel and q.check_open_answer(sel):
-                    c += 1
-                continue
-            ok = next((x for x in q.choices.all() if x.is_correct), None)
-            if sel and ok and str(ok.id) == sel:
+                good = bool(sel and q.check_open_answer(sel))
+            else:
+                ok = next((x for x in q.choices.all() if x.is_correct), None)
+                good = bool(sel and ok and str(ok.id) == sel)
+            if good:
                 c += 1
+            d = (getattr(q, "domain", "") or "").strip()
+            if d in SAT_DOMAIN_NAMES:
+                e = dom.setdefault(d, [0, 0])
+                e[1] += 1
+                if good:
+                    e[0] += 1
         stats.append({"sec": SAT_MODULES[i][0], "mn": SAT_MODULES[i][2], "c": c, "a": a, "n": len(qs)})
     try:
         secs = max(0, min(int(post.get("secs", "0")), 4 * 3600))
     except (TypeError, ValueError):
         secs = 0
-    return {"mods": stats, "secs": secs}
+    return {"mods": stats, "secs": secs, "doms": dom}
+
+
+def _review_rows(attempt):
+    """Urinishdagi har bir savol: o'quvchi javobi va to'g'ri javob (ko'rib chiqish sahifasi uchun)."""
+    given = attempt.answers or {}
+    questions = list(attempt.course.questions.prefetch_related("choices"))
+    is_sat = attempt.course.category == "sat"
+    secs = {}
+    if is_sat:
+        for i, qs in enumerate(_sat_split(questions)):
+            for q in qs:
+                secs[q.id] = (SAT_MODULES[i][0], SAT_MODULES[i][1], SAT_MODULES[i][2])
+    rows = []
+    for n, q in enumerate(questions, start=1):
+        sel = (given.get(str(q.id)) or "").strip()
+        sec = secs.get(q.id)
+        passage, stem = "", q.text
+        if "||" in q.text:
+            passage, stem = [x.strip() for x in q.text.split("||", 1)]
+        elif sec and sec[0] == "rw":
+            passage, stem = _auto_split(q.text)
+        row = {
+            "n": n, "id": q.id, "passage": passage, "stem": stem, "img": q.has_image,
+            "open": q.is_open, "given": sel,
+            "domain": SAT_DOMAIN_NAMES.get((getattr(q, "domain", "") or "").strip(), ""),
+            "where": ("%s, Module %d" % ("Reading and Writing" if sec[0] == "rw" else "Math", sec[2])) if sec else "",
+        }
+        if q.is_open:
+            row["correct_text"] = (q.answer_text or "").split("|")[0].strip()
+            ok = bool(sel and q.check_open_answer(sel))
+            row["choices"] = []
+        else:
+            choices = sorted(q.choices.all(), key=lambda c: c.id)
+            row["choices"] = [
+                {"letter": "ABCDEF"[j], "text": c.text, "right": c.is_correct, "mine": bool(sel) and str(c.id) == sel}
+                for j, c in enumerate(choices[:6])
+            ]
+            ok = any(c["right"] and c["mine"] for c in row["choices"])
+            row["correct_text"] = next((c["letter"] for c in row["choices"] if c["right"]), "")
+        row["status"] = "ok" if ok else ("skip" if not sel else "bad")
+        rows.append(row)
+    return rows
 
 
 def _sat_scale(c, n):
@@ -96,8 +160,10 @@ def _sat_scale(c, n):
 
 def _sat_scores(attempt, payload):
     secs = 0
+    doms = {}
     if isinstance(payload, dict):
         stats, secs = payload.get("mods") or [], payload.get("secs") or 0
+        doms = payload.get("doms") or {}
     else:
         stats = payload
     if not stats:
@@ -129,6 +195,18 @@ def _sat_scores(attempt, payload):
         "modules": [dict(x, pct=int(round(100.0 * x["c"] / x["n"]))) for x in stats if x["n"]] if exact else [],
         "mins": max(1, int(round(secs / 60.0))) if secs else None,
     }
+    def dom_rows(sec):
+        rows = []
+        for code, name, sc in SAT_DOMAINS:
+            if sc != sec or code not in doms:
+                continue
+            c, n = doms[code]
+            if n:
+                rows.append({"code": code, "name": name, "c": c, "n": n, "pct": int(round(100.0 * c / n))})
+        return rows
+
+    out["rw_doms"], out["m_doms"] = (dom_rows("rw"), dom_rows("math")) if exact else ([], [])
+    out["has_doms"] = bool(out["rw_doms"] or out["m_doms"])
     if total:
         out["lo"], out["hi"] = max(400, total - 30), min(1600, total + 30)
         out["pos"] = int(round((total - 400) / 12.0))
