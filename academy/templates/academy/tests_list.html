@@ -22,8 +22,9 @@
   .tl-tabs::-webkit-scrollbar { display: none; }
   .tl-tab {
     white-space: nowrap; padding: 10px 20px; border-radius: 12px; font-weight: 700; font-size: 14px;
-    color: #4a5561; text-decoration: none;
+    color: #4a5561; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
   }
+  .tl-tab .ti { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .tl-tab:hover { color: #111; }
   .tl-tab.on { background: #fff; color: #111; box-shadow: 0 1px 4px rgba(0, 0, 0, .12); }
 
@@ -76,10 +77,10 @@
 
   <div class="tl-tabsbox">
     <nav class="tl-tabs">
-      <a class="tl-tab {% if not bolim %}on{% endif %}" href="{% url 'tests_list' %}">Hammasi</a>
-      <a class="tl-tab {% if bolim == 'milliy' %}on{% endif %}" href="{% url 'tests_list' %}?bolim=milliy">Milliy Sertifikat</a>
-      <a class="tl-tab {% if bolim == 'attestatsiya' %}on{% endif %}" href="{% url 'tests_list' %}?bolim=attestatsiya">Attestatsiya</a>
-      <a class="tl-tab {% if bolim == 'sat' %}on{% endif %}" href="{% url 'tests_list' %}?bolim=sat">SAT</a>
+      <a class="tl-tab {% if not bolim %}on{% endif %}" href="{% url 'tests_list' %}"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Hammasi</a>
+      <a class="tl-tab {% if bolim == 'milliy' %}on{% endif %}" href="{% url 'tests_list' %}?bolim=milliy"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.5 13.5 17 22l-5-3-5 3 1.5-8.5"/></svg>Milliy Sertifikat</a>
+      <a class="tl-tab {% if bolim == 'attestatsiya' %}on{% endif %}" href="{% url 'tests_list' %}?bolim=attestatsiya"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>Attestatsiya</a>
+      <a class="tl-tab {% if bolim == 'sat' %}on{% endif %}" href="{% url 'tests_list' %}?bolim=sat"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>SAT</a>
     </nav>
   </div>
 
