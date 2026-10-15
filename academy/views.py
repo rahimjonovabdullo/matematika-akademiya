@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from .forms import EnrollRequestForm, RegisterForm
-from .sat import _sat_modules, _sat_scores, _sat_stats, sat_percentile
+from .sat import _review_rows, _sat_modules, _sat_scores, _sat_stats, sat_percentile
 from .models import Choice, Course, Enrollment, Group, PaymentSettings, QuizAttempt
 
 
@@ -135,8 +135,11 @@ def take_quiz(request, slug):
 
     if request.method == "POST":
         score = 0
+        answers = {}
         for q in questions:
             selected = request.POST.get(f"q{q.id}")
+            if selected:
+                answers[str(q.id)] = selected.strip()[:200]
             if q.is_open:
                 if selected and q.check_open_answer(selected):
                     score += 1
@@ -145,7 +148,7 @@ def take_quiz(request, slug):
             if selected and correct_choice and str(correct_choice.id) == selected:
                 score += 1
         attempt = QuizAttempt.objects.create(
-            student=request.user, course=course, score=score, total=len(questions)
+            student=request.user, course=course, score=score, total=len(questions), answers=answers
         )
         if course.category == "sat":
             request.session["sat_%d" % attempt.id] = _sat_stats(questions, request.POST)
@@ -174,11 +177,20 @@ def take_quiz(request, slug):
 @login_required
 def quiz_result(request, attempt_id):
     attempt = get_object_or_404(QuizAttempt, id=attempt_id, student=request.user)
+    if request.GET.get("review") == "1" and attempt.answers:
+        rows = _review_rows(attempt)
+        return render(request, "academy/quiz_review.html", {
+            "attempt": attempt, "rows": rows,
+            "n_ok": sum(1 for r in rows if r["status"] == "ok"),
+            "n_bad": sum(1 for r in rows if r["status"] == "bad"),
+            "n_skip": sum(1 for r in rows if r["status"] == "skip"),
+        })
     if attempt.course.category == "sat":
         payload = request.session.get("sat_%d" % attempt.id)
         ctx = {
             "attempt": attempt, "done": request.GET.get("done") == "1",
             "better": sat_percentile(attempt), "code": "SAT-%d" % attempt.course_id,
+            "can_review": bool(attempt.answers),
         }
         ctx.update(_sat_scores(attempt, payload))
         return render(request, "academy/sat_result.html", ctx)
