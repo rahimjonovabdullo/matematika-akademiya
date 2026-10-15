@@ -10,7 +10,10 @@
 .tl.on,.abc.on{color:#fff}
 .ch.sel{border-color:#1d4ed8;background:#eff4ff;box-shadow:0 0 0 1px #1d4ed8}
 .ch.sel .lt{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
-.gb.done{background:#fff}
+.gb.done{background:#1d4ed8;border:1.5px solid #1d4ed8;color:#fff}
+.gb.cur{box-shadow:0 0 0 2px #fff,0 0 0 4px #111827}
+.gb.cur:not(.done){background:#111827;border-color:#111827;color:#fff}
+.lg i.d{background:#1d4ed8;border-color:#1d4ed8}
 .qq[data-open] .abc{display:none}
 .sxo{margin:22px 0 0}
 .sxw{width:132px;box-sizing:border-box;border:2px solid #6b7280;border-radius:10px;padding:18px 14px 8px;background:#fff}
@@ -147,7 +150,7 @@
       <p>On test day, you won't be able to move on to the next module until time expires.</p>
       <p>For these practice questions, you can click <b>Next</b> when you're ready to move on.</p>
       <div class="box">
-        <div class="bh"><b id="rvT"></b><div class="lg"><span><i></i>Unanswered</span><span style="color:#dc2626">⚑ For Review</span></div></div>
+        <div class="bh"><b id="rvT"></b><div class="lg"><span><i class="d"></i>Answered</span><span><i></i>Unanswered</span><span style="color:#dc2626">⚑ For Review</span></div></div>
         <div class="gr" id="rvGrid"></div>
       </div>
     </div>
