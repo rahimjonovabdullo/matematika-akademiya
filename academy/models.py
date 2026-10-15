@@ -84,6 +84,11 @@ class Question(models.Model):
         help_text="Bo'sh bo'lmasa, savol variantsiz: o'quvchi javobni o'zi yozadi. Bir nechta to'g'ri yozilish | bilan ajratiladi.",
     )
 
+    domain = models.CharField(
+        "Mavzu (SAT)", max_length=5, blank=True, default="",
+        help_text="Faqat SAT testlari uchun: savol qaysi mavzuga tegishli.",
+    )
+
     class Meta:
         verbose_name = "Savol"
         verbose_name_plural = "Savollar"
@@ -153,6 +158,7 @@ class QuizAttempt(models.Model):
     score = models.PositiveIntegerField("To'g'ri javoblar soni")
     total = models.PositiveIntegerField("Jami savollar soni")
     created_at = models.DateTimeField(auto_now_add=True)
+    answers = models.JSONField("Javoblar", default=dict, blank=True)
 
     class Meta:
         verbose_name = "Test natijasi"
