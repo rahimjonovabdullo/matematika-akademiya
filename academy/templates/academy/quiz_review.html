@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Savollarni ko'rib chiqish — {{ attempt.course.title }}{% endblock %}
+{% block content %}
+<style>
+.rv{max-width:860px;margin:0 auto;padding:6px 0 40px;display:grid;gap:16px;align-content:start}
+.rv-c{background:#fff;border:1px solid #e8eae4;border-radius:26px;padding:22px 26px;box-shadow:0 6px 24px rgba(22,40,29,.05)}
+.rv-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;font-weight:800;text-decoration:none;font-size:14px;background:#fff;border:1px solid #e8eae4;color:#16281d;cursor:pointer;font-family:inherit}
+.rv-btn.on{background:#16281d;border-color:#16281d;color:#fff}
+.rv-btn .bi{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.rv h1{margin:0 0 6px;font-size:28px}
+.rv-sub{color:#64748b;font-size:14px;margin:0 0 14px}
+.rv-bar{display:flex;gap:8px;flex-wrap:wrap}
+.rv-q{display:grid;gap:12px}
+.rv-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rv-n{width:34px;height:34px;border-radius:50%;background:#111827;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex:none}
+.rv-st{font-weight:800;font-size:12px;border-radius:999px;padding:5px 12px}
+.rv-st.ok{background:#e3f6ea;color:#1b8a4b}
+.rv-st.bad{background:#ffe9ed;color:#a3102b}
+.rv-st.skip{background:#f1f5f9;color:#475569}
+.rv-tag{font-size:12px;color:#64748b;font-weight:700}
+.rv-p{font-family:Georgia,"Times New Roman",serif;font-size:15px;line-height:1.65;color:#111827;border-left:3px solid #e2e8f0;padding-left:14px;margin:0}
+.rv-s{font-size:15.5px;line-height:1.55;font-weight:600;margin:0;color:#111827}
+.rv-img{max-width:100%;border:1px solid #e8eae4;border-radius:12px}
+.rv-ch{display:grid;gap:8px}
+.rv-o{display:flex;gap:12px;align-items:flex-start;border:1.5px solid #e2e8f0;border-radius:14px;padding:11px 14px;font-size:15px;line-height:1.45}
+.rv-o b{width:26px;height:26px;border-radius:50%;border:1.5px solid #94a3b8;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+.rv-o.right{border-color:#1b8a4b;background:#f0fbf4}
+.rv-o.right b{background:#1b8a4b;border-color:#1b8a4b;color:#fff}
+.rv-o.wrong{border-color:#e5173f;background:#fff5f7}
+.rv-o.wrong b{background:#e5173f;border-color:#e5173f;color:#fff}
+.rv-o em{margin-left:auto;font-style:normal;font-size:12px;font-weight:800;white-space:nowrap;color:#475569}
+.rv-ans{display:flex;gap:10px;flex-wrap:wrap}
+.rv-ans div{background:#f8f9f5;border:1px solid #eef0ea;border-radius:14px;padding:10px 16px;font-size:13px;color:#64748b;font-weight:700}
+.rv-ans b{display:block;font-size:20px;color:#111827;margin-top:2px}
+.rv-ans .good b{color:#1b8a4b}.rv-ans .bad b{color:#a3102b}
+.rv-empty{text-align:center;color:#64748b;padding:28px 0}
+</style>
+
+<div class="rv">
+  <div class="rv-c">
+    <h1>Savollarni ko'rib chiqish</h1>
+    <p class="rv-sub">{{ attempt.course.title }} · {{ attempt.created_at|date:"d.m.Y, H:i" }} · to'g'ri: {{ attempt.score }} / {{ attempt.total }}</p>
+    <div class="rv-bar">
+      <a class="rv-btn" href="{% url 'quiz_result' attempt.id %}"><svg class="bi" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>Orqaga</a>
+      <button type="button" class="rv-btn on" data-f="all">Hammasi ({{ rows|length }})</button>
+      <button type="button" class="rv-btn" data-f="bad">Xato ({{ n_bad }})</button>
+      <button type="button" class="rv-btn" data-f="skip">Tashlab ketilgan ({{ n_skip }})</button>
+      <button type="button" class="rv-btn" data-f="ok">To'g'ri ({{ n_ok }})</button>
+    </div>
+  </div>
+
+  {% for r in rows %}
+  <div class="rv-c rv-q" data-s="{{ r.status }}">
+    <div class="rv-h">
+      <span class="rv-n">{{ r.n }}</span>
+      <span class="rv-st {{ r.status }}">{% if r.status == 'ok' %}To'g'ri{% elif r.status == 'bad' %}Xato{% else %}Javob berilmagan{% endif %}</span>
+      {% if r.where %}<span class="rv-tag">{{ r.where }}</span>{% endif %}
+      {% if r.domain %}<span class="rv-tag">· {{ r.domain }}</span>{% endif %}
+    </div>
+    {% if r.passage %}<p class="rv-p">{{ r.passage }}</p>{% endif %}
+    {% if r.img %}<img class="rv-img" src="{% url 'question_image' r.id %}" alt="Savol rasmi">{% endif %}
+    <p class="rv-s">{{ r.stem }}</p>
+    {% if r.open %}
+    <div class="rv-ans">
+      <div class="{% if r.status == 'ok' %}good{% elif r.status == 'bad' %}bad{% endif %}">Sizning javobingiz<b>{% if r.given %}{{ r.given }}{% else %}—{% endif %}</b></div>
+      <div class="good">To'g'ri javob<b>{{ r.correct_text }}</b></div>
+    </div>
+    {% else %}
+    <div class="rv-ch">
+      {% for c in r.choices %}
+      <div class="rv-o{% if c.right %} right{% elif c.mine %} wrong{% endif %}"><b>{{ c.letter }}</b><span>{{ c.text }}</span>{% if c.right and c.mine %}<em>Sizning javobingiz ✓</em>{% elif c.right %}<em>To'g'ri javob</em>{% elif c.mine %}<em>Sizning javobingiz</em>{% endif %}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+  <div class="rv-c rv-empty" id="rvEmpty" hidden>Bu toifada savol yo'q.</div>
+</div>
+
+<script>
+(function(){
+  var btns=document.querySelectorAll('[data-f]'), cards=document.querySelectorAll('[data-s]'), em=document.getElementById('rvEmpty');
+  btns.forEach(function(b){
+    b.addEventListener('click',function(){
+      var f=b.getAttribute('data-f'), n=0;
+      btns.forEach(function(x){x.classList.toggle('on',x===b);});
+      cards.forEach(function(c){var show=f==='all'||c.getAttribute('data-s')===f; c.hidden=!show; if(show) n++;});
+      em.hidden=n>0;
+    });
+  });
+})();
+</script>
+{% endblock %}
