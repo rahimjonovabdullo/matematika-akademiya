@@ -20,22 +20,22 @@
     <div class="brand"><div class="logo">M</div><div><b>Matematika Akademiya</b><small>Ta'lim platformasi</small></div></div>
     {% if user.is_authenticated %}
     <div class="grp">Asosiy</div>
-    <a class="nav {% if request.resolver_match.url_name == 'home' %}on{% endif %}" href="{% url 'home' %}">Bosh sahifa</a>
-    <a class="nav {% if request.resolver_match.url_name == 'tests_list' %}on{% endif %}" href="{% url 'tests_list' %}">Testlar</a>
+    <a class="nav {% if request.resolver_match.url_name == 'home' %}on{% endif %}" href="{% url 'home' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Bosh sahifa</a>
+    <a class="nav {% if request.resolver_match.url_name == 'tests_list' %}on{% endif %}" href="{% url 'tests_list' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>Testlar</a>
     {% if user.is_staff %}
-    <a class="nav {% if request.path|slice:':11' == '/boshqaruv/' and request.resolver_match.url_name != 'manage_payment' %}on{% endif %}" href="{% url 'manage_courses' %}">Boshqaruv</a>
-    <a class="nav {% if request.resolver_match.url_name == 'manage_payment' %}on{% endif %}" href="{% url 'manage_payment' %}">To'lov sozlamalari</a>
+    <a class="nav {% if request.path|slice:':11' == '/boshqaruv/' and request.resolver_match.url_name != 'manage_payment' %}on{% endif %}" href="{% url 'manage_courses' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg>Boshqaruv</a>
+    <a class="nav {% if request.resolver_match.url_name == 'manage_payment' %}on{% endif %}" href="{% url 'manage_payment' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>To'lov sozlamalari</a>
     {% endif %}
     <div class="grp">Bo'limlar</div>
-    <a class="nav {% if request.resolver_match.url_name == 'dashboard' %}on{% endif %}" href="{% url 'dashboard' %}">Kabinet</a>
-    <a class="nav {% if request.resolver_match.url_name == 'my_groups' %}on{% endif %}" href="{% url 'my_groups' %}">Guruhlarim</a>
-    <a class="nav {% if request.resolver_match.url_name == 'results_list' %}on{% endif %}" href="{% url 'results_list' %}">Natijalarim</a>
-    <a class="nav {% if request.resolver_match.url_name == 'leaderboard' %}on{% endif %}" href="{% url 'leaderboard' %}">Liderlar</a>
-    <a class="nav {% if request.resolver_match.url_name == 'help_page' %}on{% endif %}" href="{% url 'help_page' %}">Yordam</a>
+    <a class="nav {% if request.resolver_match.url_name == 'dashboard' %}on{% endif %}" href="{% url 'dashboard' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Kabinet</a>
+    <a class="nav {% if request.resolver_match.url_name == 'my_groups' %}on{% endif %}" href="{% url 'my_groups' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18 14.5c2 .8 3.5 2.7 3.5 5.5"/></svg>Guruhlarim</a>
+    <a class="nav {% if request.resolver_match.url_name == 'results_list' %}on{% endif %}" href="{% url 'results_list' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3"/><path d="M7 5H4v2a3 3 0 0 0 3 3"/></svg>Natijalarim</a>
+    <a class="nav {% if request.resolver_match.url_name == 'leaderboard' %}on{% endif %}" href="{% url 'leaderboard' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="15" r="5"/><path d="M8.5 11 6 3h5l1 4"/><path d="M15.5 11 18 3h-5l-1 4"/><circle cx="12" cy="15" r="1.5"/></svg>Liderlar</a>
+    <a class="nav {% if request.resolver_match.url_name == 'help_page' %}on{% endif %}" href="{% url 'help_page' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M5.6 5.6l3.9 3.9M14.5 14.5l3.9 3.9M18.4 5.6l-3.9 3.9M9.5 14.5l-3.9 3.9"/></svg>Yordam</a>
     <div class="grp">Tizim</div>
-    <a class="nav {% if request.resolver_match.url_name == 'payment_page' %}on{% endif %}" href="{% url 'payment_page' %}">To'lov</a>
-    <a class="nav {% if request.resolver_match.url_name == 'settings_page' %}on{% endif %}" href="{% url 'settings_page' %}">Sozlamalar</a>
-    <form method="post" action="{% url 'logout' %}" style="margin:0">{% csrf_token %}<button type="submit" class="nav out" style="background:none;border:0;font:inherit;cursor:pointer;text-align:left;width:100%">Chiqish</button></form>
+    <a class="nav {% if request.resolver_match.url_name == 'payment_page' %}on{% endif %}" href="{% url 'payment_page' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.2c-.5-1-1.6-1.6-3-1.6-1.7 0-3 .9-3 2.2 0 3 6 1.6 6 4.6 0 1.3-1.3 2.2-3 2.2-1.5 0-2.7-.7-3.2-1.8"/><path d="M12 6v1.6M12 16.4V18"/></svg>To'lov</a>
+    <a class="nav {% if request.resolver_match.url_name == 'settings_page' %}on{% endif %}" href="{% url 'settings_page' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Sozlamalar</a>
+    <form method="post" action="{% url 'logout' %}" style="margin:0">{% csrf_token %}<button type="submit" class="nav out" style="background:none;border:0;font:inherit;cursor:pointer;text-align:left;width:100%"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>Chiqish</button></form>
     {% else %}
     {% include "academy/_side_guest.html" %}
     {% endif %}
@@ -44,15 +44,15 @@
     <div class="tb">
       {% if request.path == tests_url %}
       <nav class="tb-tabs">
-        <a class="tb-tab" href="{{ home_url }}">Bosh sahifa</a>
-        <span class="tb-tab on">Testlar</span>
+        <a class="tb-tab" href="{{ home_url }}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Bosh sahifa</a>
+        <span class="tb-tab on"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>Testlar</span>
       </nav>
       {% else %}
       <nav class="tb-tabs">
-        <a class="tb-tab {% if request.path == home_url and not request.GET.bolim %}on{% endif %}" href="{{ home_url }}">Asosiy</a>
-        <a class="tb-tab {% if request.GET.bolim == 'milliy' or course.category == 'milliy' or attempt.course.category == 'milliy' %}on{% endif %}" href="{{ home_url }}?bolim=milliy">Milliy Sertifikat</a>
-        <a class="tb-tab {% if request.GET.bolim == 'attestatsiya' or course.category == 'attestatsiya' or attempt.course.category == 'attestatsiya' %}on{% endif %}" href="{{ home_url }}?bolim=attestatsiya">Attestatsiya</a>
-        <a class="tb-tab {% if request.GET.bolim == 'sat' or course.category == 'sat' or attempt.course.category == 'sat' %}on{% endif %}" href="{{ home_url }}?bolim=sat">SAT</a>
+        <a class="tb-tab {% if request.path == home_url and not request.GET.bolim %}on{% endif %}" href="{{ home_url }}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Asosiy</a>
+        <a class="tb-tab {% if request.GET.bolim == 'milliy' or course.category == 'milliy' or attempt.course.category == 'milliy' %}on{% endif %}" href="{{ home_url }}?bolim=milliy"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M8.5 14.5 7 22l5-3 5 3-1.5-7.5"/></svg>Milliy Sertifikat</a>
+        <a class="tb-tab {% if request.GET.bolim == 'attestatsiya' or course.category == 'attestatsiya' or attempt.course.category == 'attestatsiya' %}on{% endif %}" href="{{ home_url }}?bolim=attestatsiya"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>Attestatsiya</a>
+        <a class="tb-tab {% if request.GET.bolim == 'sat' or course.category == 'sat' or attempt.course.category == 'sat' %}on{% endif %}" href="{{ home_url }}?bolim=sat"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>SAT</a>
       </nav>
       {% endif %}
       <div class="tb-right">
@@ -70,6 +70,12 @@
   </div>
 </div>
 {% include "academy/_math.html" %}
+<style>
+.side .nav{display:flex;align-items:center;gap:12px}
+.side .nav .ni{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tb-tabs .tb-tab{display:inline-flex;align-items:center;gap:8px}
+.tb-tabs .tb-tab .ni{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+</style>
 <style>
 .pw-wrap{position:relative;display:block}
 .pw-wrap input{padding-right:60px !important;width:100%;box-sizing:border-box}
