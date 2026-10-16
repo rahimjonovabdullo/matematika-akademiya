@@ -39,7 +39,7 @@
   <div class="hm-courses">
     {% for c in courses %}
     <a class="hm-course" style="--i: {{ forloop.counter0 }}" href="{% url 'course_detail' c.slug %}">
-      <span class="pr">{% if c.price == 0 %}Bepul{% else %}{{ c.price }} so'm{% endif %}</span>
+      <span class="pr">{% if c.price == 0 %}Bepul{% else %}{{ c.price_text }} so'm{% endif %}</span>
       <b>{{ c.title }}</b>
       <p>{{ c.description|truncatechars:90 }}</p>
       <span class="go">Batafsil <span>→</span></span>
