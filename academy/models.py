@@ -41,6 +41,15 @@ class Course(models.Model):
         default=0,
         help_text="Test uchun vaqt. 0 bo'lsa ko'rsatilmaydi.",
     )
+    parent = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="banks",
+        verbose_name="Qaysi kursga tegishli",
+        help_text="Savollar bazasi bo'lsa, qaysi kurs ichida ko'rinishini tanlang.",
+    )
     is_published = models.BooleanField("Sahifada ko'rinsinmi", default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
