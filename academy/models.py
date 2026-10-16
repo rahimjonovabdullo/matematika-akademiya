@@ -52,6 +52,11 @@ class Course(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def price_text(self):
+        """Narx bo'sh joy bilan: 200 000 (sahifalarda ko'rsatish uchun)."""
+        return f"{int(self.price or 0):,}".replace(",", "\u00a0")
+
     def get_absolute_url(self):
         return reverse("course_detail", args=[self.slug])
 
