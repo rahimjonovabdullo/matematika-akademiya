@@ -103,7 +103,7 @@
           </div>
           <div class="tl-cat"><b>{% if c.category == 'milliy' %}Milliy Sertifikat{% elif c.category == 'attestatsiya' %}Attestatsiya{% elif c.category == 'sat' %}SAT{% else %}{{ c.get_category_display }}{% endif %}</b><small>Test</small></div>
         </div>
-        <span class="tl-price">{% if c.price %}{{ c.price }} so'm{% else %}Bepul{% endif %}</span>
+        <span class="tl-price">{% if c.price %}{{ c.price_text }} so'm{% else %}Bepul{% endif %}</span>
       </div>
 
       <div class="tl-title">{{ c.title }}</div>
