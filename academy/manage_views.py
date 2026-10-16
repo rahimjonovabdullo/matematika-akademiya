@@ -15,6 +15,33 @@ staff_only = user_passes_test(lambda u: u.is_active and u.is_staff, login_url="l
 # ---------- Formalar ----------
 
 class CourseForm(forms.ModelForm):
+    price = forms.CharField(
+        label="Narxi (so'm)",
+        required=False,
+        widget=forms.TextInput(attrs={
+            "inputmode": "numeric",
+            "autocomplete": "off",
+            "placeholder": "masalan: 200 000",
+            "oninput": "this.value=this.value.replace(/\\D/g,'').replace(/\\B(?=(\\d{3})+(?!\\d))/g,' ')",
+        }),
+        help_text="Bepul bo'lsa 0 yozing. Raqamlar avtomatik ajratiladi: 200 000.",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.is_bound:
+            self.initial["price"] = f"{int(self.instance.price or 0):,}".replace(",", " ")
+
+    def clean_price(self):
+        raw = (self.cleaned_data.get("price") or "")
+        for ch in (" ", "\u00a0", ",", "."):
+            raw = raw.replace(ch, "")
+        if raw == "":
+            return 0
+        if not raw.isdigit():
+            raise forms.ValidationError("Narxni faqat raqam bilan yozing, masalan: 200 000")
+        return int(raw)
+
     class Meta:
         model = Course
         fields = ["title", "category", "description", "price", "duration_minutes", "is_published"]
@@ -22,12 +49,10 @@ class CourseForm(forms.ModelForm):
             "title": "Nomi",
             "category": "Toifa (qaysi bo'limda ko'rinadi)",
             "description": "Qisqacha tavsif",
-            "price": "Narxi (so'm)",
             "duration_minutes": "Test davomiyligi (daqiqa)",
             "is_published": "Saytda ko'rinsin",
         }
         help_texts = {
-            "price": "Bepul bo'lsa 0 yozing.",
             "duration_minutes": "Masalan 60. Ko'rsatmoqchi bo'lmasangiz 0 qoldiring.",
         }
         widgets = {"description": forms.Textarea(attrs={"rows": 5})}
