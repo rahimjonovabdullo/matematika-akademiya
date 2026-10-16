@@ -29,12 +29,12 @@
 </style>
 
 <div class="card">
-  <span class="pill">{% if is_free %}Bepul{% else %}{{ course.price }} so'm{% endif %}</span>
+  <span class="pill">{% if is_free %}Bepul{% else %}{{ course.price_text }} so'm{% endif %}</span>
   <h1>{{ course.title }}</h1>
   <p style="color:var(--mute)">{{ course.description }}</p>
 
   {% if has_access %}
-    <a class="btn" href="{% url 'take_quiz' course.slug %}">Testni boshlash</a>
+    {% if has_questions or not banks %}<a class="btn" href="{% url 'take_quiz' course.slug %}">Testni boshlash</a>{% endif %}
 
   {% elif enrollment %}
     <p><b>So'rovingiz qabul qilingan.</b> To'lov chekini Telegramdan yuboring, tasdiqlangach kirish ochiladi.</p>
@@ -46,7 +46,7 @@
     <h3>To'lov</h3>
     {% if pay and pay.is_ready %}
     <div class="pay-box">
-      <div class="pay-amount">TO'LOV SUMMASI<b>{{ course.price }} so'm</b></div>
+      <div class="pay-amount">TO'LOV SUMMASI<b>{{ course.price_text }} so'm</b></div>
       <div class="pay-card">
         <b id="payCard">{{ pay.card_number }}</b>
         <button type="button" class="pay-copy" id="payCopy">Nusxalash</button>
@@ -54,7 +54,7 @@
       <div class="pay-owner">{{ pay.card_owner }}</div>
       {% if pay.bank_name %}<div class="pay-bank">{{ pay.bank_name }}</div>{% endif %}
       <ol class="pay-steps">
-        <li>Yuqoridagi kartaga {{ course.price }} so'm o'tkazing.</li>
+        <li>Yuqoridagi kartaga {{ course.price_text }} so'm o'tkazing.</li>
         <li>To'lov chekini (skrinshotini) Telegramdan {% if pay.telegram_handle %}<b>@{{ pay.telegram_handle }}</b>{% else %}adminga{% endif %} yuboring.</li>
         <li>Pastdagi shaklni to'ldirib, «To'lov qildim» tugmasini bosing.</li>
       </ol>
@@ -81,6 +81,22 @@
     <a class="btn" href="{% url 'login' %}?next={{ request.path }}">{% if is_free %}Testni boshlash uchun kiring{% else %}Kursga yozilish uchun kiring{% endif %}</a>
   {% endif %}
 </div>
+
+{% if banks %}
+<h2>Savollar bazalari</h2>
+<div class="card">
+  {% for b in banks %}
+  <div class="row">
+    <div><b>{{ b.title }}</b><br><small style="color:var(--mute)">{{ b.questions_count }} ta savol{% if b.duration_minutes %} · {{ b.duration_minutes }} daqiqa{% endif %}</small></div>
+    {% if has_access %}
+      {% if b.questions_count %}<a class="btn" href="{% url 'take_quiz' b.slug %}">Testni boshlash</a>{% else %}<span style="color:var(--mute)">Tez orada</span>{% endif %}
+    {% else %}
+      <span style="color:var(--mute)">Kursga yoziling</span>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
 
 <h2>Darslar</h2>
 <div class="card">
