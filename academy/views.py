@@ -106,6 +106,13 @@ def course_detail(request, slug):
     if not has_access:
         lessons = lessons.filter(is_free_preview=True)
 
+    banks = (
+        course.banks.filter(is_published=True)
+        .annotate(questions_count=Count("questions", distinct=True))
+        .order_by("id")
+    )
+    has_questions = course.questions.exists()
+
     return render(
         request,
         "academy/course_detail.html",
@@ -117,6 +124,8 @@ def course_detail(request, slug):
             "form": form,
             "is_free": is_free,
             "pay": pay,
+            "banks": banks,
+            "has_questions": has_questions,
         },
     )
 
@@ -124,12 +133,14 @@ def course_detail(request, slug):
 @login_required
 def take_quiz(request, slug):
     course = get_object_or_404(Course, slug=slug, is_published=True)
-    if course.price == 0:
-        _open_free_access(request.user, course)
-    enrollment = Enrollment.objects.filter(student=request.user, course=course, is_active=True).first()
+    # Savollar bazasi kursning ichida bo'lsa, kirish huquqi kurs bo'yicha tekshiriladi.
+    back = course.parent if course.parent_id else course
+    if back.price == 0:
+        _open_free_access(request.user, back)
+    enrollment = Enrollment.objects.filter(student=request.user, course=back, is_active=True).first()
     if not enrollment:
-        messages.error(request, "Bu kurs testiga kirish uchun avval kursga yozilib, to'lovni tasdiqlang.")
-        return redirect("course_detail", slug=slug)
+        messages.error(request, "Bu kurs testiga kirish uchun avval kursga yozilib, to'lovni tasdiqlating.")
+        return redirect("course_detail", slug=back.slug)
 
     questions = list(course.questions.prefetch_related("choices"))
 
@@ -157,7 +168,7 @@ def take_quiz(request, slug):
 
     if not questions:
         messages.info(request, "Bu kurs uchun hali savollar qo'shilmagan.")
-        return redirect("course_detail", slug=slug)
+        return redirect("course_detail", slug=back.slug)
 
     if course.category == "sat":
         modules = _sat_modules(questions)
@@ -199,7 +210,7 @@ def quiz_result(request, attempt_id):
 
 def tests_list(request):
     # Faqat "Testlar" bo'limida yaratilganlar chiqadi; kurslar bu yerda ko'rinmaydi.
-    courses = Course.objects.filter(is_published=True, kind="test")
+    courses = Course.objects.filter(is_published=True, kind="test", parent__isnull=True)
     bolim = request.GET.get("bolim", "")
     if bolim in ("milliy", "attestatsiya", "sat"):
         courses = courses.filter(category=bolim)
