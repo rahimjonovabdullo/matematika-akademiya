@@ -176,6 +176,8 @@ def _form_view(request, pk, kind):
     info = _kind_info(kind)
     if request.method == "POST":
         form = CourseForm(request.POST, instance=course)
+        if kind == "kurs":
+            form.fields.pop("duration_minutes", None)
         if form.is_valid():
             obj = form.save(commit=False)
             obj.kind = kind
@@ -184,6 +186,8 @@ def _form_view(request, pk, kind):
             return redirect(info["list_url"])
     else:
         form = CourseForm(instance=course)
+        if kind == "kurs":
+            form.fields.pop("duration_minutes", None)
     return render(
         request,
         "academy/manage/course_form.html",
