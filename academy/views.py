@@ -128,7 +128,7 @@ def take_quiz(request, slug):
         _open_free_access(request.user, course)
     enrollment = Enrollment.objects.filter(student=request.user, course=course, is_active=True).first()
     if not enrollment:
-        messages.error(request, "Bu kurs testiga kirish uchun avval kursga yozilib, to'lovni tasdiqlating.")
+        messages.error(request, "Bu kurs testiga kirish uchun avval kursga yozilib, to'lovni tasdiqlang.")
         return redirect("course_detail", slug=slug)
 
     questions = list(course.questions.prefetch_related("choices"))
@@ -198,7 +198,8 @@ def quiz_result(request, attempt_id):
 
 
 def tests_list(request):
-    courses = Course.objects.filter(is_published=True)
+    # Faqat "Testlar" bo'limida yaratilganlar chiqadi; kurslar bu yerda ko'rinmaydi.
+    courses = Course.objects.filter(is_published=True, kind="test")
     bolim = request.GET.get("bolim", "")
     if bolim in ("milliy", "attestatsiya", "sat"):
         courses = courses.filter(category=bolim)
