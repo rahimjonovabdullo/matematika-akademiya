@@ -29,6 +29,9 @@ class CourseForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["parent"].queryset = Course.objects.filter(kind="kurs")
+        self.fields["parent"].empty_label = "— mustaqil test —"
+        self.fields["parent"].help_text = "Savollar bazasini qaysi kurs ichida ko'rsatish kerak bo'lsa, shuni tanlang."
         if not self.is_bound:
             self.initial["price"] = f"{int(self.instance.price or 0):,}".replace(",", " ")
 
@@ -44,10 +47,11 @@ class CourseForm(forms.ModelForm):
 
     class Meta:
         model = Course
-        fields = ["title", "category", "description", "price", "duration_minutes", "is_published"]
+        fields = ["title", "category", "parent", "description", "price", "duration_minutes", "is_published"]
         labels = {
             "title": "Nomi",
             "category": "Toifa (qaysi bo'limda ko'rinadi)",
+            "parent": "Qaysi kursga tegishli (ixtiyoriy)",
             "description": "Qisqacha tavsif",
             "duration_minutes": "Test davomiyligi (daqiqa)",
             "is_published": "Saytda ko'rinsin",
@@ -203,6 +207,7 @@ def _form_view(request, pk, kind):
         form = CourseForm(request.POST, instance=course)
         if kind == "kurs":
             form.fields.pop("duration_minutes", None)
+            form.fields.pop("parent", None)
         if form.is_valid():
             obj = form.save(commit=False)
             obj.kind = kind
@@ -213,6 +218,7 @@ def _form_view(request, pk, kind):
         form = CourseForm(instance=course)
         if kind == "kurs":
             form.fields.pop("duration_minutes", None)
+            form.fields.pop("parent", None)
     return render(
         request,
         "academy/manage/course_form.html",
