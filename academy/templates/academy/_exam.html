@@ -116,9 +116,88 @@
     .ex-calcbox { right: 14px; bottom: 14px; }
   }
 </style>
-
 <div class="qi" id="intro">
   <div class="qi-box" id="qiMain">
     <span class="qi-chip">TEST</span>
     <h2 class="qi-title">{{ course.title }}</h2>
-    <p class="qi-sub">Tayyor bo'lsangiz, boshlang. Boshlash tugmasi bosilgach vaqt ishga
+    <p class="qi-sub">Tayyor bo'lsangiz, boshlang. Boshlash tugmasi bosilgach vaqt ishga tushadi.</p>
+    <div class="qi-stats">
+      <div class="qi-stat"><b>{{ questions|length }}</b><small>SAVOL</small></div>
+      <div class="qi-stat"><b id="qiTime">—</b><small>VAQT</small></div>
+    </div>
+    <button type="button" class="qi-go" id="qiGo">Boshlash</button>
+  </div>
+  <div class="qi-count" id="qiCount">
+    <b id="qiNum">3</b>
+    <small>TAYYORLANING</small>
+  </div>
+</div>
+
+<div class="ex" id="ex">
+  <form method="post" id="quiz" class="ex-wrap">
+    {% csrf_token %}
+
+    <section class="ex-main">
+      <div class="ex-head">
+        <span class="ex-chip" id="curLabel">1-savol</span>
+        <div class="ex-time" id="timer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <b id="tt">00:00:00</b>
+        </div>
+      </div>
+
+      <div class="ex-body">
+        {% for q in questions %}
+        <div class="ex-q" data-i="{{ forloop.counter0 }}" id="q{{ q.id }}">
+          <p class="ex-text">{{ q.text }}</p>
+          {% if q.has_image %}<img class="ex-img" src="{% url 'question_image' q.pk %}" alt="Savol rasmi">{% endif %}
+          {% for c in q.choices.all %}
+          <label class="ex-opt">
+            <input type="radio" name="q{{ q.id }}" value="{{ c.id }}" data-q="{{ q.id }}">
+            <span class="ex-l">{{ forloop.counter0|add:65|stringformat:"c" }}</span>
+            <span>{{ c.text }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="ex-foot">
+        <button type="button" class="ex-ghost" id="prev">Ortga</button>
+        <button type="button" class="ex-next" id="next">Keyingi</button>
+      </div>
+    </section>
+
+    <aside class="ex-side">
+      <div class="ex-top">
+        <button type="button" class="ex-pb" id="pauseBtn">To'xtatish</button>
+        <button type="button" class="ex-fin" id="finish">Yakunlash</button>
+      </div>
+      <button type="button" class="ex-calc" id="calcBtn">Kalkulyator</button>
+
+      <div class="ex-prog"><span>Javob berilgan</span><span><b id="done">0</b> / {{ questions|length }}</span></div>
+      <div class="ex-bar"><i id="bar"></i></div>
+
+      <div class="ex-sec"><span>Savollar</span><small>{{ questions|length }} ta savol</small></div>
+      <div class="ex-grid" id="grid"></div>
+
+      <div class="ex-leg"><span class="a">Joriy</span><span class="b">Belgilangan</span><span>Bo'sh</span></div>
+    </aside>
+  </form>
+</div>
+
+<div class="ex-pause" id="pause">
+  <div>
+    <h2>Test to'xtatildi</h2>
+    <p>Vaqt to'xtab turibdi. Davom etish uchun tugmani bosing.</p>
+    <button type="button" class="ex-next" id="resume" style="padding:15px 36px;font-size:17px">Davom etish</button>
+  </div>
+</div>
+
+<div class="ex-calcbox" id="calcbox">
+  <button type="button" class="x" id="calcX">×</button>
+  <div class="ex-cd" id="cd">0</div>
+  <div class="ex-ck" id="ck"></div>
+</div>
+
+{% include "academy/_exam_js.html" %}
