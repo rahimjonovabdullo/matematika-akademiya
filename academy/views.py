@@ -128,7 +128,9 @@ def course_detail(request, slug):
             "has_questions": has_questions,
         },
     )
-    @login_required
+
+
+@login_required
 def take_quiz(request, slug):
     course = get_object_or_404(Course, slug=slug, is_published=True)
     # Savollar bazasi kursning ichida bo'lsa, kirish huquqi kurs bo'yicha tekshiriladi.
@@ -256,7 +258,7 @@ def _build_leaderboard(attempts, me_id):
         total = a["total"]
         if not total:
             continue
-                    pct = a["score"] * 100.0 / total
+        pct = a["score"] * 100.0 / total
         sid = a["student_id"]
         p = people.get(sid)
         if p is None:
