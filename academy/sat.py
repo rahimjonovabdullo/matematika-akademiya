@@ -138,7 +138,7 @@ def _sat_stats(questions, post):
             if sel:
                 a += 1
             good = False
-                        if q.is_open:
+            if q.is_open:
                 good = bool(sel and q.check_open_answer(sel))
             else:
                 ok = next((x for x in q.choices.all() if x.is_correct), None)
