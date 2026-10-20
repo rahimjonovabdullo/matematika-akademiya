@@ -1,6 +1,9 @@
 """SAT (Bluebook uslubidagi) testlar uchun yordamchi funksiyalar."""
 import re
 
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
+
 # Savollar tartib bo'yicha 4 modulga bo'linadi: R&W 1 (27), R&W 2 (27), Math 1 (22), Math 2 (22)
 SAT_MODULES = [
     ("rw", "Reading and Writing", 1, 27, 32),
@@ -36,7 +39,7 @@ def _sat_split(questions):
     return parts
 
 
-_SPLIT_RE = re.compile(r'(?<=[.!?:"\u201d\u2019)])\s+(?=[A-Z])|\n+')
+_SPLIT_RE = re.compile(r'(?<=[.!?:"\u201d\u2019)_\]])\s+(?=[A-Z])|\n+')
 
 
 def _auto_split(text):
@@ -53,6 +56,32 @@ def _auto_split(text):
     return t[:last.start()].strip(), t[last.end():].strip()
 
 
+_TAIL_RE = re.compile(r'(?<=[.!?])\s+(?=The (?:student|writer)\b)')
+
+
+def _fmt_passage(p):
+    """Bluebook "notes" matni (• belgilari bilan) har bir band alohida qatorda chiqadi."""
+    if not p or "\u2022" not in p:
+        return p
+    parts = [x.strip() for x in p.split("\u2022")]
+    intro, bullets = parts[0], [x for x in parts[1:] if x]
+    if not bullets:
+        return p
+    tail = ""
+    m = _TAIL_RE.search(bullets[-1])
+    if m:
+        tail = bullets[-1][m.end():].strip()
+        bullets[-1] = bullets[-1][:m.start()].strip()
+    html = ""
+    if intro:
+        html += '<span style="display:block;margin-bottom:8px">%s</span>' % escape(intro)
+    for b in bullets:
+        html += '<span style="display:block;padding-left:26px;text-indent:-16px;margin:0 0 6px">&bull;&nbsp;&nbsp;%s</span>' % escape(b)
+    if tail:
+        html += '<span style="display:block;margin-top:12px">%s</span>' % escape(tail)
+    return mark_safe(html)
+
+
 def _sat_modules(questions):
     out = []
     for i, qs in enumerate(_sat_split(questions)):
@@ -66,6 +95,7 @@ def _sat_modules(questions):
                 passage, stem = [x.strip() for x in q.text.split("||", 1)]
             elif sec == "rw":
                 passage, stem = _auto_split(q.text)
+            passage = _fmt_passage(passage)
             choices = sorted(q.choices.all(), key=lambda c: c.id)
             items.append({
                 "id": q.id, "n": k, "passage": passage, "stem": stem, "img": q.has_image,
@@ -129,6 +159,7 @@ def _review_rows(attempt):
             passage, stem = [x.strip() for x in q.text.split("||", 1)]
         elif sec and sec[0] == "rw":
             passage, stem = _auto_split(q.text)
+        passage = _fmt_passage(passage)
         row = {
             "n": n, "id": q.id, "passage": passage, "stem": stem, "img": q.has_image,
             "open": q.is_open, "given": sel,
