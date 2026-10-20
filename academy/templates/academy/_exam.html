@@ -201,3 +201,20 @@
 </div>
 
 {% include "academy/_exam_js.html" %}
+<style>
+  .ex-wrap { grid-template-columns: minmax(0, 1fr) 340px; }
+  @media (max-width: 960px) { .ex-wrap { grid-template-columns: minmax(0, 1fr); } }
+  .ex-main, .ex-body { min-width: 0; }
+  .ex-body { overflow-x: auto; }
+  .ex-text { overflow-wrap: anywhere; }
+  .ex-body table { max-width: 100%; }
+  .ex-body img { max-width: 100%; }
+  @media (max-width: 640px) {
+    .ex-head { padding: 16px 14px; }
+    .ex-body { padding: 20px 14px; }
+    .ex-foot { padding: 16px 14px; }
+    .ex-text { font-size: 17px; }
+    .ex-opt { padding: 13px 14px; font-size: 16px; gap: 12px; }
+    .ex-time { font-size: 17px; padding: 9px 12px; }
+  }
+</style>
