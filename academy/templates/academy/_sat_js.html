@@ -72,7 +72,7 @@
     if (!math) { $('calc').hidden = true; }
     $('cur').textContent = S.q + 1; $('cnt').textContent = M[S.m].ids.length;
     $('backBtn').style.visibility = S.q === 0 ? 'hidden' : 'visible';
-    $('nextBtn').textContent = S.q === M[S.m].ids.length - 1 ? 'Tekshirish' : 'Keyingi';
+    $('nextBtn').textContent = 'Next';
     paintQ();
     tick();
   }
