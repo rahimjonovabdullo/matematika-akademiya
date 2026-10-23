@@ -11,6 +11,12 @@
 <link rel="stylesheet" href="{% static 'academy/style.css' %}">
 <link rel="stylesheet" href="{% static 'academy/topbar.css' %}">
 <link rel="stylesheet" href="{% static 'academy/manage.css' %}">
+<style>
+.side .nav{display:flex;align-items:center;gap:12px}
+.side .nav .ni{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tb-tabs .tb-tab{display:inline-flex;align-items:center;gap:8px}
+.tb-tabs .tb-tab .ni{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+</style>
 </head>
 <body>
 {% url 'home' as home_url %}
@@ -73,12 +79,6 @@
   </div>
 </div>
 {% include "academy/_math.html" %}
-<style>
-.side .nav{display:flex;align-items:center;gap:12px}
-.side .nav .ni{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.tb-tabs .tb-tab{display:inline-flex;align-items:center;gap:8px}
-.tb-tabs .tb-tab .ni{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-</style>
 <style>
 .pw-wrap{position:relative;display:block}
 .pw-wrap input{padding-right:60px !important;width:100%;box-sizing:border-box}
