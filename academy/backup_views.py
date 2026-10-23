@@ -1,3 +1,4 @@
+# Zahira nusxa olish (faqat superuser uchun)
 import io
 from datetime import datetime
 
