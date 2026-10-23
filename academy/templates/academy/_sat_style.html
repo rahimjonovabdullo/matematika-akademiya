@@ -21,7 +21,8 @@
 .qq{position:absolute;inset:0;display:grid;grid-template-columns:var(--l) 1fr}
 .qq.single{grid-template-columns:minmax(0,760px);justify-content:center}
 .pn{overflow:auto;padding:26px 34px;min-width:0}
-.pl{font-size:17px;line-height:1.7;font-family:Georgia,"Times New Roman",serif}
+@font-face{font-family:"PassNum";src:local("Times New Roman"),local("Liberation Serif"),local("Noto Serif"),local("Times");unicode-range:U+0030-0039}
+.pl{font-size:17px;line-height:1.7;font-family:"PassNum",Georgia,"Times New Roman",serif}
 .pl p{margin:0 0 14px}
 .pl img,.pr img{max-width:min(100%,420px);max-height:260px;width:auto;height:auto;object-fit:contain;border-radius:8px;margin:6px 0 14px;display:block}
 .pl mark{background:#fde047;color:inherit;cursor:pointer;border-radius:2px}
