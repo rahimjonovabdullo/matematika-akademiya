@@ -25,6 +25,9 @@
     {% if user.is_staff %}
     <a class="nav {% if request.path|slice:':11' == '/boshqaruv/' and request.resolver_match.url_name != 'manage_payment' %}on{% endif %}" href="{% url 'manage_courses' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg>Boshqaruv</a>
     <a class="nav {% if request.resolver_match.url_name == 'manage_payment' %}on{% endif %}" href="{% url 'manage_payment' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>To'lov sozlamalari</a>
+    {% if user.is_superuser %}
+    <a class="nav" href="{% url 'download_backup' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/></svg>Zahira nusxa</a>
+    {% endif %}
     {% endif %}
     <div class="grp">Bo'limlar</div>
     <a class="nav {% if request.resolver_match.url_name == 'dashboard' %}on{% endif %}" href="{% url 'dashboard' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Kabinet</a>
