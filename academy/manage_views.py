@@ -1,9 +1,12 @@
+from urllib.parse import parse_qs, urlparse
+
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.db import transaction
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.text import slugify
 from django.views.decorators.http import require_POST
 
@@ -158,6 +161,19 @@ def _bolim(request):
     return b if b in BOLIM_KODLARI else ""
 
 
+def _bolim_yoki_oldingi(request):
+    """?bolim= bo'lmasa, qaysi tugmadan kelgan bo'lsa (referer) o'shandan oladi."""
+    b = _bolim(request)
+    if b:
+        return b
+    ref = request.META.get("HTTP_REFERER", "")
+    try:
+        b = parse_qs(urlparse(ref).query).get("bolim", [""])[0]
+    except Exception:
+        b = ""
+    return b if b in BOLIM_KODLARI else ""
+
+
 def _tur(request):
     """?tur=kurs|test; noto'g'ri bo'lsa bo'sh."""
     t = request.GET.get("tur", "")
@@ -256,9 +272,13 @@ def _form_view(request, pk, kind):
             obj.kind = kind
             obj.save()
             messages.success(request, "Saqlandi.")
-            return redirect(info["list_url"])
+            url = reverse(info["list_url"])
+            if obj.category in BOLIM_KODLARI:
+                url += f"?bolim={obj.category}"
+            return redirect(url)
     else:
-        form = CourseForm(instance=course)
+        start = _bolim_yoki_oldingi(request)
+        form = CourseForm(instance=course, initial={"category": start} if (start and not course) else None)
         if kind == "kurs":
             form.fields.pop("duration_minutes", None)
             form.fields.pop("parent", None)
