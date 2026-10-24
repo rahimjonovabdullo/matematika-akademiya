@@ -144,12 +144,36 @@ class QuestionForm(forms.Form):
         return data
 
 
+BOLIMLAR = [
+    ("milliy", "Milliy Sertifikat"),
+    ("attestatsiya", "Attestatsiya"),
+    ("sat", "SAT"),
+]
+BOLIM_KODLARI = [b[0] for b in BOLIMLAR]
+
+
+def _bolim(request):
+    """?bolim=milliy|attestatsiya|sat; noto'g'ri bo'lsa bo'sh."""
+    b = request.GET.get("bolim", "")
+    return b if b in BOLIM_KODLARI else ""
+
+
 def _ctx(section, **extra):
+    pending = dict(
+        Enrollment.objects.filter(is_active=False)
+        .values_list("course__category").annotate(n=Count("id"))
+    )
     data = {
         "section": section,
         "pending_count": Enrollment.objects.filter(is_active=False).count(),
+        "bolimlar": [
+            {"code": c, "name": n, "pending": pending.get(c, 0)} for c, n in BOLIMLAR
+        ],
     }
     data.update(extra)
+    if "bolim" not in data:
+        course = data.get("course")
+        data["bolim"] = course.category if course is not None and course.category in BOLIM_KODLARI else ""
     return data
 
 
@@ -177,14 +201,18 @@ def _kind_info(kind):
 
 def _list_view(request, kind):
     info = _kind_info(kind)
-    items = Course.objects.filter(kind=kind).annotate(
+    bolim = _bolim(request)
+    items = Course.objects.filter(kind=kind)
+    if bolim:
+        items = items.filter(category=bolim)
+    items = items.annotate(
         lessons_count=Count("lessons", distinct=True),
         questions_count=Count("questions", distinct=True),
     )
     return render(
         request,
         "academy/manage/courses.html",
-        _ctx(info["section"], courses=items, info=info),
+        _ctx(info["section"], courses=items, info=info, bolim=bolim),
     )
 
 
@@ -218,189 +246,3 @@ def _form_view(request, pk, kind):
         form = CourseForm(instance=course)
         if kind == "kurs":
             form.fields.pop("duration_minutes", None)
-            form.fields.pop("parent", None)
-    return render(
-        request,
-        "academy/manage/course_form.html",
-        _ctx(info["section"], form=form, course=course, info=info),
-    )
-
-
-@staff_only
-def manage_course_form(request, pk=None):
-    return _form_view(request, pk, "kurs")
-
-
-@staff_only
-def manage_test_form(request, pk=None):
-    return _form_view(request, pk, "test")
-
-
-@staff_only
-@require_POST
-def manage_course_delete(request, pk):
-    course = get_object_or_404(Course, pk=pk)
-    title = course.title
-    info = _kind_info(course.kind)
-    course.delete()
-    messages.success(request, f"«{title}» o'chirildi.")
-    return redirect(info["list_url"])
-
-
-# ---------- Darslar ----------
-
-@staff_only
-def manage_lessons(request, course_id):
-    course = get_object_or_404(Course, pk=course_id)
-    lessons = course.lessons.all()
-    return render(
-        request,
-        "academy/manage/lessons.html",
-        _ctx("courses", course=course, lessons=lessons),
-    )
-
-
-@staff_only
-def manage_lesson_form(request, course_id, pk=None):
-    course = get_object_or_404(Course, pk=course_id)
-    lesson = get_object_or_404(Lesson, pk=pk, course=course) if pk else None
-    if request.method == "POST":
-        form = LessonForm(request.POST, instance=lesson)
-        if form.is_valid():
-            obj = form.save(commit=False)
-            obj.course = course
-            obj.save()
-            messages.success(request, "Dars saqlandi.")
-            return redirect("manage_lessons", course_id=course.pk)
-    else:
-        initial = {} if lesson else {"order": course.lessons.count() + 1}
-        form = LessonForm(instance=lesson, initial=initial)
-    return render(
-        request,
-        "academy/manage/lesson_form.html",
-        _ctx("courses", course=course, lesson=lesson, form=form),
-    )
-
-
-@staff_only
-@require_POST
-def manage_lesson_delete(request, course_id, pk):
-    lesson = get_object_or_404(Lesson, pk=pk, course_id=course_id)
-    lesson.delete()
-    messages.success(request, "Dars o'chirildi.")
-    return redirect("manage_lessons", course_id=course_id)
-
-
-# ---------- Savollar ----------
-
-@staff_only
-def manage_questions(request, course_id):
-    course = get_object_or_404(Course, pk=course_id)
-    info = _kind_info(course.kind)
-    questions = list(course.questions.prefetch_related("choices"))
-    for q in questions:
-        q.rows = [
-            {"letter": LETTERS[i], "text": c.text, "is_correct": c.is_correct}
-            for i, c in enumerate(q.choices.all()[:4])
-        ]
-        q.is_open_q = q.is_open
-        q.open_answer = q.answer_text
-    return render(
-        request,
-        "academy/manage/questions.html",
-        _ctx(info["section"], course=course, questions=questions, info=info),
-    )
-
-
-@staff_only
-def manage_question_form(request, course_id, pk=None):
-    course = get_object_or_404(Course, pk=course_id)
-    info = _kind_info(course.kind)
-    question = get_object_or_404(Question, pk=pk, course=course) if pk else None
-
-    if request.method == "POST":
-        form = QuestionForm(request.POST)
-        if form.is_valid():
-            cd = form.cleaned_data
-            with transaction.atomic():
-                if question is None:
-                    question = Question(course=course)
-                question.text = cd["text"]
-                question.order = cd["order"]
-                is_open = cd.get("qtype") == "open"
-                question.answer_text = cd["open_answer"] if is_open else ""
-                question.save()
-                question.choices.all().delete()
-                if not is_open:
-                    for i in range(1, 5):
-                        text = cd.get(f"choice{i}")
-                        if text:
-                            Choice.objects.create(
-                                question=question,
-                                text=text,
-                                is_correct=(cd["correct"] == str(i)),
-                            )
-            messages.success(request, "Savol saqlandi.")
-            return redirect("manage_questions", course_id=course.pk)
-    else:
-        if question:
-            initial = {"text": question.text, "order": question.order, "correct": "1",
-                       "qtype": "open" if question.is_open else "choice",
-                       "open_answer": question.answer_text}
-            for i, c in enumerate(question.choices.all()[:4], start=1):
-                initial[f"choice{i}"] = c.text
-                if c.is_correct:
-                    initial["correct"] = str(i)
-        else:
-            initial = {"order": course.questions.count() + 1, "correct": "1", "qtype": "choice"}
-        form = QuestionForm(initial=initial)
-
-    return render(
-        request,
-        "academy/manage/question_form.html",
-        _ctx(info["section"], course=course, question=question, form=form, info=info),
-    )
-
-
-@staff_only
-@require_POST
-def manage_question_delete(request, course_id, pk):
-    question = get_object_or_404(Question, pk=pk, course_id=course_id)
-    question.delete()
-    messages.success(request, "Savol o'chirildi.")
-    return redirect("manage_questions", course_id=course_id)
-
-
-# ---------- So'rovlar ----------
-
-@staff_only
-def manage_requests(request):
-    if request.method == "POST":
-        enrollment = get_object_or_404(Enrollment, pk=request.POST.get("id"))
-        action = request.POST.get("action")
-        if action == "open":
-            enrollment.is_active = True
-            enrollment.save()
-            messages.success(request, f"{enrollment.student.username} uchun kirish ochildi.")
-        elif action == "close":
-            enrollment.is_active = False
-            enrollment.save()
-            messages.success(request, f"{enrollment.student.username} uchun kirish yopildi.")
-        elif action == "delete":
-            enrollment.delete()
-            messages.success(request, "So'rov o'chirildi.")
-        return redirect(request.get_full_path())
-
-    holat = request.GET.get("holat", "")
-    enrollments = Enrollment.objects.select_related("student", "course").order_by("-created_at")
-    if holat == "kutilmoqda":
-        enrollments = enrollments.filter(is_active=False)
-    elif holat == "ochiq":
-        enrollments = enrollments.filter(is_active=True)
-    else:
-        holat = ""
-    return render(
-        request,
-        "academy/manage/requests.html",
-        _ctx("requests", enrollments=enrollments, holat=holat),
-    )
