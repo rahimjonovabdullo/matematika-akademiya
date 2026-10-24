@@ -1,5 +1,11 @@
-<div class="mg-nav">
-  <a class="mg-tab {% if section == 'courses' %}on{% endif %}" href="{% url 'manage_courses' %}">Kurslar</a>
-  <a class="mg-tab {% if section == 'tests' %}on{% endif %}" href="{% url 'manage_tests' %}">Testlar</a>
-  <a class="mg-tab {% if section == 'requests' %}on{% endif %}" href="{% url 'manage_requests' %}">So'rovlar{% if pending_count %}<span class="mg-badge">{{ pending_count }}</span>{% endif %}</a>
+<div class="mg-nav" style="display:flex;flex-wrap:wrap;gap:8px">
+  {% for b in bolimlar %}
+  <a class="mg-tab {% if section == 'courses' and bolim == b.code %}on{% endif %}" href="{% url 'manage_courses' %}?bolim={{ b.code }}">{{ b.name }} kurs</a>
+  {% endfor %}
+  {% for b in bolimlar %}
+  <a class="mg-tab {% if section == 'tests' and bolim == b.code %}on{% endif %}" href="{% url 'manage_tests' %}?bolim={{ b.code }}">{{ b.name }} test</a>
+  {% endfor %}
+  {% for b in bolimlar %}
+  <a class="mg-tab {% if section == 'requests' and bolim == b.code %}on{% endif %}" href="{% url 'manage_requests' %}?bolim={{ b.code }}">{{ b.name }} so'rov{% if b.pending %}<span class="mg-badge">{{ b.pending }}</span>{% endif %}</a>
+  {% endfor %}
 </div>
