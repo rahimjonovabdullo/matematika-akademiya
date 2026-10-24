@@ -6,6 +6,9 @@
   <a class="mg-tab {% if section == 'tests' and bolim == b.code %}on{% endif %}" href="{% url 'manage_tests' %}?bolim={{ b.code }}">{{ b.name }} test</a>
   {% endfor %}
   {% for b in bolimlar %}
-  <a class="mg-tab {% if section == 'requests' and bolim == b.code %}on{% endif %}" href="{% url 'manage_requests' %}?bolim={{ b.code }}">{{ b.name }} so'rov{% if b.pending %}<span class="mg-badge">{{ b.pending }}</span>{% endif %}</a>
+  <a class="mg-tab {% if section == 'requests' and bolim == b.code and tur == 'kurs' %}on{% endif %}" href="{% url 'manage_requests' %}?bolim={{ b.code }}&tur=kurs">{{ b.name }} kurs so'rov{% if b.pending_kurs %}<span class="mg-badge">{{ b.pending_kurs }}</span>{% endif %}</a>
+  {% endfor %}
+  {% for b in bolimlar %}
+  <a class="mg-tab {% if section == 'requests' and bolim == b.code and tur == 'test' %}on{% endif %}" href="{% url 'manage_requests' %}?bolim={{ b.code }}&tur=test">{{ b.name }} test so'rov{% if b.pending_test %}<span class="mg-badge">{{ b.pending_test }}</span>{% endif %}</a>
   {% endfor %}
 </div>
