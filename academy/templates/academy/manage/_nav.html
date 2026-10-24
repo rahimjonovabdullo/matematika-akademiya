@@ -1,4 +1,11 @@
-<div class="mg-nav" style="display:flex;flex-wrap:wrap;gap:8px">
+<style>
+  .mg-nav.mg-grid{display:grid;grid-template-rows:repeat(3,auto);grid-auto-flow:column;grid-auto-columns:1fr;gap:8px}
+  .mg-nav.mg-grid .mg-tab{display:flex;align-items:center;justify-content:center;text-align:center;gap:6px}
+  @media (max-width:820px){
+    .mg-nav.mg-grid{display:flex;flex-wrap:wrap}
+  }
+</style>
+<div class="mg-nav mg-grid">
   {% for b in bolimlar %}
   <a class="mg-tab {% if section == 'courses' and bolim == b.code %}on{% endif %}" href="{% url 'manage_courses' %}?bolim={{ b.code }}">{{ b.name }} kurs</a>
   {% endfor %}
