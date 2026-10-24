@@ -158,22 +158,37 @@ def _bolim(request):
     return b if b in BOLIM_KODLARI else ""
 
 
+def _tur(request):
+    """?tur=kurs|test; noto'g'ri bo'lsa bo'sh."""
+    t = request.GET.get("tur", "")
+    return t if t in ("kurs", "test") else ""
+
+
 def _ctx(section, **extra):
-    pending = dict(
+    pending = {}
+    for cat, kind, n in (
         Enrollment.objects.filter(is_active=False)
-        .values_list("course__category").annotate(n=Count("id"))
-    )
+        .values_list("course__category", "course__kind").annotate(n=Count("id"))
+    ):
+        pending[(cat, kind)] = n
     data = {
         "section": section,
         "pending_count": Enrollment.objects.filter(is_active=False).count(),
         "bolimlar": [
-            {"code": c, "name": n, "pending": pending.get(c, 0)} for c, n in BOLIMLAR
+            {
+                "code": c,
+                "name": n,
+                "pending_kurs": pending.get((c, "kurs"), 0),
+                "pending_test": pending.get((c, "test"), 0),
+            }
+            for c, n in BOLIMLAR
         ],
     }
     data.update(extra)
     if "bolim" not in data:
         course = data.get("course")
         data["bolim"] = course.category if course is not None and course.category in BOLIM_KODLARI else ""
+    data.setdefault("tur", "")
     return data
 
 
@@ -421,9 +436,12 @@ def manage_requests(request):
 
     holat = request.GET.get("holat", "")
     bolim = _bolim(request)
+    tur = _tur(request)
     enrollments = Enrollment.objects.select_related("student", "course").order_by("-created_at")
     if bolim:
         enrollments = enrollments.filter(course__category=bolim)
+    if tur:
+        enrollments = enrollments.filter(course__kind=tur)
     if holat == "kutilmoqda":
         enrollments = enrollments.filter(is_active=False)
     elif holat == "ochiq":
@@ -433,5 +451,5 @@ def manage_requests(request):
     return render(
         request,
         "academy/manage/requests.html",
-        _ctx("requests", enrollments=enrollments, holat=holat, bolim=bolim),
+        _ctx("requests", enrollments=enrollments, holat=holat, bolim=bolim, tur=tur),
     )
