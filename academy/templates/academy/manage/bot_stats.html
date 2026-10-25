@@ -17,6 +17,7 @@
   .bs-box td{padding:12px 16px;border-bottom:1px solid #f1f1ec;font-size:15px}
   .bs-box tr:last-child td{border-bottom:0}
   .bs-num{text-align:right;white-space:nowrap}
+  .bs-box th.bs-num{text-align:right}
   .bs-code{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700}
   .bs-pill{display:inline-block;padding:3px 10px;border-radius:999px;background:#e8f7a8;color:#14231c;font-weight:700;font-size:13px}
   .bs-form{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
@@ -79,7 +80,7 @@
         {% if stats.tests %}
         <table>
           <tr>
-            <th style="width:40px">{% if unused_count %}<input type="checkbox" class="bs-chk" id="bs-all" title="Ishlatilmaganlarning hammasini belgilash">{% endif %}</th>
+            <th style="width:40px"></th>
             <th>Kod</th><th class="bs-num">Savol</th><th class="bs-num">Topshirgan</th><th class="bs-num">O'rtacha</th><th class="bs-num">Eng yaxshi</th>
           </tr>
           {% for t in stats.tests %}
@@ -105,9 +106,7 @@
     </form>
     <script>
     (function(){
-      var all=document.getElementById('bs-all');
       var rows=document.querySelectorAll('.bs-row');
-      if(all){all.addEventListener('change',function(){for(var i=0;i<rows.length;i++){rows[i].checked=all.checked;}});}
       window.bsConfirm=function(kind){
         var n=0;for(var i=0;i<rows.length;i++){if(rows[i].checked)n++;}
         if(!n){alert("Avval o'chiriladigan testlarni belgilang.");return false;}
