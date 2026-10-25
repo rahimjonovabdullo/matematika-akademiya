@@ -29,10 +29,11 @@
     <a class="nav {% if request.resolver_match.url_name == 'home' %}on{% endif %}" href="{% url 'home' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Bosh sahifa</a>
     <a class="nav {% if request.resolver_match.url_name == 'tests_list' %}on{% endif %}" href="{% url 'tests_list' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>Testlar</a>
     {% if user.is_staff %}
-    <a class="nav {% if request.path|slice:':11' == '/boshqaruv/' and request.resolver_match.url_name != 'manage_payment' %}on{% endif %}" href="{% url 'manage_courses' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg>Boshqaruv</a>
+    <a class="nav {% if request.path|slice:':11' == '/boshqaruv/' and request.resolver_match.url_name != 'manage_payment' and request.resolver_match.url_name != 'manage_bot_stats' %}on{% endif %}" href="{% url 'manage_courses' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg>Boshqaruv</a>
     <a class="nav {% if request.resolver_match.url_name == 'manage_payment' %}on{% endif %}" href="{% url 'manage_payment' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>To'lov sozlamalari</a>
     {% if user.is_superuser %}
     <a class="nav" href="{% url 'download_backup' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/></svg>Zahira nusxa</a>
+    <a class="nav {% if request.resolver_match.url_name == 'manage_bot_stats' %}on{% endif %}" href="{% url 'manage_bot_stats' %}"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>Bot statistikasi</a>
     {% endif %}
     {% endif %}
     <div class="grp">Bo'limlar</div>
