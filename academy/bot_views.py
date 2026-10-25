@@ -5,7 +5,8 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
-from django.shortcuts import render
+from django.contrib import messages
+from django.shortcuts import redirect, render
 
 from .backup_views import superuser_only
 
@@ -27,6 +28,35 @@ def _fetch():
     except urllib.error.HTTPError as e:
         if e.code == 403:
             return None, "Kalit mos kelmadi (STATS_KEY va BOT_STATS_KEY bir xil bo'lishi kerak)."
+        return None, f"Bot xato qaytardi: {e.code}"
+    except Exception as e:
+        return None, f"Botga ulanib bo'lmadi: {e}"
+
+
+def _delete(codes):
+    """Botga o'chirish so'rovini yuboradi. (natija, xato_matni) qaytaradi."""
+    url = os.environ.get("BOT_STATS_URL", "").strip()
+    key = os.environ.get("BOT_STATS_KEY", "").strip()
+    if not url or not key:
+        return None, "BOT_STATS_URL yoki BOT_STATS_KEY topilmadi."
+    del_url = url.rsplit("/", 1)[0] + "/delete"
+    body = json.dumps({"codes": list(codes)}).encode("utf-8")
+    req = urllib.request.Request(
+        del_url,
+        data=body,
+        method="POST",
+        headers={
+            "X-Stats-Key": key,
+            "Content-Type": "application/json",
+            "User-Agent": "matematika-akademiya",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return json.loads(r.read().decode("utf-8")), ""
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return None, "Bot hali yangilanmagan (o'chirish manzili topilmadi)."
         return None, f"Bot xato qaytardi: {e.code}"
     except Exception as e:
         return None, f"Botga ulanib bo'lmadi: {e}"
@@ -129,8 +159,33 @@ def build_stats(data, kod=""):
 
 @superuser_only
 def manage_bot_stats(request):
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        if action == "all_unused":
+            data, error = _fetch()
+            codes = []
+            if data is not None:
+                codes = [t["code"] for t in build_stats(data)["tests"] if t["count"] == 0]
+        else:
+            codes = [c.strip().upper() for c in request.POST.getlist("codes") if c.strip()]
+        if not codes:
+            messages.info(request, "O'chirish uchun test tanlanmadi.")
+        else:
+            res, err = _delete(codes)
+            if err:
+                messages.error(request, err)
+            else:
+                n = len(res.get("deleted", []))
+                skipped = len(res.get("skipped", []))
+                msg = f"{n} ta test o'chirildi."
+                if skipped:
+                    msg += f" {skipped} tasi o'chirilmadi (topshirilgan yoki topilmadi)."
+                messages.success(request, msg)
+        return redirect("manage_bot_stats")
+
     data, error = _fetch()
     ctx = {"error": error, "stats": None, "kod": request.GET.get("kod", "").strip().upper()}
     if data is not None:
         ctx["stats"] = build_stats(data, ctx["kod"])
+        ctx["unused_count"] = sum(1 for t in ctx["stats"]["tests"] if t["count"] == 0)
     return render(request, "academy/manage/bot_stats.html", ctx)
