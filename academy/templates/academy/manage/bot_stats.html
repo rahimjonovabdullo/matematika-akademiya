@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Bot statistikasi{% endblock %}
+{% block content %}
+<style>
+  .bs-wrap{max-width:1100px}
+  .bs-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+  .bs-head h2{margin:0;font-size:28px}
+  .bs-back{display:inline-block;padding:8px 16px;border:1px solid #e5e5df;border-radius:999px;background:#fff;color:inherit;text-decoration:none;font-weight:600;font-size:14px}
+  .bs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px}
+  .bs-card{background:#fff;border:1px solid #e9e9e3;border-radius:18px;padding:16px 18px}
+  .bs-card b{display:block;font-size:28px;line-height:1.1;color:#14231c}
+  .bs-card span{display:block;margin-top:4px;font-size:13px;color:#6b7280}
+  .bs-sec{margin:26px 0 10px;font-size:18px;font-weight:700}
+  .bs-box{background:#fff;border:1px solid #e9e9e3;border-radius:18px;overflow-x:auto}
+  .bs-box table{width:100%;border-collapse:collapse;min-width:520px}
+  .bs-box th{text-align:left;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#6b7280;padding:12px 16px;border-bottom:1px solid #eeeee8;white-space:nowrap}
+  .bs-box td{padding:12px 16px;border-bottom:1px solid #f1f1ec;font-size:15px}
+  .bs-box tr:last-child td{border-bottom:0}
+  .bs-num{text-align:right;white-space:nowrap}
+  .bs-code{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700}
+  .bs-pill{display:inline-block;padding:3px 10px;border-radius:999px;background:#e8f7a8;color:#14231c;font-weight:700;font-size:13px}
+  .bs-form{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .bs-form input{padding:10px 14px;border:1px solid #e5e5df;border-radius:999px;font-size:15px;min-width:200px;text-transform:uppercase}
+  .bs-form button{padding:10px 18px;border:0;border-radius:999px;background:#d5f24c;color:#14231c;font-weight:700;font-size:15px;cursor:pointer}
+  .bs-err{background:#fff4f4;border:1px solid #f3c9c9;color:#9b1c1c;border-radius:16px;padding:16px 18px}
+  .bs-empty{padding:22px;text-align:center;color:#6b7280}
+</style>
+
+<div class="bs-wrap">
+  <div class="bs-head">
+    <h2>Bot statistikasi</h2>
+    <a class="bs-back" href="{% url 'manage_courses' %}">← Boshqaruv</a>
+  </div>
+
+  {% if error %}
+    <div class="bs-err"><b>Statistikani olib bo'lmadi.</b><br>{{ error }}</div>
+  {% elif stats %}
+    <div class="bs-grid">
+      <div class="bs-card"><b>{{ stats.n_students }}</b><span>Ro'yxatdan o'tgan o'quvchi</span></div>
+      <div class="bs-card"><b>{{ stats.n_tests }}</b><span>Yaratilgan test</span></div>
+      <div class="bs-card"><b>{{ stats.n_attempts }}</b><span>Jami topshirilgan</span></div>
+      <div class="bs-card"><b>{{ stats.avg_pct }}%</b><span>O'rtacha natija</span></div>
+      <div class="bs-card"><b>{{ stats.active_week }}</b><span>7 kunda faol</span></div>
+      <div class="bs-card"><b>{{ stats.today }}</b><span>Oxirgi 24 soatda</span></div>
+    </div>
+
+    <div class="bs-sec">Test kodi bo'yicha natijalar</div>
+    <form class="bs-form" method="get">
+      <input name="kod" value="{{ kod }}" placeholder="Test kodi" maxlength="12" autocomplete="off">
+      <button type="submit">Ko'rish</button>
+    </form>
+    {% if stats.selected %}
+      <div class="bs-box">
+        {% if stats.selected.items %}
+        <table>
+          <tr><th>#</th><th>Ism</th><th class="bs-num">To'g'ri</th><th class="bs-num">Foiz</th><th>Vaqt</th></tr>
+          {% for a in stats.selected.items %}
+          <tr><td>{{ a.rank }}</td><td>{{ a.name }}</td><td class="bs-num">{{ a.correct }}/{{ a.total }}</td><td class="bs-num">{{ a.pct }}%</td><td>{{ a.when }}</td></tr>
+          {% endfor %}
+        </table>
+        {% elif stats.selected.exists %}
+          <div class="bs-empty">«{{ stats.selected.code }}» testini hali hech kim topshirmagan.</div>
+        {% else %}
+          <div class="bs-empty">«{{ stats.selected.code }}» kodli test topilmadi.</div>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div class="bs-sec">Testlar</div>
+    <div class="bs-box">
+      {% if stats.tests %}
+      <table>
+        <tr><th>Kod</th><th class="bs-num">Savol</th><th class="bs-num">Topshirgan</th><th class="bs-num">O'rtacha</th><th class="bs-num">Eng yaxshi</th></tr>
+        {% for t in stats.tests %}
+        <tr>
+          <td><a class="bs-code" href="?kod={{ t.code }}">{{ t.code }}</a></td>
+          <td class="bs-num">{{ t.questions }}</td>
+          <td class="bs-num">{{ t.count }}</td>
+          <td class="bs-num">{{ t.avg }}%</td>
+          <td class="bs-num">{{ t.best }}%</td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% else %}<div class="bs-empty">Hali test yaratilmagan.</div>{% endif %}
+    </div>
+
+    <div class="bs-sec">O'quvchilar</div>
+    <div class="bs-box">
+      {% if stats.students %}
+      <table>
+        <tr><th>#</th><th>Ism</th><th class="bs-num">Testlar</th><th class="bs-num">To'g'ri javob</th><th class="bs-num">Foiz</th><th>Oxirgi faollik</th></tr>
+        {% for s in stats.students %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ s.name }}</td>
+          <td class="bs-num">{{ s.tests_done }}</td>
+          <td class="bs-num"><span class="bs-pill">{{ s.total_correct }}</span></td>
+          <td class="bs-num">{{ s.pct }}%</td>
+          <td>{{ s.last }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% else %}<div class="bs-empty">Hali o'quvchi yo'q.</div>{% endif %}
+    </div>
+
+    <div class="bs-sec">Oxirgi topshirilganlar</div>
+    <div class="bs-box">
+      {% if stats.recent %}
+      <table>
+        <tr><th>Ism</th><th>Test</th><th class="bs-num">To'g'ri</th><th class="bs-num">Foiz</th><th>Vaqt</th></tr>
+        {% for a in stats.recent %}
+        <tr>
+          <td>{{ a.name }}</td>
+          <td><a class="bs-code" href="?kod={{ a.code }}">{{ a.code }}</a></td>
+          <td class="bs-num">{{ a.correct }}/{{ a.total }}</td>
+          <td class="bs-num">{{ a.pct }}%</td>
+          <td>{{ a.when }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% else %}<div class="bs-empty">Hali hech kim test topshirmagan.</div>{% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
