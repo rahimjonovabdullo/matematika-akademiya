@@ -24,6 +24,12 @@
   .bs-form button{padding:10px 18px;border:0;border-radius:999px;background:#d5f24c;color:#14231c;font-weight:700;font-size:15px;cursor:pointer}
   .bs-err{background:#fff4f4;border:1px solid #f3c9c9;color:#9b1c1c;border-radius:16px;padding:16px 18px}
   .bs-empty{padding:22px;text-align:center;color:#6b7280}
+  .bs-chk{width:18px;height:18px;cursor:pointer;accent-color:#14231c}
+  .bs-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .bs-del{padding:10px 18px;border:1px solid #f3c9c9;border-radius:999px;background:#fff;color:#b42318;font-weight:700;font-size:14px;cursor:pointer}
+  .bs-del:hover{background:#fff4f4}
+  .bs-del.all{background:#b42318;border-color:#b42318;color:#fff}
+  .bs-note{margin-top:8px;font-size:13px;color:#6b7280}
 </style>
 
 <div class="bs-wrap">
@@ -67,22 +73,48 @@
     {% endif %}
 
     <div class="bs-sec">Testlar</div>
-    <div class="bs-box">
-      {% if stats.tests %}
-      <table>
-        <tr><th>Kod</th><th class="bs-num">Savol</th><th class="bs-num">Topshirgan</th><th class="bs-num">O'rtacha</th><th class="bs-num">Eng yaxshi</th></tr>
-        {% for t in stats.tests %}
-        <tr>
-          <td><a class="bs-code" href="?kod={{ t.code }}">{{ t.code }}</a></td>
-          <td class="bs-num">{{ t.questions }}</td>
-          <td class="bs-num">{{ t.count }}</td>
-          <td class="bs-num">{{ t.avg }}%</td>
-          <td class="bs-num">{{ t.best }}%</td>
-        </tr>
-        {% endfor %}
-      </table>
-      {% else %}<div class="bs-empty">Hali test yaratilmagan.</div>{% endif %}
-    </div>
+    <form method="post" id="bs-del-form">
+      {% csrf_token %}
+      <div class="bs-box">
+        {% if stats.tests %}
+        <table>
+          <tr>
+            <th style="width:40px">{% if unused_count %}<input type="checkbox" class="bs-chk" id="bs-all" title="Ishlatilmaganlarning hammasini belgilash">{% endif %}</th>
+            <th>Kod</th><th class="bs-num">Savol</th><th class="bs-num">Topshirgan</th><th class="bs-num">O'rtacha</th><th class="bs-num">Eng yaxshi</th>
+          </tr>
+          {% for t in stats.tests %}
+          <tr>
+            <td>{% if t.count == 0 %}<input type="checkbox" class="bs-chk bs-row" name="codes" value="{{ t.code }}">{% endif %}</td>
+            <td><a class="bs-code" href="?kod={{ t.code }}">{{ t.code }}</a></td>
+            <td class="bs-num">{{ t.questions }}</td>
+            <td class="bs-num">{{ t.count }}</td>
+            <td class="bs-num">{{ t.avg }}%</td>
+            <td class="bs-num">{{ t.best }}%</td>
+          </tr>
+          {% endfor %}
+        </table>
+        {% else %}<div class="bs-empty">Hali test yaratilmagan.</div>{% endif %}
+      </div>
+      {% if unused_count %}
+      <div class="bs-actions">
+        <button type="submit" name="action" value="selected" class="bs-del" onclick="return bsConfirm('selected')">Belgilanganlarni o'chirish</button>
+        <button type="submit" name="action" value="all_unused" class="bs-del all" onclick="return confirm('Hech kim topshirmagan {{ unused_count }} ta testning hammasi o\'chiriladi. Davom etasizmi?')">Ishlatilmagan {{ unused_count }} tasini o'chirish</button>
+      </div>
+      <div class="bs-note">Faqat «Topshirgan: 0» bo'lgan testlarni o'chirish mumkin. Topshirilgan testlar va natijalar o'chmaydi.</div>
+      {% endif %}
+    </form>
+    <script>
+    (function(){
+      var all=document.getElementById('bs-all');
+      var rows=document.querySelectorAll('.bs-row');
+      if(all){all.addEventListener('change',function(){for(var i=0;i<rows.length;i++){rows[i].checked=all.checked;}});}
+      window.bsConfirm=function(kind){
+        var n=0;for(var i=0;i<rows.length;i++){if(rows[i].checked)n++;}
+        if(!n){alert("Avval o'chiriladigan testlarni belgilang.");return false;}
+        return confirm(n+" ta test o'chiriladi. Davom etasizmi?");
+      };
+    })();
+    </script>
 
     <div class="bs-sec">O'quvchilar</div>
     <div class="bs-box">
