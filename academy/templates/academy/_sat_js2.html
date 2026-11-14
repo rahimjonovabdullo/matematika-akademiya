@@ -10,8 +10,24 @@
 
   /* Desmos calculator */
   var calc = null, loading = false;
+  function resetCalcPos() {
+    var box = $('calc');
+    box.style.left = ''; box.style.top = ''; box.style.right = '';
+  }
+  function clampCalc() {
+    /* Kalkulyator oynasi ekrandan (test maydonidan) chiqib ketmasin: sarlavhasi doim ko'rinib tursin */
+    var box = $('calc');
+    if (box.hidden || !box.style.left) return;
+    var par = box.offsetParent; if (!par) return;
+    var maxL = Math.max(0, par.clientWidth - box.offsetWidth);
+    var maxT = Math.max(0, par.clientHeight - 48);
+    var l = Math.min(Math.max(0, box.offsetLeft), maxL);
+    var t = Math.min(Math.max(0, box.offsetTop), maxT);
+    box.style.left = l + 'px'; box.style.top = t + 'px'; box.style.right = 'auto';
+  }
   function openCalc() {
     var box = $('calc'); box.hidden = !box.hidden;
+    if (!box.hidden) resetCalcPos();   /* har safar ochilganda o'z joyida chiqadi */
     if (box.hidden || calc) return;
     if (window.Desmos) { calc = Desmos.GraphingCalculator($('calcEl'), { keypad: true, expressions: true }); return; }
     if (loading) return; loading = true;
@@ -26,14 +42,29 @@
   $('calcX').onclick = function () { $('calc').hidden = true; };
   (function drag() {
     var box = $('calc'), head = box.querySelector('.ch2'), sx, sy, ox, oy, on = false;
-    head.addEventListener('mousedown', function (e) {
-      on = true; sx = e.clientX; sy = e.clientY; ox = box.offsetLeft; oy = box.offsetTop; e.preventDefault();
-    });
-    document.addEventListener('mousemove', function (e) {
+    head.style.touchAction = 'none';
+    function down(x, y) { on = true; sx = x; sy = y; ox = box.offsetLeft; oy = box.offsetTop; }
+    function move(x, y) {
       if (!on) return;
-      box.style.left = (ox + e.clientX - sx) + 'px'; box.style.top = (oy + e.clientY - sy) + 'px'; box.style.right = 'auto';
+      box.style.left = (ox + x - sx) + 'px'; box.style.top = (oy + y - sy) + 'px'; box.style.right = 'auto';
+      clampCalc();
+    }
+    function up() { if (on) { on = false; clampCalc(); } }
+    head.addEventListener('mousedown', function (e) {
+      if (e.target.closest('button')) return;
+      down(e.clientX, e.clientY); e.preventDefault();
     });
-    document.addEventListener('mouseup', function () { on = false; });
+    document.addEventListener('mousemove', function (e) { move(e.clientX, e.clientY); });
+    document.addEventListener('mouseup', up);
+    head.addEventListener('touchstart', function (e) {
+      if (e.target.closest('button')) return;
+      var t = e.touches[0]; down(t.clientX, t.clientY);
+    }, { passive: true });
+    document.addEventListener('touchmove', function (e) {
+      if (!on) return; var t = e.touches[0]; move(t.clientX, t.clientY); e.preventDefault();
+    }, { passive: false });
+    document.addEventListener('touchend', up);
+    window.addEventListener('resize', clampCalc);
   })();
 
   /* Drag the divider between the two columns */
@@ -72,5 +103,38 @@
     try { r.surroundContents(mk); } catch (err) { try { mk.appendChild(r.extractContents()); r.insertNode(mk); } catch (e2) {} }
     sel.removeAllRanges();
   });
+
+  /* To'liq ekran (Full screen): test boshlanganda yoqiladi */
+  (function fullscreen() {
+    var d = document.documentElement;
+    var req = d.requestFullscreen || d.webkitRequestFullscreen;
+    if (!req) return; /* iPhone kabi qurilmalarda qo'llab-quvvatlanmaydi */
+    function isFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+    function goFs() {
+      if (isFs()) return;
+      try { var p = req.call(d); if (p && p.catch) p.catch(function () {}); } catch (e) {}
+    }
+    ['goBtn', 'miGo', 'rdGo', 'brGo'].forEach(function (id) {
+      var b = $(id); if (b) b.addEventListener('click', goFs);
+    });
+    var fb = document.createElement('button');
+    fb.type = 'button';
+    fb.textContent = '⛶ To\u2019liq ekran';
+    fb.setAttribute('style', 'position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:9999;' +
+      'padding:10px 18px;border-radius:999px;border:0;background:#16281d;color:#fff;font-weight:700;font-size:14px;font-family:inherit;' +
+      'box-shadow:0 8px 24px rgba(0,0,0,.25);cursor:pointer');
+    fb.hidden = true;
+    fb.onclick = goFs;
+    document.body.appendChild(fb);
+    function upd() {
+      var ph = window.SATX ? window.SATX.S().ph : 'intro';
+      fb.hidden = isFs() || ph === 'intro';
+      setTimeout(clampCalc, 50);
+    }
+    document.addEventListener('fullscreenchange', upd);
+    document.addEventListener('webkitfullscreenchange', upd);
+    setInterval(upd, 1000);
+    upd();
+  })();
 })();
 </script>
