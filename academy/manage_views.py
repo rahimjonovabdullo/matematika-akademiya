@@ -11,6 +11,7 @@ from django.utils.text import slugify
 from django.views.decorators.http import require_POST
 
 from .models import Choice, Course, Enrollment, Lesson, Question
+from .rescore import rescore_course
 
 staff_only = user_passes_test(lambda u: u.is_active and u.is_staff, login_url="login")
 
@@ -375,6 +376,30 @@ def manage_questions(request, course_id):
     )
 
 
+def _save_choices(question, cd):
+    """Variantlarni joyida yangilaydi (o'chirib qayta yaratmaydi), shunda o'quvchilarning
+    eski javoblari o'z variantiga bog'langan holda qoladi."""
+    existing = list(question.choices.order_by("id"))
+    for i in range(1, 5):
+        text = cd.get(f"choice{i}")
+        is_correct = cd.get("correct") == str(i)
+        if i - 1 < len(existing):
+            c = existing[i - 1]
+            if text:
+                c.text = text
+                c.is_correct = is_correct
+                c.save(update_fields=["text", "is_correct"])
+            else:
+                c.delete()
+        elif text:
+            Choice.objects.create(question=question, text=text, is_correct=is_correct)
+    # 4 tadan ortiq eski variantlar (agar bo'lsa) to'g'ri javob bo'lib qolmasin
+    for c in existing[4:]:
+        if c.is_correct:
+            c.is_correct = False
+            c.save(update_fields=["is_correct"])
+
+
 @staff_only
 def manage_question_form(request, course_id, pk=None):
     course = get_object_or_404(Course, pk=course_id)
@@ -385,6 +410,7 @@ def manage_question_form(request, course_id, pk=None):
         form = QuestionForm(request.POST)
         if form.is_valid():
             cd = form.cleaned_data
+            editing = question is not None
             with transaction.atomic():
                 if question is None:
                     question = Question(course=course)
@@ -393,16 +419,13 @@ def manage_question_form(request, course_id, pk=None):
                 is_open = cd.get("qtype") == "open"
                 question.answer_text = cd["open_answer"] if is_open else ""
                 question.save()
-                question.choices.all().delete()
-                if not is_open:
-                    for i in range(1, 5):
-                        text = cd.get(f"choice{i}")
-                        if text:
-                            Choice.objects.create(
-                                question=question,
-                                text=text,
-                                is_correct=(cd["correct"] == str(i)),
-                            )
+                if is_open:
+                    question.choices.all().delete()
+                else:
+                    _save_choices(question, cd)
+            if editing:
+                # Javob tuzatilgan bo'lsa, o'quvchilar natijasi jimgina qayta hisoblanadi
+                rescore_course(course)
             messages.success(request, "Savol saqlandi.")
             return redirect("manage_questions", course_id=course.pk)
     else:
@@ -410,7 +433,7 @@ def manage_question_form(request, course_id, pk=None):
             initial = {"text": question.text, "order": question.order, "correct": "1",
                        "qtype": "open" if question.is_open else "choice",
                        "open_answer": question.answer_text}
-            for i, c in enumerate(question.choices.all()[:4], start=1):
+            for i, c in enumerate(question.choices.order_by("id")[:4], start=1):
                 initial[f"choice{i}"] = c.text
                 if c.is_correct:
                     initial["correct"] = str(i)
