@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}O'quvchilar natijalari{% endblock %}
+{% block content %}
+<style>
+  .rs-wrap{max-width:1150px}
+  .rs-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+  .rs-head h2{margin:0;font-size:28px}
+  .rs-back{display:inline-block;padding:8px 16px;border:1px solid #e5e5df;border-radius:999px;background:#fff;color:inherit;text-decoration:none;font-weight:600;font-size:14px}
+  .rs-form{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .rs-form select,.rs-form input{padding:10px 14px;border:1px solid #e5e5df;border-radius:999px;font-size:15px;background:#fff;font-family:inherit}
+  .rs-form input{min-width:220px}
+  .rs-form button{padding:10px 18px;border:0;border-radius:999px;background:#d5f24c;color:#14231c;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit}
+  .rs-reset{padding:10px 16px;border-radius:999px;color:#6b7280;text-decoration:none;font-size:14px;align-self:center}
+  .rs-info{font-size:14px;color:#6b7280;margin-bottom:10px}
+  .rs-box{background:#fff;border:1px solid #e9e9e3;border-radius:18px;overflow-x:auto}
+  .rs-box table{width:100%;border-collapse:collapse;min-width:760px}
+  .rs-box th{text-align:left;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#6b7280;padding:12px 16px;border-bottom:1px solid #eeeee8;white-space:nowrap}
+  .rs-box td{padding:12px 16px;border-bottom:1px solid #f1f1ec;font-size:15px;vertical-align:middle}
+  .rs-box tr:last-child td{border-bottom:0}
+  .rs-num{text-align:right;white-space:nowrap}
+  .rs-box th.rs-num{text-align:right}
+  .rs-user small{display:block;color:#8a939c;font-size:12px}
+  .rs-tag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:#eef0ea;color:#14231c;font-size:11px;font-weight:700;vertical-align:middle}
+  .rs-pill{display:inline-block;min-width:46px;text-align:center;padding:3px 10px;border-radius:999px;font-weight:700;font-size:13px;background:#e8f7a8;color:#14231c}
+  .rs-pill.mid{background:#fdf0d5;color:#7a4a00}
+  .rs-pill.low{background:#fde4e4;color:#9b1c1c}
+  .rs-act{white-space:nowrap}
+  .rs-act a{display:inline-block;padding:6px 12px;border:1px solid #e5e5df;border-radius:999px;color:inherit;text-decoration:none;font-size:13px;font-weight:600;margin-left:4px}
+  .rs-act a.main{background:#14231c;border-color:#14231c;color:#fff}
+  .rs-empty{padding:22px;text-align:center;color:#6b7280}
+</style>
+
+<div class="rs-wrap">
+  <div class="rs-head">
+    <h2>O'quvchilar natijalari</h2>
+    <a class="rs-back" href="{% url 'manage_courses' %}">← Boshqaruv</a>
+  </div>
+
+  <form class="rs-form" method="get">
+    <select name="bolim" onchange="this.form.test.value='';this.form.submit()">
+      <option value="">Barcha bo'limlar</option>
+      {% for code, name in bolimlar %}
+      <option value="{{ code }}" {% if bolim == code %}selected{% endif %}>{{ name }}</option>
+      {% endfor %}
+    </select>
+    <select name="test" onchange="this.form.submit()">
+      <option value="">Barcha testlar</option>
+      {% for t in tests %}
+      <option value="{{ t.id }}" {% if test == t.id|stringformat:"s" %}selected{% endif %}>{{ t.title }}</option>
+      {% endfor %}
+    </select>
+    <input name="q" value="{{ q }}" placeholder="O'quvchi ismi yoki login" autocomplete="off">
+    <button type="submit">Qidirish</button>
+    {% if bolim or test or q %}<a class="rs-reset" href="{% url 'manage_results' %}">Tozalash</a>{% endif %}
+  </form>
+
+  <div class="rs-info">
+    Topildi: <b>{{ found }}</b> ta natija{% if found > limit %} (oxirgi {{ limit }} tasi ko'rsatilgan){% endif %}
+  </div>
+
+  <div class="rs-box">
+    {% if rows %}
+    <table>
+      <tr>
+        <th>O'quvchi</th><th>Test</th><th class="rs-num">Natija</th><th class="rs-num">Foiz</th><th>Sana</th><th></th>
+      </tr>
+      {% for r in rows %}
+      <tr>
+        <td class="rs-user">{{ r.name }}<small>{{ r.username }}</small></td>
+        <td>{{ r.course }}{% if r.sat %}<span class="rs-tag">SAT</span>{% endif %}</td>
+        <td class="rs-num">{{ r.score }}/{{ r.total }}</td>
+        <td class="rs-num"><span class="rs-pill{% if r.pct < 50 %} low{% elif r.pct < 75 %} mid{% endif %}">{{ r.pct }}%</span></td>
+        <td style="white-space:nowrap">{{ r.date|date:"d.m.Y H:i" }}</td>
+        <td class="rs-act">
+          <a class="main" href="{% url 'quiz_result' r.id %}">Natija</a>
+          {% if r.review %}<a href="{% url 'quiz_result' r.id %}?review=1">Javoblar</a>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+      <div class="rs-empty">Natija topilmadi.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
