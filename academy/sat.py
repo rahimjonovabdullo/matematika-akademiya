@@ -167,8 +167,8 @@ def _review_rows(attempt):
     secs = {}
     if is_sat:
         for i, qs in enumerate(_sat_split(questions)):
-            for q in qs:
-                secs[q.id] = (SAT_MODULES[i][0], SAT_MODULES[i][1], SAT_MODULES[i][2])
+            for k, q in enumerate(qs, start=1):
+                secs[q.id] = (SAT_MODULES[i][0], SAT_MODULES[i][1], SAT_MODULES[i][2], k, len(qs))
     rows = []
     for n, q in enumerate(questions, start=1):
         sel = (given.get(str(q.id)) or "").strip()
@@ -185,6 +185,11 @@ def _review_rows(attempt):
             "open": q.is_open, "given": sel,
             "domain": SAT_DOMAIN_NAMES.get((getattr(q, "domain", "") or "").strip(), ""),
             "where": ("%s, Module %d" % ("Reading and Writing" if sec[0] == "rw" else "Math", sec[2])) if sec else "",
+            # Modul ichidagi raqam (1-27 yoki 1-22) va modul boshlanishi
+            "k": sec[3] if sec else n,
+            "mod_first": bool(sec) and sec[3] == 1,
+            "mod_title": ("%s — Module %d" % ("Reading and Writing" if sec[0] == "rw" else "Math", sec[2])) if sec else "",
+            "mod_count": sec[4] if sec else 0,
         }
         if q.is_open:
             row["correct_text"] = (q.answer_text or "").split("|")[0].strip()
@@ -209,9 +214,31 @@ def _sat_scale(c, n):
     return 200 + int(round(600.0 * c / n / 10.0)) * 10
 
 
+def _stats_from_answers(attempt):
+    """Bazada saqlangan javoblardan bo'limlar natijasini aniq hisoblaydi (har safar bir xil chiqadi)."""
+    given = attempt.answers or {}
+    post = {"q%s" % k: str(v or "").strip() for k, v in given.items() if str(k).isdigit()}
+    if not post:
+        return None
+    questions = list(attempt.course.questions.prefetch_related("choices"))
+    if not questions:
+        return None
+    return _sat_stats(questions, post)
+
+
 def _sat_scores(attempt, payload):
     secs = 0
     doms = {}
+    if isinstance(payload, dict):
+        secs = payload.get("secs") or 0
+    exact_payload = _stats_from_answers(attempt)
+    if exact_payload:
+        # Saqlangan javoblardan: qayta kirganda ham natija o'zgarmaydi
+        payload = dict(exact_payload, secs=secs)
+        right = sum(m["c"] for m in payload["mods"])
+        if right != attempt.score:
+            attempt.score = right
+            attempt.save(update_fields=["score"])
     if isinstance(payload, dict):
         stats, secs = payload.get("mods") or [], payload.get("secs") or 0
         doms = payload.get("doms") or {}
