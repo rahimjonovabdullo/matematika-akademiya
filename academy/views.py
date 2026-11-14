@@ -187,11 +187,16 @@ def take_quiz(request, slug):
 
 @login_required
 def quiz_result(request, attempt_id):
-    attempt = get_object_or_404(QuizAttempt, id=attempt_id, student=request.user)
+    # Admin (xodim) har qanday o'quvchining natijasini ko'ra oladi, o'quvchi esa faqat o'zinikini.
+    if request.user.is_staff:
+        attempt = get_object_or_404(QuizAttempt.objects.select_related("student", "course"), id=attempt_id)
+    else:
+        attempt = get_object_or_404(QuizAttempt, id=attempt_id, student=request.user)
+    other = attempt.student if attempt.student_id != request.user.id else None
     if request.GET.get("review") == "1" and attempt.answers:
         rows = _review_rows(attempt)
         return render(request, "academy/quiz_review.html", {
-            "attempt": attempt, "rows": rows,
+            "attempt": attempt, "rows": rows, "other": other,
             "n_ok": sum(1 for r in rows if r["status"] == "ok"),
             "n_bad": sum(1 for r in rows if r["status"] == "bad"),
             "n_skip": sum(1 for r in rows if r["status"] == "skip"),
@@ -201,11 +206,11 @@ def quiz_result(request, attempt_id):
         ctx = {
             "attempt": attempt, "done": request.GET.get("done") == "1",
             "better": sat_percentile(attempt), "code": "SAT-%d" % attempt.course_id,
-            "can_review": bool(attempt.answers),
+            "can_review": bool(attempt.answers), "other": other,
         }
         ctx.update(_sat_scores(attempt, payload))
         return render(request, "academy/sat_result.html", ctx)
-    return render(request, "academy/quiz_result.html", {"attempt": attempt})
+    return render(request, "academy/quiz_result.html", {"attempt": attempt, "other": other})
 
 
 def tests_list(request):
